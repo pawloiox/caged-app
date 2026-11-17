@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAGED Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: lesson rail on the left, a workbench whose hero is a playable rosewood fretboard */
+  --bg:#eef1f2;
+  --surface:#ffffff;
+  --surface-2:#f5f7f7;
+  --ink:#14212b;
+  --muted:#55636f;
+  --line:#d4dce0;
+  --accent:#0d6876;
+  --accent-ink:#ffffff;
+  --accent-soft:#d9eef0;
+  --good:#1c8549;
+  --bad:#c0392b;
+  --warn:#a86b12;
+  --c-shape:#cc432d;
+  --a-shape:#f2a922;
+  --g-shape:#23864c;
+  --e-shape:#1f6fc4;
+  --d-shape:#7d47c9;
+  --font-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:12px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1519; --surface:#172027; --surface-2:#1d2830; --ink:#e3eaee; --muted:#94a4af; --line:#2b3842;
+    --accent:#4db7c5; --accent-ink:#05262b; --accent-soft:#153a40; --good:#4cc47f; --bad:#ef6b5a; --warn:#e5a94a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --surface:#172027; --surface-2:#1d2830; --ink:#e3eaee; --muted:#94a4af; --line:#2b3842;
+  --accent:#4db7c5; --accent-ink:#05262b; --accent-soft:#153a40; --good:#4cc47f; --bad:#ef6b5a; --warn:#e5a94a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.6rem,1.1rem + 1.6vw,2.3rem);font-weight:800;letter-spacing:-.01em}
+h1:focus{outline:none}
+h2{font-size:1.3rem;font-weight:600}
+h3{font-size:1.02rem;font-weight:600}
+p{margin:0}
+kbd{font:600 10.5px var(--font-mono);border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:8px;opacity:.6}
+@media (hover:none){ kbd{display:none} }
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Top bar */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 20px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:800 1.15rem var(--font-display)}
+.brand svg{display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);text-decoration:none}
+.chip b{font-weight:600}
+button.chip,a.chip,summary.chip{cursor:pointer}
+button.chip:hover,a.chip:hover,summary.chip:hover{border-color:var(--accent)}
+.chip.timer,.chip.next-up{border-color:var(--accent);color:var(--accent);font-weight:600}
+.settings{position:relative}
+.settings summary{list-style:none}
+.settings summary::-webkit-details-marker{display:none}
+.settings .menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+
+/* Shell */
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:calc(100% - 55px)}
+.side{border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:22px}
+.nav-group{display:flex;flex-direction:column;gap:2px}
+.nav-h{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;text-decoration:none;color:var(--ink);font-weight:500}
+.nav-item:hover{background:var(--surface)}
+.nav-item.on{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+.num{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);font:600 12px var(--font-mono);color:var(--muted)}
+.num.done{background:var(--good);border-color:var(--good);color:#fff}
+.num.icon{border-radius:7px}
+.side-foot{margin-top:auto;font-size:12.5px;color:var(--muted);padding:0 10px}
+main{padding:28px clamp(16px,3vw,40px) 60px;min-width:0;display:flex;flex-direction:column;gap:22px;max-width:1180px}
+
+/* Lesson parts */
+.lesson-head{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.eyebrow{font:600 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);font-size:1.03rem;max-width:65ch}
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.board-wrap{overflow-x:auto;border-radius:12px;background:var(--surface-2);padding:8px 6px;scroll-behavior:smooth;display:flex}
+.fb{display:block;width:100%;height:auto;margin:0 auto;flex:1 0 auto}
+.str-col{display:none;flex:none;width:22px;position:sticky;left:-6px;z-index:2;background:var(--surface-2);margin:0 0 0 -6px}
+.str-col.right{order:2;left:auto;right:-6px;margin:0 -6px 0 0}
+.str-col span{position:absolute;left:0;width:100%;transform:translateY(-50%);text-align:center;font:600 12px var(--font-mono);color:var(--muted)}
+.skip{position:absolute;left:-9999px}
+.skip:focus{position:static}
+.quiz-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.welcome-line{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:12px;padding:10px 14px}
+.welcome-line details{flex:1 1 100%}
+.welcome-line summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.welcome-line ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+@media (max-width: 860px){ .str-col{display:block} .fb .slabel{display:none} }
+.board-wrap.pivot .link-ring{stroke-width:3.6;stroke-opacity:1;animation:none}
+.p5-bar{position:static;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);margin:0 -16px -16px;padding:10px 16px;border-radius:0 0 16px 16px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.bench.playing .p5-bar{position:sticky}
+.p5-now{font:600 14px var(--font-body)}
+.p5-now strong{font:800 1.15rem var(--font-display)}
+.fb .ghost-ring{fill:none;stroke:rgba(255,255,255,.85);stroke-width:1}
+.welcome{border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.welcome ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+
+.btn{display:inline-flex;align-items:center;gap:4px;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;padding:2px;background:var(--surface-2);flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg.keys button{min-width:38px;font-family:var(--font-mono);font-size:13px}
+.shape-btns{display:flex;gap:8px;flex-wrap:wrap}
+.shape-btn{position:relative;width:52px;height:52px;border-radius:12px;border:2px solid var(--sc);background:var(--surface);font:800 1.35rem var(--font-display);cursor:pointer;color:var(--ink)}
+.shape-btn.on{background:var(--sc);color:#fff}
+.shape-btn.on.dark-text{color:#2a1b00}
+.shape-btn .tick{position:absolute;top:-7px;right:-7px;width:19px;height:19px;border-radius:50%;background:var(--good);color:#fff;font:600 11px/19px var(--font-body)}
+.check{display:inline-flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;user-select:none}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.check.disabled{opacity:.55;cursor:default}
+.field{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+input[type=range]{accent-color:var(--accent)}
+output{font-family:var(--font-mono);font-size:13px;min-width:62px}
+.muted{color:var(--muted)}
+.now{display:flex;align-items:center;gap:8px;padding:0 6px;flex-wrap:wrap}
+.shape-pill{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:var(--sc);color:#fff;font:800 13px var(--font-display)}
+.shape-pill.A{color:#2a1b00}
+
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.legend svg{flex:none}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.card ol,.card ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.card p{max-width:65ch}
+.tab{display:inline-grid;grid-template-columns:auto repeat(6,34px);font:600 15px var(--font-mono);border:1px solid var(--line);border-radius:8px;overflow:hidden;align-self:flex-start}
+.tab span{text-align:center;padding:4px 0}
+.tab .h{background:var(--surface-2);color:var(--muted);font-size:12px}
+.tab .rl{font:600 11px var(--font-body);color:var(--muted);text-align:left;padding:4px 8px;background:var(--surface-2)}
+.tab .fg{color:var(--accent)}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{display:inline-grid;place-items:center;min-width:30px;height:28px;padding:0 8px;border-radius:8px;border:1.5px dashed var(--line);font:600 13px var(--font-mono);color:var(--muted)}
+.pchip.done{border-style:solid;border-color:var(--good);color:var(--good)}
+.criteria{list-style:none;padding:0 !important}
+.criteria li{display:flex;gap:8px;align-items:baseline}
+.criteria li::before{content:"○";color:var(--muted);font-weight:600}
+.criteria li.ok::before{content:"✓";color:var(--good)}
+.links{list-style:none;padding:0 !important}
+.links li{display:grid;grid-template-columns:auto auto auto 1fr;gap:8px;align-items:center}
+.next{display:flex;justify-content:flex-end}
+.readout{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.chord-big{font:800 2.3rem/1 var(--font-display)}
+.slider-row{display:flex;flex-direction:column;gap:6px}
+.slider-row input{width:100%}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 10px 10px 0}
+.callout.good{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.drill{border:1px dashed var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.tipbox{font-size:14px}
+
+table.shapes{border-collapse:collapse;font:14px var(--font-mono);width:100%}
+table.shapes th{font-size:11.5px;color:var(--muted);font-weight:600;text-align:center;padding:4px}
+table.shapes td{text-align:center;padding:5px 4px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.shapes tr[data-act]{cursor:pointer}
+table.shapes tr[data-act]:hover td{background:var(--surface-2)}
+table.shapes tr.on td{background:var(--accent-soft)}
+.table-wrap{overflow-x:auto}
+.ring{width:100%;max-width:240px;align-self:center}
+.ring text{font-family:var(--font-display)}
+
+/* Step 5 */
+.chord-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.chord-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;text-align:left}
+.chord-card strong{font:800 1.5rem/1.1 var(--font-display)}
+.chord-card .roman{font:600 12px var(--font-mono);color:var(--muted)}
+.chord-card.on{border-color:var(--sc);box-shadow:0 0 0 3px color-mix(in srgb,var(--sc) 30%,transparent)}
+.chord-card .meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.beats{display:flex;gap:6px;margin:0 6px;align-items:center}
+.beats > span:not(.countin){width:12px;height:12px;border-radius:50%;background:var(--line)}
+.beats > span.on{background:var(--accent)}
+.pattern{display:inline-grid;grid-template-columns:repeat(8,30px);border:1px solid var(--line);border-radius:8px;overflow:hidden;font:600 13px var(--font-mono);text-align:center}
+.pattern span{padding:3px 0}
+.pattern .c{background:var(--surface-2);color:var(--muted);font-size:11px}
+.pattern .on{background:var(--accent);color:var(--accent-ink)}
+.countin{font:800 1.4rem var(--font-display);color:var(--accent);min-width:2ch}
+
+/* Practice */
+.routine{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:16px;align-items:start}
+.timer-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;position:sticky;top:76px}
+.big-time{font:800 3.6rem/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+.blocks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.blocks li{display:grid;grid-template-columns:64px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.blocks li.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.blocks li.done{opacity:.6}
+.blocks li > div{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.mins{font:600 13px var(--font-mono);color:var(--accent)}
+.days{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.days span{aspect-ratio:1;border-radius:4px;background:var(--surface-2);border:1px solid var(--line)}
+.days span.on{background:var(--good);border-color:var(--good)}
+.stat{font:800 2rem/1 var(--font-display)}
+
+/* Train */
+.scorebar{display:flex;gap:18px;flex-wrap:wrap;font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.scorebar b{color:var(--ink)}
+.answers{display:flex;flex-wrap:wrap;gap:10px}
+.answers .shape-btn{width:60px;height:56px}
+.answers .opt{min-width:84px;justify-content:center;font:600 1.1rem var(--font-display);padding:10px 16px}
+.answers .right{border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 35%,transparent)}
+.answers .wrong{border-color:var(--bad);opacity:.8}
+.feedback{min-height:1.5em}
+.feedback.ok{color:var(--good)}
+.feedback.no{color:var(--bad)}
+.mastery{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:28px 1fr 74px;gap:10px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.mbar{height:10px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.mbar span{display:block;height:100%}
+.ear-hidden{display:grid;place-items:center;min-height:140px;border-radius:12px;background:var(--surface-2);color:var(--muted);font-size:14px;text-align:center;padding:16px}
+
+/* Fretboard SVG */
+.fb .wire{stroke:#c9c2b3;stroke-width:2.2}
+.fb .nut{fill:#efe7d4}
+.fb .string{stroke:#e2ddd1}
+.fb .inlay{fill:#e8dfcb;opacity:.45}
+.fb .slabel{fill:var(--muted);font:600 12px var(--font-mono);text-anchor:middle}
+.fb .fnum{fill:var(--muted);font:11px var(--font-mono);text-anchor:middle}
+.fb .fnum.mk{fill:var(--ink);font-weight:600}
+.fb .hit{fill:transparent;cursor:pointer}
+.fb .hit:hover{fill:rgba(255,255,255,.07)}
+.fb .hit:focus{outline:none}
+.fb .hit:focus-visible{fill:rgba(255,255,255,.16);stroke:#ffd27a;stroke-width:2.5}
+.fb .dot{cursor:pointer}
+.fb .dfill{stroke:rgba(0,0,0,.35);stroke-width:1}
+.fb .rootring{fill:none;stroke:#fff;stroke-width:2.6}
+.fb .dlabel{font:600 11px var(--font-body);text-anchor:middle;pointer-events:none}
+.fb .dot.dim{opacity:.4}
+.fb .dot.dim .rootring{stroke-width:1.5}
+.fb .link-ring{fill:none;stroke:#fff;stroke-width:2;stroke-dasharray:4 3;animation:linkpulse 1.6s ease-in-out infinite}
+.fb .third-ring{fill:none;stroke:#ffd27a;stroke-width:2.2}
+.fb .dot.flash .dfill{animation:flash .4s ease-out}
+.fb .dot .dfill{transform-box:fill-box;transform-origin:center}
+.fb .ghost{fill:rgba(20,10,5,.62);stroke-width:1.8}
+.fb .ghost.next{fill:rgba(20,10,5,.45);stroke-width:2.6}
+.fb .glabel{fill:#f3ecdc;font:600 10.5px var(--font-body);text-anchor:middle;pointer-events:none}
+#p5-board.soon .ghost.next{stroke-width:3.6;animation:linkpulse .5s ease-in-out infinite}
+.fb .zone{cursor:pointer}
+.fb .zone rect{opacity:.32}
+.fb .zone:hover rect,.fb .zone:focus-visible rect{opacity:.6}
+.fb .zone:focus{outline:none}
+.fb .zone:focus-visible rect{stroke:var(--ink);stroke-width:2}
+.fb .zone.active rect{opacity:1}
+.fb .zone text{font:700 10.5px var(--font-display);text-anchor:middle;pointer-events:none}
+.fb .zone:not(.active) text{fill:var(--ink) !important}
+.fb .muted-x{fill:var(--ink);font:600 15px var(--font-mono);text-anchor:middle}
+.fb .muted-x.onboard{fill:#f3ecdc}
+.fb .dot.anchor .dfill{stroke:#f3ecdc;stroke-width:1.8;stroke-opacity:.9}
+.fb .barre{fill:rgba(255,255,255,.18);stroke:rgba(255,255,255,.55);stroke-width:1.5}
+.fb .band{fill:rgba(255,206,110,.10);stroke:#f1bf55;stroke-width:2}
+.fb .band-label{fill:var(--warn);font:700 11px var(--font-body);text-anchor:middle}
+.fb .dot.sel .dfill{stroke:#fff;stroke-width:3.2}
+@keyframes flash{0%{transform:scale(1.45)}100%{transform:scale(1)}}
+@keyframes linkpulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.25}}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:50;max-width:calc(100% - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width: 860px){
+  .app{grid-template-columns:1fr}
+  .side{border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;flex-direction:row;overflow-x:auto;gap:14px}
+  .nav-group{flex-direction:row;align-items:center;gap:4px}
+  .nav-h{display:none}
+  .nav-item{white-space:nowrap;padding:6px 10px}
+  .side-foot{display:none}
+  .routine{grid-template-columns:1fr}
+  .timer-card{position:static}
+  .topbar{padding:8px 14px}
+  .chip.opt{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<button type="button" class="skip btn" id="skip-board">Skip to the fretboard</button>
+<header class="topbar">
+  <a class="brand" href="#step-1" aria-label="CAGED Lab home">
+    <svg width="58" height="18" viewBox="0 0 58 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="var(--c-shape)"/><circle cx="19" cy="9" r="7" fill="var(--a-shape)"/><circle cx="29" cy="9" r="7" fill="var(--g-shape)"/><circle cx="39" cy="9" r="7" fill="var(--e-shape)"/><circle cx="49" cy="9" r="7" fill="var(--d-shape)"/></svg>
+    <span>CAGED Lab</span>
+  </a>
+  <div class="chips">
+    <button type="button" class="chip timer" id="chip-timer" hidden></button>
+    <a class="chip next-up opt" id="chip-next" href="#step-1"></a>
+    <span class="chip opt" id="chip-streak"></span>
+    <span class="chip" id="chip-xp"></span>
+    <button type="button" class="chip" id="btn-sound" aria-pressed="true"></button>
+    <details class="settings" id="settings">
+      <summary class="chip">View</summary>
+      <div class="menu">
+        <label class="check"><input type="checkbox" id="opt-lefty"> Left-handed neck</label>
+        <label class="check"><input type="checkbox" id="opt-lowtop"> Low E string on top</label>
+      </div>
+    </details>
+  </div>
+</header>
+<div class="app">
+  <nav class="side" aria-label="Lessons and tools">
+    <div id="nav" style="display:contents"></div>
+    <p class="side-foot">Standard tuning E A D G B E. Space strums, A arpeggiates, arrow keys move between shapes. Tab into the fretboard and use the arrow keys to walk the frets.</p>
+  </nav>
+  <main id="view" tabindex="-1"></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="sr" class="sr-only" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ================= Storage ================= */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('caged-lab:' + k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('caged-lab:' + k, JSON.stringify(v)); }catch(e){} }
+};
+const progress = Object.assign({steps:{}, xp:0, days:[], seen:{}, best:0, stats:{}, drills:{}}, store.get('progress', {}));
+Object.values(progress.stats).forEach(st => { if(st.last == null){ st.last = Date.now(); st.box = st.r > st.w ? 1 : 0; } });
+const prefs = Object.assign({labels:'iv', lefty:false, lowTop:false, welcomed:false}, store.get('prefs', {}));
+function saveProgress(){ store.set('progress', progress); renderChips(); }
+function savePrefs(){ store.set('prefs', prefs); }
+
+/* ================= Helpers ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rand = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmtTime = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function todayStr(d = new Date()){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+const ordinal = k => k + (k === 1 ? 'st' : k === 2 ? 'nd' : k === 3 ? 'rd' : 'th');
+
+/* ================= Music theory ================= */
+const OPEN = [40, 45, 50, 55, 59, 64];            // MIDI: low E, A, D, G, B, high e
+const STRING_LABEL = ['E', 'A', 'D', 'G', 'B', 'e'];
+const STRING_NAME = ['low E', 'A', 'D', 'G', 'B', 'high e'];
+const ORDER = ['C', 'A', 'G', 'E', 'D'];
+const SHAPE_PC = {C:0, A:9, G:7, E:4, D:2};
+const MAX_FRET = 15;
+// Every shape written for a C chord (low E → high e). null = muted string.
+const SHAPES = {
+  major: { C:[null,3,2,0,1,0], A:[null,3,5,5,5,3], G:[8,7,5,5,5,8], E:[8,10,10,9,8,8], D:[null,null,10,12,13,12] },
+  minor: { C:[null,3,1,0,1,null], A:[null,3,5,5,4,3], G:[8,6,5,5,4,8], E:[8,10,10,8,8,8], D:[null,null,10,12,13,11] }
+};
+// Fretting-hand fingers (1 index … 4 pinky), low E → high e. Movable versions, then open chords.
+const FINGERS = {
+  major: { C:[null,4,3,1,2,1], A:[null,1,2,3,4,1], G:[3,2,1,1,1,4], E:[1,3,4,2,1,1], D:[null,null,1,2,4,3] },
+  minor: { C:[null,4,2,1,3,null], A:[null,1,3,4,2,1], G:[null,null,2,3,1,null], E:[1,3,4,1,1,1], D:[null,null,1,3,4,2] }
+};
+const OPEN_FINGERS = {
+  major: { C:[null,3,2,0,1,0], A:[null,0,1,2,3,0], G:[2,1,0,0,0,3], E:[0,2,3,1,0,0], D:[null,null,0,1,3,2] },
+  minor: { C:[null,3,1,0,2,null], A:[null,0,2,3,1,0], G:[3,2,1,1,0,4], E:[0,2,3,0,0,0], D:[null,null,0,2,3,1] }
+};
+// Fingers for partial voicings of the movable shapes, keyed by the strings played (0 = low E).
+const PART_FINGERS = {
+  major: { E:{'2345':[3,2,1,1], '345':[2,1,1]}, A:{'345':[2,3,1]}, C:{'2345':[3,1,2,1], '345':[1,2,1]}, G:{'234':[1,1,1]}, D:{'345':[1,3,2]} },
+  minor: { E:{'2345':[3,1,1,1], '345':[1,1,1]}, A:{'2345':[3,4,2,1], '345':[3,2,1]}, C:{'234':[2,1,3]}, G:{}, D:{'345':[2,3,1]} }
+};
+// String sets (0 = low E). Easy = the fragment most players actually use; tri = a full three-note triad.
+const EASY = { major:{C:[1,2,3,4,5], A:[2,3,4,5], G:[2,3,4,5], E:[2,3,4,5], D:[3,4,5]}, minor:{C:[1,2,3,4], A:[2,3,4,5], G:[2,3,4], E:[2,3,4,5], D:[3,4,5]} };
+const TRI  = { major:{C:[3,4,5], A:[3,4,5], G:[2,3,4], E:[3,4,5], D:[3,4,5]}, minor:{C:[2,3,4], A:[3,4,5], G:[2,3,4], E:[3,4,5], D:[3,4,5]} };
+function stringsFor(voicing, inst){
+  if(voicing === 'easy') return inst.minF === 0 ? null : EASY[inst.q][inst.shape];
+  if(voicing === 'top4') return inst.minF === 0 ? null : inst.q === 'minor' && inst.shape === 'C' ? [1, 2, 3, 4] : inst.q === 'minor' && inst.shape === 'G' ? [2, 3, 4] : [2, 3, 4, 5];
+  if(voicing === 'tri') return TRI[inst.q][inst.shape];
+  return null;
+}
+const VOICE_OPTS = [['full', 'Full'], ['easy', 'Easy'], ['top4', '4 strings'], ['tri', 'Triads']];
+const SHAPE_TIPS = {
+  E:'Full: fingers 1-3-4-2-1-1 (minor 1-3-4-1-1-1), barring with the bony side of your index finger. Easy: just the top four strings, fingers 3-2-1-1 (minor 3-1-1-1). The root sits under the barre on the low E string.',
+  A:'Full: x-1-2-3-4-1, or barre the D, G and B strings with your ring finger (x-1-3-3-3-x) and let it mute the high e. Minor: x-1-3-4-2-1. The root is under your index finger on the A string.',
+  C:'Fingers x-4-3-1-2-1, index barring the G and high e strings. Mute the low E with the tip of your pinky. The root is under finger 4, three frets above your index finger.',
+  G:'The full shape (3-2-1-1-1-4) is a big stretch, so start with the Easy version: index barre on D, G and B plus pinky on high e (x-x-1-1-1-4). Minor: x-x-2-3-1-x. The root is on the G string under your index finger, and three frets above it on the low and high E strings.',
+  D:'Full: x-x-1-2-4-3 (minor x-x-1-3-4-2). Easy: the top three strings, fingers 1-3-2 (minor 2-3-1). Don\'t strum the low E and A strings. The root is on the D string under your index finger.'
+};
+const THIRD_WHERE = {E:'G string', A:'B string', C:'D string (and the high e in major)', G:'A and B strings', D:'high e string'};
+const MAJOR_NAMES = ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const MINOR_NAMES = ['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
+const BOTH_NAMES = ['C','C♯/D♭','D','D♯/E♭','E','F','F♯/G♭','G','G♯/A♭','A','A♯/B♭','B'];
+const keyName = (pc, q) => (q === 'minor' ? MINOR_NAMES : MAJOR_NAMES)[pc];
+const chordLabel = (pc, q) => keyName(pc, q) + (q === 'minor' ? 'm' : '');
+const chordLong = (pc, q) => keyName(pc, q) + (q === 'minor' ? ' minor' : ' major');
+const rootNameOf = inst => inst.rootName || keyName(inst.keyPc, inst.q);
+const LETTERS = 'CDEFGAB', LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+const IV_INFO = {0:{lab:'R',deg:0}, 1:{lab:'♭2',deg:1}, 2:{lab:'2',deg:1}, 3:{lab:'♭3',deg:2}, 4:{lab:'3',deg:2}, 5:{lab:'4',deg:3}, 6:{lab:'♭5',deg:4}, 7:{lab:'5',deg:4}, 8:{lab:'♭6',deg:5}, 9:{lab:'6',deg:5}, 10:{lab:'♭7',deg:6}, 11:{lab:'7',deg:6}};
+const PENT = {major:[0, 2, 4, 7, 9], minor:[0, 3, 5, 7, 10]};
+const ACC = {'-2':'𝄫', '-1':'♭', '0':'', '1':'♯', '2':'𝄪'};
+function spell(rootName, iv){
+  const info = IV_INFO[iv]; const L = LETTERS.indexOf(rootName[0]);
+  const acc = rootName.includes('♯') ? 1 : rootName.includes('♭') ? -1 : 0;
+  const rootPc = (LETTER_PC[L] + acc + 12) % 12;
+  const pc = (rootPc + iv) % 12;
+  if(!info) return MAJOR_NAMES[pc];
+  const li = (L + info.deg) % 7;
+  let d = ((pc - LETTER_PC[li]) % 12 + 12) % 12; if(d > 6) d -= 12;
+  return LETTERS[li] + ACC[String(d)];
+}
+function fingerOf(inst, s, strings){
+  if(inst.minF !== 0 && strings){
+    const part = PART_FINGERS[inst.q][inst.shape][strings.join('')];
+    if(part){ const i = strings.indexOf(s); return i >= 0 && part[i] != null ? String(part[i]) : ''; }
+  }
+  const table = (inst.minF === 0 ? OPEN_FINGERS : FINGERS)[inst.q][inst.shape];
+  if(!table) return '';
+  const v = table[s]; return v == null ? '' : v === 0 ? '○' : String(v);
+}
+function dotLabel(iv, inst, s, strings){
+  if(prefs.labels === 'iv') return IV_INFO[iv] ? IV_INFO[iv].lab : '';
+  if(prefs.labels === 'note') return spell(rootNameOf(inst), iv);
+  if(prefs.labels === 'finger') return fingerOf(inst, s, strings);
+  if(prefs.labels === 'shape') return inst.shape;
+  return '';
+}
+function normalize(frets){
+  let out = frets.slice(); let m = Math.min(...out.filter(f => f != null));
+  while(m - 12 >= 0){ out = out.map(f => f == null ? null : f - 12); m -= 12; }
+  return out;
+}
+const shapeFrets = (shape, q, keyPc) => normalize(SHAPES[q][shape].map(f => f == null ? null : f + keyPc));
+function makeInstance(shape, q, keyPc, frets){
+  const played = frets.filter(f => f != null);
+  return {shape, q, keyPc, frets, minF:Math.min(...played), maxF:Math.max(...played)};
+}
+function instances(keyPc, q, maxFret = MAX_FRET){
+  const list = [];
+  for(const s of ORDER){
+    const base = shapeFrets(s, q, keyPc);
+    for(const o of [0, 12, 24]){
+      const inst = makeInstance(s, q, keyPc, base.map(f => f == null ? null : f + o));
+      if(inst.maxF <= maxFret) list.push(inst);
+    }
+  }
+  return list.sort((a, b) => a.minF - b.minF || a.maxF - b.maxF);
+}
+function notesOf(inst, strings){
+  const out = [];
+  inst.frets.forEach((f, s) => {
+    if(f == null || (strings && !strings.includes(s))) return;
+    const midi = OPEN[s] + f;
+    out.push({s, f, midi, iv:((midi - inst.keyPc) % 12 + 12) % 12});
+  });
+  return out;
+}
+const rootsOf = inst => notesOf(inst).filter(n => n.iv === 0);
+function sharedRoots(a, b){
+  const rb = new Set(rootsOf(b).map(n => n.s + ':' + n.f));
+  return rootsOf(a).filter(n => rb.has(n.s + ':' + n.f));
+}
+const posName = (s, f) => `${STRING_NAME[s]} string, ${f === 0 ? 'open' : 'fret ' + f}`;
+// Pentatonic box: on each string, the pair of neighbouring scale notes closest to the shape's centre.
+// On an exact tie, take the pair that sits closer to the box's other strings.
+function pentBox(inst){
+  const c = (inst.minF + inst.maxF) / 2; const set = PENT[inst.q]; const pairs = [];
+  for(let s = 0; s < 6; s++){
+    const fs = []; for(let f = 0; f <= MAX_FRET + 2; f++) if(set.includes(((OPEN[s] + f - inst.keyPc) % 12 + 12) % 12)) fs.push(f);
+    const opts = []; for(let i = 0; i < fs.length - 1; i++) opts.push([fs[i], fs[i + 1]]);
+    opts.sort((a, b) => Math.abs((a[0] + a[1]) / 2 - c) - Math.abs((b[0] + b[1]) / 2 - c));
+    pairs.push(opts.filter(o => Math.abs(Math.abs((o[0] + o[1]) / 2 - c) - Math.abs((opts[0][0] + opts[0][1]) / 2 - c)) < 1e-9));
+  }
+  const chosen = pairs.map(p => p[0]);
+  for(let s = 0; s < 6; s++) if(pairs[s].length > 1){
+    const others = chosen.filter((_, i) => i !== s).flat(); const lo = Math.min(...others), hi = Math.max(...others);
+    chosen[s] = pairs[s].slice().sort((a, b) => (Math.max(hi, a[1]) - Math.min(lo, a[0])) - (Math.max(hi, b[1]) - Math.min(lo, b[0])))[0];
+  }
+  const out = [];
+  chosen.forEach((p, s) => p.forEach(f => { if(f <= MAX_FRET) out.push({s, f, iv:((OPEN[s] + f - inst.keyPc) % 12 + 12) % 12}); }));
+  return out;
+}
+const COL = {C:'var(--c-shape)', A:'var(--a-shape)', G:'var(--g-shape)', E:'var(--e-shape)', D:'var(--d-shape)'};
+const DARK = '#2a1b00';
+const textFor = shape => shape === 'A' ? DARK : '#fff';
+// Progression planner: stays in the zone, prefers playable shapes and small stretches, and keeps hand movement small.
+const DIFF = {full:{E:0, A:0, C:0.4, D:0.5, G:4}, easy:{E:0, A:0, C:0.25, D:0.2, G:0.3}, top4:{E:0, A:0, C:0.15, D:0.15, G:0.2}, tri:{E:0, A:0, C:0, D:0, G:0.1}};
+function planProgression(chords, zone, voicing){
+  const zc = (zone.lo + zone.hi) / 2;
+  const cands = chords.map(ch => {
+    const list = instances(ch.pc, ch.q).map(inst => {
+      const notes = notesOf(inst, stringsFor(voicing, inst)); if(notes.length < 3) return null;
+      const fretted = notes.filter(n => n.f > 0).map(n => n.f); const fs = notes.map(n => n.f);
+      const lo = Math.min(...fs), hi = Math.max(...fs);
+      const span = fretted.length ? Math.max(...fretted) - Math.min(...fretted) : 0;
+      const diff = inst.minF === 0 ? 0 : DIFF[voicing][inst.shape];
+      const c = fretted.length ? (Math.min(...fretted) + Math.max(...fretted)) / 2 : 0.5;
+      return {inst, notes, lo, hi, c, cost:2 * (Math.max(0, zone.lo - lo) + Math.max(0, hi - zone.hi)) + 3 * Math.max(0, span - 3) + diff + 0.05 * Math.abs((lo + hi) / 2 - zc)};
+    }).filter(Boolean);
+    return list.length ? list : instances(ch.pc, ch.q).map(inst => { const notes = notesOf(inst); const fs = notes.map(n => n.f); return {inst, notes, lo:Math.min(...fs), hi:Math.max(...fs), c:(inst.minF + inst.maxF) / 2, cost:99}; });
+  });
+  // Cyclic dynamic programme: fix the first chord's choice, walk forward, close the loop.
+  const n = cands.length; let best = null, bc = Infinity;
+  for(const first of cands[0]){
+    let costs = [first.cost], back = [[null]];
+    let prevList = [first];
+    for(let i = 1; i < n; i++){
+      const cur = cands[i]; const nc = [], nb = [];
+      cur.forEach(c => {
+        let m = Infinity, arg = 0;
+        prevList.forEach((p, j) => { const v = costs[j] + 0.25 * Math.abs(p.c - c.c); if(v < m){ m = v; arg = j; } });
+        nc.push(m + c.cost); nb.push(arg);
+      });
+      back.push(nb); costs = nc; prevList = cur;
+    }
+    let endJ = 0, endV = Infinity;
+    prevList.forEach((p, j) => { const v = costs[j] + (n > 1 ? 0.25 * Math.abs(p.c - first.c) : 0); if(v < endV){ endV = v; endJ = j; } });
+    if(endV < bc){
+      bc = endV; const path = new Array(n); let j = endJ;
+      for(let i = n - 1; i >= 1; i--){ path[i] = cands[i][j]; j = back[i][j]; }
+      path[0] = first; best = path;
+    }
+  }
+  return best;
+}
+
+/* ================= Audio: Karplus-Strong plucked string ================= */
+const audio = {ctx:null, out:null, muted:store.get('muted', false), voices:[], cache:new Map()};
+function impulse(ctx, sec){
+  const len = Math.floor(ctx.sampleRate * sec); const b = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let c = 0; c < 2; c++){ const d = b.getChannelData(c); for(let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+  return b;
+}
+function ac(){
+  if(!audio.ctx){
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return null;
+    try{
+      const ctx = new C();
+      const out = ctx.createGain(); out.gain.value = audio.muted ? 0 : 0.9;
+      const body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 210; body.Q.value = 0.9; body.gain.value = 4;
+      const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 5200;
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
+      const verb = ctx.createConvolver(); verb.buffer = impulse(ctx, 1.5);
+      const wet = ctx.createGain(); wet.gain.value = 0.16;
+      out.connect(body); body.connect(tone); tone.connect(comp); tone.connect(verb); verb.connect(wet); wet.connect(comp); comp.connect(ctx.destination);
+      audio.ctx = ctx; audio.out = out;
+    }catch(e){ return null; }
+  }
+  if(audio.ctx.state === 'suspended') audio.ctx.resume().catch(() => {});
+  return audio.ctx;
+}
+function pluck(midi){
+  const key = midi;
+  if(audio.cache.has(key)) return audio.cache.get(key);
+  const ctx = audio.ctx, sr = ctx.sampleRate;
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const T60 = Math.max(1.2, 3.4 - (midi - 40) * 0.05);
+  const len = Math.floor(sr * Math.min(3.4, T60 + 0.3));
+  const buf = ctx.createBuffer(1, len, sr); const out = buf.getChannelData(0);
+  const N = Math.max(2, Math.round(sr / f - 0.5));
+  const ring = new Float32Array(N);
+  for(let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
+  for(let p = 0; p < 2; p++){ let prev = ring[N - 1]; for(let i = 0; i < N; i++){ const c = ring[i]; ring[i] = (c + prev) * 0.5; prev = c; } }
+  let mean = 0; for(let i = 0; i < N; i++) mean += ring[i]; mean /= N; for(let i = 0; i < N; i++) ring[i] -= mean;
+  const g = Math.pow(0.001, 1 / (f * T60));
+  let idx = 0, peak = 0;
+  for(let n = 0; n < len; n++){
+    const a = ring[idx]; const nx = idx + 1 === N ? 0 : idx + 1;
+    out[n] = a; ring[idx] = g * 0.5 * (a + ring[nx]); idx = nx;
+    const v = Math.abs(a); if(v > peak) peak = v;
+  }
+  const norm = 0.3 / (peak || 1); const fade = Math.floor(sr * 0.08);
+  for(let n = 0; n < len; n++){ let m = norm; if(n > len - fade) m *= (len - n) / fade; out[n] *= m; }
+  audio.cache.set(key, buf); return buf;
+}
+function playNote(midi, when, vel = 0.8, s = null){
+  const ctx = ac(); if(!ctx) return;
+  const t = Math.max(ctx.currentTime, when || ctx.currentTime);
+  const src = ctx.createBufferSource(); src.buffer = pluck(midi);
+  if(src.detune) src.detune.value = (Math.random() - 0.5) * 6;
+  const g = ctx.createGain(); g.gain.value = vel;
+  src.connect(g); g.connect(audio.out); src.start(t);
+  if(s != null){
+    const prev = audio.voices[s];
+    if(prev){ try{ prev.g.gain.setTargetAtTime(0, t, 0.015); prev.src.stop(t + 0.15); }catch(e){} }
+    audio.voices[s] = {src, g};
+  }
+}
+function flashAt(n, when){
+  const ctx = audio.ctx; const delay = ctx ? Math.max(0, (when - ctx.currentTime) * 1000) : 0;
+  setTimeout(() => {
+    document.querySelectorAll(`#view .dot[data-s="${n.s}"][data-f="${n.f}"]`).forEach(el => {
+      el.classList.remove('flash'); el.getBoundingClientRect(); el.classList.add('flash');
+    });
+  }, delay);
+}
+function strum(notes, opt = {}){
+  const ctx = ac(); if(!ctx || !notes.length) return;
+  const t0 = opt.when ?? ctx.currentTime + 0.03; const down = opt.down !== false;
+  const gap = opt.gap ?? 0.028; const vel = opt.vel ?? 0.75;
+  const ordered = [...notes].sort((a, b) => down ? a.s - b.s : b.s - a.s);
+  ordered.forEach((n, i) => { playNote(n.midi, t0 + i * gap, vel * (1 - i * 0.035), n.s); flashAt(n, t0 + i * gap); });
+}
+function arpeggio(notes, step = 0.22){
+  const ctx = ac(); if(!ctx) return;
+  const t0 = ctx.currentTime + 0.03;
+  [...notes].sort((a, b) => a.midi - b.midi).forEach((n, i) => { playNote(n.midi, t0 + i * step, 0.8, n.s); flashAt(n, t0 + i * step); });
+}
+function playOne(s, f){ const ctx = ac(); playNote(OPEN[s] + f, 0, 0.85, s); if(ctx) flashAt({s, f}, ctx.currentTime); }
+function tone(freq, when, dur, vol, type = 'sine'){
+  const ctx = ac(); if(!ctx) return;
+  const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(vol, when + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+  o.connect(g); g.connect(audio.out); o.start(when); o.stop(when + dur + 0.02);
+}
+const click = (t, accent) => tone(accent ? 1500 : 1000, t, 0.04, accent ? 0.16 : 0.1, 'square');
+function chime(){ const ctx = ac(); if(!ctx) return; const t = ctx.currentTime + 0.02; tone(659.3, t, 0.6, 0.25); tone(987.8, t + 0.16, 0.9, 0.22); }
+function setMuted(m){
+  audio.muted = m; store.set('muted', m);
+  if(audio.out) audio.out.gain.setTargetAtTime(m ? 0 : 0.9, audio.ctx.currentTime, 0.02);
+  renderChips();
+}
+/* A beat clock on the AudioContext timeline: schedules ahead, then hands each beat to the UI when it sounds. */
+const clock = {timer:null, raf:0, next:0, n:0, queue:[], bpm:80, sched:null, ui:null, ending:false};
+function clockStart(bpm, sched, ui){
+  const ctx = ac(); if(!ctx){ toast('Audio is not available in this browser.'); return false; }
+  clockStop(); Object.assign(clock, {bpm, sched, ui, n:0, queue:[], ending:false, next:ctx.currentTime + 0.15});
+  clock.timer = setInterval(clockTick, 25); clock.raf = requestAnimationFrame(clockUI); return true;
+}
+function clockTick(){
+  const ctx = audio.ctx;
+  while(!clock.ending && clock.next < ctx.currentTime + 0.2){
+    const payload = clock.sched(clock.next, clock.n);
+    clock.queue.push({t:clock.next, payload});
+    if(payload && payload.end){ clock.ending = true; clearInterval(clock.timer); clock.timer = null; break; }
+    clock.n++; clock.next += 60 / clock.bpm;
+  }
+}
+function clockUI(){
+  const ctx = audio.ctx;
+  while(clock.queue.length && clock.queue[0].t <= ctx.currentTime){ const e = clock.queue.shift(); if(clock.ui) clock.ui(e.payload); }
+  if(clock.timer || clock.queue.length) clock.raf = requestAnimationFrame(clockUI);
+}
+function clockStop(){ clearInterval(clock.timer); clock.timer = null; cancelAnimationFrame(clock.raf); clock.queue = []; clock.ending = false; }
+
+/* ================= Fretboard renderer ================= */
+let boardSeq = 0;
+let boardFocus = null;
+function slicePath(cx, cy, r, a0, a1){
+  const p = a => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${cx} ${cy}L${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}Z`;
+}
+function board(cfg){
+  const from = cfg.from ?? 0, to = cfg.to ?? MAX_FRET;
+  const first = from === 0 ? 1 : from;
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 600;
+  const cw = cfg.cw || 54, left = 64, sp = narrow ? 36 : 28;
+  const top = 26 + (cfg.zones && cfg.zones.length ? 36 : 0) + (cfg.band ? 8 : 0);
+  const cells = to - first + 1;
+  const W = left + cells * cw + 14, H = top + 5 * sp + 34;
+  const flipX = prefs.lefty, flipY = prefs.lowTop;
+  const PX = x => +(flipX ? W - x : x).toFixed(2);
+  const RX = (x, w) => +(flipX ? W - x - w : x).toFixed(2);
+  const X = f => f === 0 ? left - 24 : left + (f - first + 0.5) * cw;
+  const Y = s => top + (flipY ? s : 5 - s) * sp;
+  const yHi = Math.min(Y(0), Y(5)), yLo = Math.max(Y(0), Y(5));
+  const boardEnd = left + cells * cw;
+  const SW = [2.7, 2.2, 1.8, 1.4, 1.05, 0.85];
+  const id = 'w' + (++boardSeq);
+  let o = `<svg class="fb" viewBox="0 0 ${W} ${H}" style="max-width:${Math.round(W * 1.3)}px;min-width:${cells <= 6 ? 0 : Math.min(W, 720)}px" role="group" aria-label="${esc(cfg.label || 'Guitar fretboard')}">`;
+  o += `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a2c1c"/><stop offset=".5" stop-color="#3a2216"/><stop offset="1" stop-color="#2c1910"/></linearGradient></defs>`;
+  if(cfg.zones) cfg.zones.forEach((z, i) => {
+    const x1 = z.lo === 0 ? left - 40 : left + (z.lo - first) * cw + 3;
+    const x2 = left + (z.hi - first + 1) * cw - 3; const y = 6 + (i % 2) * 18;
+    o += `<g class="zone${z.active ? ' active' : ''}" data-zone="${z.id}" tabindex="0" role="button" aria-label="${z.label}-shape, frets ${z.lo} to ${z.hi}"><rect x="${RX(x1, x2 - x1)}" y="${y}" width="${x2 - x1}" height="15" rx="7.5" style="fill:${z.color}"/><text x="${PX((x1 + x2) / 2)}" y="${y + 11.3}" style="fill:${z.label === 'A' ? DARK : '#fff'}">${z.label}-shape</text></g>`;
+  });
+  o += `<rect x="${RX(left, cells * cw)}" y="${yHi - 13}" width="${cells * cw}" height="${5 * sp + 26}" rx="3" fill="url(#${id})"/>`;
+  for(const f of [3, 5, 7, 9, 15, 17]) if(f >= first && f <= to) o += `<circle cx="${PX(X(f))}" cy="${top + 2.5 * sp}" r="4" class="inlay"/>`;
+  if(12 >= first && 12 <= to) o += `<circle cx="${PX(X(12))}" cy="${top + 1.5 * sp}" r="4" class="inlay"/><circle cx="${PX(X(12))}" cy="${top + 3.5 * sp}" r="4" class="inlay"/>`;
+  if(cfg.band){
+    const b = cfg.band; const x1 = b.lo === 0 ? left - 44 : left + (Math.max(b.lo, first) - first) * cw; const x2 = left + (Math.min(b.hi, to) - first + 1) * cw;
+    o += `<rect x="${RX(x1, x2 - x1)}" y="${yHi - 17}" width="${x2 - x1}" height="${5 * sp + 34}" rx="8" class="band"/><text x="${PX((x1 + x2) / 2)}" y="${yHi - 22}" class="band-label">${esc(b.label || 'Your zone')}</text>`;
+  }
+  for(let f = first; f <= to; f++){ const x = PX(left + (f - first + 1) * cw); o += `<line x1="${x}" y1="${yHi - 13}" x2="${x}" y2="${yLo + 13}" class="wire"/>`; }
+  if(from === 0) o += `<rect x="${RX(left - 5, 7)}" y="${yHi - 15}" width="7" height="${5 * sp + 30}" rx="2" class="nut"/>`;
+  else o += `<line x1="${PX(left)}" y1="${yHi - 13}" x2="${PX(left)}" y2="${yLo + 13}" class="wire"/>`;
+  for(let s = 0; s < 6; s++){
+    o += `<line x1="${PX(from === 0 ? left - 44 : left)}" y1="${Y(s)}" x2="${PX(boardEnd)}" y2="${Y(s)}" class="string" style="stroke-width:${SW[s]}"/>`;
+    o += `<text x="${PX(12)}" y="${Y(s) + 4}" class="slabel">${STRING_LABEL[s]}</text>`;
+  }
+  for(let f = first; f <= to; f++) o += `<text x="${PX(X(f))}" y="${yLo + 30}" class="fnum${[3, 5, 7, 9, 12, 15].includes(f) ? ' mk' : ''}">${f}</text>`;
+  if(cfg.clickable !== false){
+    const fMin = from === 0 ? 0 : first;
+    let fc = boardFocus && boardFocus.f >= fMin && boardFocus.f <= to ? boardFocus : null;
+    if(!fc){ const r = (cfg.dots || []).find(d => d.root && !d.dim) || (cfg.dots || [])[0]; fc = r ? {s:r.s, f:r.f} : {s:0, f:fMin}; }
+    for(let s = 0; s < 6; s++) for(let f = fMin; f <= to; f++){
+      const x0 = f === 0 ? left - 44 : left + (f - first) * cw; const w = f === 0 ? 39 : cw;
+      const name = cfg.cellLabel ? cfg.cellLabel(s, f) : BOTH_NAMES[(OPEN[s] + f) % 12];
+      o += `<rect class="hit" x="${RX(x0, w)}" y="${Y(s) - sp / 2}" width="${w}" height="${sp}" data-s="${s}" data-f="${f}" role="button" tabindex="${fc.s === s && fc.f === f ? 0 : -1}" aria-label="${esc(posName(s, f) + ', ' + name)}"/>`;
+    }
+  }
+  if(cfg.barre){
+    const b = cfg.barre; const y1 = Math.min(Y(b.s1), Y(b.s2)), y2 = Math.max(Y(b.s1), Y(b.s2));
+    o += `<rect class="barre" x="${RX(X(b.f) - 9, 18)}" y="${y1 - 13}" width="18" height="${y2 - y1 + 26}" rx="9"/>`;
+  }
+  (cfg.muted || []).forEach(m => { const ms = typeof m === 'object' ? m.s : m, mf = typeof m === 'object' ? m.f : 0; o += `<text x="${PX(mf === 0 ? left - 24 : X(mf))}" y="${Y(ms) + 5}" class="muted-x${mf ? ' onboard' : ''}">×</text>`; });
+  (cfg.ghosts || []).forEach(g => {
+    const r = g.r || 8.5;
+    o += `<g class="ghost-g" data-s="${g.s}" data-f="${g.f}"><circle cx="${PX(X(g.f))}" cy="${Y(g.s)}" r="${r}" class="ghost${g.cls ? ' ' + g.cls : ''}" style="stroke:${g.color}"/>${g.cls === 'next' || g.cls === 'anchor' ? `<circle cx="${PX(X(g.f))}" cy="${Y(g.s)}" r="${r - 2.3}" class="ghost-ring"/>` : ''}${g.label ? `<text x="${PX(X(g.f))}" y="${Y(g.s) + 3.4}" class="glabel">${esc(g.label)}</text>` : ''}</g>`;
+  });
+  const dots = [...(cfg.dots || [])].sort((a, b) => (b.dim ? 1 : 0) - (a.dim ? 1 : 0));
+  dots.forEach(d => {
+    const cx = PX(X(d.f)), cy = Y(d.s), r = d.root ? 12 : 11;
+    let g = `<g class="dot${d.root ? ' root' : ''}${d.dim ? ' dim' : ''}${d.cls ? ' ' + d.cls : ''}" data-s="${d.s}" data-f="${d.f}">`;
+    if(d.ring) g += `<circle cx="${cx}" cy="${cy}" r="${r + 5.5}" class="link-ring"/>`;
+    if(d.third) g += `<circle cx="${cx}" cy="${cy}" r="${r + 4.5}" class="third-ring"/>`;
+    const cols = d.colors;
+    if(cols.length <= 1) g += `<circle cx="${cx}" cy="${cy}" r="${r}" class="dfill" style="fill:${cols[0]}"/>`;
+    else { g += `<g class="dfill">`; const step = 2 * Math.PI / cols.length; cols.forEach((c, i) => { g += `<path d="${slicePath(cx, cy, r, -Math.PI / 2 + i * step, -Math.PI / 2 + (i + 1) * step)}" style="fill:${c}"/>`; }); g += `</g>`; }
+    if(d.root) g += `<circle cx="${cx}" cy="${cy}" r="${r + 1.6}" class="rootring"/>`;
+    if(d.label) g += `<text x="${cx}" y="${cy + 3.9}" class="dlabel" style="fill:${d.text || '#fff'}">${esc(d.label)}</text>`;
+    o += g + '</g>';
+  });
+  const col = `<div class="str-col${flipX ? ' right' : ''}" aria-hidden="true">${[0, 1, 2, 3, 4, 5].map(st => `<span style="top:${(100 * Y(st) / H).toFixed(2)}%">${STRING_LABEL[st]}</span>`).join('')}</div>`;
+  return col + o + '</svg>';
+}
+function singleDots(inst, opts = {}){
+  return notesOf(inst, opts.strings).map(n => ({s:n.s, f:n.f, colors:[COL[inst.shape]], root:n.iv === 0, label:dotLabel(n.iv, inst, n.s, opts.strings), text:textFor(inst.shape), dim:opts.rootsOnly && n.iv !== 0, third:opts.third && (n.iv === 3 || n.iv === 4)}));
+}
+const mutedOf = (inst, strings) => inst.frets.map((f, s) => f == null || (strings && !strings.includes(s)) ? s : -1).filter(s => s >= 0);
+function barreOf(inst, strings){
+  if(inst.minF === 0) return null;
+  const ss = inst.frets.map((f, s) => f === inst.minF && (!strings || strings.includes(s)) ? s : -1).filter(s => s >= 0);
+  if(ss.length < 2) return null;
+  return {f:inst.minF, s1:Math.min(...ss), s2:Math.max(...ss)};
+}
+function tabHTML(inst, strings){
+  const fr = inst.frets.map((f, s) => f == null || (strings && !strings.includes(s)) ? 'x' : f);
+  const fg = inst.frets.map((f, s) => fr[s] === 'x' ? '' : (fingerOf(inst, s, strings) || '–'));
+  return `<div class="tab" role="table" aria-label="Tab and fingers, low E to high e: ${fr.join(' ')}"><span class="rl h">String</span>${STRING_LABEL.map(s => `<span class="h">${s}</span>`).join('')}<span class="rl">Fret</span>${fr.map(f => `<span>${f}</span>`).join('')}<span class="rl">Finger</span>${fg.map(f => `<span class="fg">${f}</span>`).join('')}</div>`;
+}
+function seg(act, opts, cur, aria, cls = ''){
+  const has = opts.some(([v]) => String(v) === String(cur));
+  return `<div class="seg ${cls}" role="radiogroup" aria-label="${esc(aria)}">${opts.map(([v, t], i) => { const on = String(v) === String(cur); return `<button type="button" role="radio" class="${on ? 'on' : ''}" aria-checked="${on}" tabindex="${on || (!has && i === 0) ? 0 : -1}" data-act="${act}" data-v="${v}">${t}</button>`; }).join('')}</div>`;
+}
+const labelSeg = () => seg('labels', [['iv', 'Intervals'], ['note', 'Notes'], ['finger', 'Fingers'], ['shape', 'Shape letters'], ['none', 'Blank']], prefs.labels, 'Dot labels');
+const keyPicker = (act, cur, q) => seg(act, MAJOR_NAMES.map((_, pc) => [pc, chordLabel(pc, q)]), cur, 'Key', 'keys');
+const head = (n, title, lede) => `<header class="lesson-head"><p class="eyebrow">Step ${n} of 5${progress.steps['step-' + n] ? ' · completed' : ''}</p><h1 tabindex="-1">${title}</h1><p class="lede">${lede}</p></header>`;
+const nextLink = (id, label) => `<div class="next"><a class="btn" href="#${id}">Next: ${label} →</a></div>`;
+const pill = s => `<span class="shape-pill ${s}" style="--sc:${COL[s]}">${s}</span>`;
+const LEG = {
+  root:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="var(--muted)"/><circle cx="11" cy="11" r="9" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>Root (ringed)',
+  tone:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="var(--muted)"/></svg>Chord tone',
+  mute:'<svg width="22" height="22" aria-hidden="true"><text x="11" y="16" text-anchor="middle" font-size="16" font-weight="600" fill="var(--ink)">×</text></svg>Don\'t play this string',
+  link:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="var(--muted)"/><circle cx="11" cy="11" r="9.5" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 2"/></svg>Shared root: your anchor to the next shape',
+  split:'<svg width="22" height="22" aria-hidden="true"><path d="M11 11L11 3A8 8 0 0 1 11 19Z" fill="var(--e-shape)"/><path d="M11 11L11 19A8 8 0 0 1 11 3Z" fill="var(--d-shape)"/></svg>Note in two shapes',
+  dim:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35"/></svg>Other shapes',
+  pent:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="#3a2216" stroke="var(--muted)" stroke-width="2"/></svg>Scale note outside this shape',
+  third:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="var(--muted)"/><circle cx="11" cy="11" r="9.5" fill="none" stroke="#e0a526" stroke-width="2"/></svg>The 3rd: the note that changes for minor',
+  barre:'<svg width="22" height="22" aria-hidden="true"><rect x="7" y="2" width="8" height="18" rx="4" fill="none" stroke="var(--muted)" stroke-width="1.6"/></svg>Index-finger barre',
+  zone:'<svg width="22" height="22" aria-hidden="true"><rect x="2" y="4" width="18" height="14" rx="4" fill="none" stroke="#e0a526" stroke-width="2"/></svg>Your zone',
+  anchor:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="#3a2216" stroke="var(--muted)" stroke-width="2"/></svg>Root not in this voicing: still your anchor',
+  keep:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="var(--muted)"/><circle cx="11" cy="11" r="9.5" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 2"/></svg>Common tone: keep this finger down',
+  next:'<svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-dasharray="3 2"/></svg>Next chord (finger numbers)'
+};
+const legend = keys => `<ul class="legend" aria-label="Legend">${keys.map(k => `<li>${LEG[k]}</li>`).join('')}</ul>`;
+
+/* ================= Progress, XP, toast ================= */
+let toastT = null;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+let lastSaid = '';
+function announce(msg){ const i = $('#note-info'); if(i) i.textContent = msg; if(msg !== lastSaid){ $('#sr').textContent = msg; lastSaid = msg; } }
+function addXP(n){ progress.xp += n; saveProgress(); }
+function completeStep(id, label){
+  if(progress.steps[id]) return;
+  progress.steps[id] = true; progress.xp += 50; saveProgress(); renderNav(); chime();
+  toast(`${label} complete · +50 XP`);
+  const eb = view.querySelector('.lesson-head .eyebrow'); if(route === id && eb && !eb.textContent.includes('completed')) eb.textContent += ' · completed';
+}
+function streak(){
+  const days = new Set(progress.days); let d = new Date(); let n = 0;
+  if(!days.has(todayStr(d))) d.setDate(d.getDate() - 1);
+  while(days.has(todayStr(d))){ n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function renderChips(){
+  const nextStep = [1, 2, 3, 4, 5].find(n => !progress.steps['step-' + n]);
+  const nx = $('#chip-next');
+  if(nextStep){ nx.href = '#step-' + nextStep; nx.textContent = `Next up: Step ${nextStep}`; } else { nx.href = '#train'; nx.textContent = 'Next up: keep training'; }
+  const st = streak();
+  $('#chip-streak').innerHTML = `Streak <b>${st} ${st === 1 ? 'day' : 'days'}</b>`;
+  $('#chip-xp').innerHTML = `<b>${progress.xp}</b> XP`;
+  const sb = $('#btn-sound'); sb.textContent = audio.muted ? 'Sound off' : 'Sound on'; sb.setAttribute('aria-pressed', String(!audio.muted));
+  updateTimerChip();
+}
+
+/* ================= Navigation ================= */
+const ICONS = {
+  explore:'<svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="6.5" cy="6.5" r="1.8" fill="currentColor"/></svg>',
+  practice:'<svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><circle cx="6.5" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 4.3V7l2 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  train:'<svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M2 7l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+const NAV = [
+  {group:'Learn', items:[
+    {id:'step-1', n:1, t:'Open chords and roots'}, {id:'step-2', n:2, t:'Make shapes movable'}, {id:'step-3', n:3, t:'C up the whole neck'},
+    {id:'step-4', n:4, t:'Any chord, any key'}, {id:'step-5', n:5, t:'Make it musical'}]},
+  {group:'Play', items:[{id:'explore', t:'Fretboard explorer'}, {id:'practice', t:'Daily routine'}, {id:'train', t:'Train your eye and ear'}]}
+];
+function renderNav(){
+  $('#nav').innerHTML = NAV.map(g => `<div class="nav-group"><p class="nav-h">${g.group}</p>${g.items.map(it => {
+    const on = route === it.id; const done = progress.steps[it.id];
+    const badge = it.n ? `<span class="num${done ? ' done' : ''}">${done ? '✓' : it.n}</span>` : `<span class="num icon">${ICONS[it.id]}</span>`;
+    return `<a href="#${it.id}" class="nav-item${on ? ' on' : ''}"${on ? ' aria-current="page"' : ''}>${badge}<span>${it.t}</span></a>`;
+  }).join('')}</div>`).join('');
+}
+
+const view = $('#view');
+let V = null, route = '';
+/* Redraw the current view and put keyboard focus back where it was. */
+function render(){
+  const a = document.activeElement; let sel = null;
+  if(a && view.contains(a) && a !== view){
+    if(a.id) sel = '#' + CSS.escape(a.id);
+    else if(a.classList.contains('hit')) sel = `.hit[data-s="${a.dataset.s}"][data-f="${a.dataset.f}"]`;
+    else if(a.dataset.zone != null) sel = `[data-zone="${a.dataset.zone}"]`;
+    else if(a.dataset.act) sel = `[data-act="${a.dataset.act}"]` + (a.dataset.v != null ? `[data-v="${CSS.escape(a.dataset.v)}"]` : '');
+  }
+  V.draw(); afterDraw();
+  if(pointerAct){ pointerAct = false; sel = null; if(document.activeElement === document.body || !document.activeElement) view.focus({preventScroll:true}); }
+  if(sel){ const el = view.querySelector(sel); if(el && !el.disabled) el.focus({preventScroll:true}); else if(a && !view.contains(a)) view.focus({preventScroll:true}); }
+}
+/* On narrow screens, scroll each fretboard so the shape being taught is in view. */
+function afterDraw(){
+  view.querySelectorAll('.board-wrap').forEach(wrap => {
+    if(wrap.scrollWidth <= wrap.clientWidth + 4) return;
+    let els = [...wrap.querySelectorAll('.dot:not(.dim)')];
+    const extra = wrap.querySelector('.band'); if(extra) els = [extra];
+    if(!els.length) return;
+    const wr = wrap.getBoundingClientRect(); let lo = Infinity, hi = -Infinity;
+    els.forEach(el => { const r = el.getBoundingClientRect(); lo = Math.min(lo, r.left); hi = Math.max(hi, r.right); });
+    const target = (lo + hi) / 2 - wr.left + wrap.scrollLeft - wrap.clientWidth / 2;
+    wrap.scrollLeft = Math.max(0, target);
+  });
+}
+
+/* ================= Step 1: open chords and roots ================= */
+const S1 = {chord:'C', rootsOnly:false, test:false, sel:new Set(), result:null, done:new Set(progress.seen.s1 || [])};
+const Step1 = {
+  inst(){ const pc = SHAPE_PC[S1.chord]; return makeInstance(S1.chord, 'major', pc, shapeFrets(S1.chord, 'major', pc)); },
+  draw(){
+    const inst = this.inst(); const rn = keyName(inst.keyPc, 'major'); const roots = rootsOf(inst);
+    view.innerHTML = `
+    ${head(1, 'Play the five open chords and find their roots', 'Every CAGED shape is organised around its root notes, the notes the chord is named after. Learn where the roots sit in these five open chords and the rest of the system follows from them.')}
+    ${prefs.welcomed ? '' : `<section class="welcome-line" aria-label="Welcome"><strong>Guitar in hand?</strong> Copy each shape the app shows and plays, then work down the five steps on the left. <button type="button" class="btn small" data-act="welcome">Got it</button>
+      <details><summary>How it works</summary><ul>
+      <li>Each step tells you exactly what you need to do to finish it.</li>
+      <li>Click any fret to hear it. The label buttons switch between intervals, note names, finger numbers and shape letters.</li>
+      <li>Tab into the fretboard and use the arrow keys to walk the frets; Enter plays.</li>
+      <li>Left-handed, or prefer the low E string on top? Change it under View in the top bar.</li></ul></details></section>`}
+    <section class="bench" aria-label="Open chord workbench">
+      <div class="toolbar">
+        <div class="shape-btns" role="group" aria-label="Open chord">${ORDER.map(c => `<button type="button" class="shape-btn${c === S1.chord ? ' on' : ''}${c === 'A' ? ' dark-text' : ''}" style="--sc:${COL[c]}" data-act="chord" data-v="${c}" aria-pressed="${c === S1.chord}" aria-label="${c} major${S1.done.has(c) ? ', roots found' : ''}">${c}${S1.done.has(c) ? '<span class="tick" aria-hidden="true">✓</span>' : ''}</button>`).join('')}</div>
+        ${S1.test ? '' : `${labelSeg()}
+        <label class="check"><input type="checkbox" id="roots-only" data-act="rootsOnly"${S1.rootsOnly ? ' checked' : ''}> Fade everything except roots</label>`}
+      </div>
+      ${S1.test ? `<div class="callout"><strong>Test: click every root of ${rn} major</strong>, then press Check. The chord's notes are shown without labels.</div>` : ''}
+      <div class="board-wrap">${board({from:0, to:5, cw:72, dots:this.testDots(inst) || singleDots(inst, {rootsOnly:S1.rootsOnly}), muted:mutedOf(inst), cellLabel:S1.test && S1.result == null ? (s, f) => 'press to mark as a root' : null, label:`${rn} major in open position`})}</div>
+      ${S1.test ? '' : legend(['root', 'tone', 'mute'])}
+      <div class="actions">
+        ${S1.test ? (S1.result == null ? `<button type="button" class="btn primary" data-act="tcheck">Check<kbd>Enter</kbd></button>` : (S1.result ? `<button type="button" class="btn primary" data-act="tnext">${S1.done.size === 5 ? 'Done' : 'Test the next chord'}</button>` : `<button type="button" class="btn primary" data-act="retry">Try again</button>`)) + `<button type="button" class="btn ghost" data-act="test">Leave the test</button>`
+        : `<button type="button" class="btn primary" data-act="strum">Strum ${rn}<kbd>Space</kbd></button>
+        <button type="button" class="btn" data-act="roots">Play the roots only</button>
+        <button type="button" class="btn" data-act="pick">Pick each note<kbd>A</kbd></button>
+        <button type="button" class="btn" data-act="test">Test yourself on ${rn}</button>`}
+      </div>
+      ${S1.result != null ? `<p class="feedback ${S1.result ? 'ok' : 'no'}" tabindex="-1" id="s1-feedback">${S1.result ? `Correct: ${rn} major's roots are on the ${roots.map(r => posName(r.s, r.f)).join(' and ')}.` : 'Not quite. ✓ found, ! missed, ✗ not a root. Look again, then retry.'}</p>` : ''}
+      <p class="muted" id="note-info" aria-live="off">Click any fret to hear it.</p>
+    </section>
+    <div class="cards">
+      <article class="card"><h3>${rn} major, open</h3>${tabHTML(inst)}${S1.test && S1.result == null ? '<p class="muted">Roots hidden during the test.</p>' : `<p><strong>Roots:</strong> ${roots.map(r => posName(r.s, r.f)).join(' · ')}</p>`}</article>
+      <article class="card"><h3>Exercise</h3><ol><li>Strum the chord once.</li><li>Play only its roots and say “${rn}” out loud each time.</li><li>Go through all five chords, three times.</li></ol>
+        <p class="muted">Then press “Test yourself”: find the roots without labels. Each chord you pass gets a tick; tick all five to finish this step.</p>
+        <div class="pchips">${ORDER.map(c => `<span class="pchip${S1.done.has(c) ? ' done' : ''}">${c}</span>`).join('')}</div></article>
+      <article class="card"><h3>Why the roots matter</h3><p>Later, each of these chords becomes a movable shape. The shape keeps its roots in the same place relative to your fingers, so knowing where the roots are is how you'll name any chord anywhere on the neck.</p></article>
+    </div>
+    ${nextLink('step-2', 'make the shapes movable')}`;
+  },
+  testDots(inst){
+    if(!S1.test) return null;
+    const want = new Set(rootsOf(inst).map(n => n.s + ':' + n.f));
+    return notesOf(inst).map(n => {
+      const k = n.s + ':' + n.f; const sel = S1.sel.has(k);
+      if(S1.result != null){
+        if(want.has(k)) return {s:n.s, f:n.f, colors:[sel ? 'var(--good)' : 'var(--warn)'], root:true, label:sel ? '✓' : '!', text:'#fff'};
+        return {s:n.s, f:n.f, colors:[sel ? 'var(--bad)' : '#ece5d6'], label:sel ? '✗' : '', text:sel ? '#fff' : '#14212b'};
+      }
+      return {s:n.s, f:n.f, colors:[sel ? 'var(--accent)' : '#ece5d6'], cls:sel ? 'sel' : '', label:''};
+    });
+  },
+  check(){
+    const inst = this.inst(); const want = rootsOf(inst).map(n => n.s + ':' + n.f);
+    const ok = want.length === S1.sel.size && want.every(k => S1.sel.has(k)); S1.result = ok;
+    if(ok){ const first = !S1.done.has(S1.chord); S1.done.add(S1.chord); progress.seen.s1 = [...S1.done]; if(first) progress.xp += 10; saveProgress(); if(first) toast(`${S1.chord}: roots found · +10 XP`); if(S1.done.size === 5) setTimeout(() => completeStep('step-1', 'Step 1'), 1200); }
+    render(); announce($('#s1-feedback') ? $('#s1-feedback').textContent : ''); const fb = $('#s1-feedback'); if(fb) fb.focus({preventScroll:true});
+    arpeggio(rootsOf(inst), 0.45);
+  },
+  play(){ strum(notesOf(this.inst())); },
+  actions:{
+    test(){ S1.test = !S1.test; S1.sel = new Set(); S1.result = null; render(); },
+    tcheck(){ Step1.check(); },
+    retry(){ S1.sel = new Set(); S1.result = null; render(); },
+    tnext(){ const next = ORDER.find(c => !S1.done.has(c)); if(next){ S1.chord = next; S1.sel = new Set(); S1.result = null; } else { S1.test = false; S1.result = null; } render(); },
+    welcome(){ prefs.welcomed = true; savePrefs(); render(); },
+    chord(v){ S1.chord = v; S1.sel = new Set(); S1.result = null; render(); Step1.play(); },
+    rootsOnly(_, el){ S1.rootsOnly = el.checked; render(); },
+    strum(){ Step1.play(); },
+    pick(){ arpeggio(notesOf(Step1.inst())); },
+    roots(){ arpeggio(rootsOf(Step1.inst()), 0.5); }
+  },
+  onNote(s, f){ playOne(s, f); const inst = this.inst();
+    if(S1.test && S1.result == null && inst.frets[s] === f){ const k = s + ':' + f; if(S1.sel.has(k)) S1.sel.delete(k); else S1.sel.add(k); boardFocus = {s, f}; render(); return; } const iv = ((OPEN[s] + f - inst.keyPc) % 12 + 12) % 12; const inChord = inst.frets[s] === f; const rn = keyName(inst.keyPc, 'major'); announce(`${posName(s, f)}: ${inChord ? spell(rn, iv) : BOTH_NAMES[(OPEN[s] + f) % 12]}${inChord ? (iv === 0 ? ', the root of ' : iv === 4 ? ', the 3rd of ' : ', the 5th of ') + rn : ', not in this chord'}.`); },
+  keys:{space(){ Step1.play(); }, char(k){ if(k === 'Enter' && S1.test){ if(S1.result == null) Step1.check(); else if(S1.result) Step1.actions.tnext(); else Step1.actions.retry(); return true; } if(k === 'a'){ arpeggio(notesOf(Step1.inst())); return true; } }}
+};
+
+/* ================= Step 2: movable shapes ================= */
+const S2 = {shape:'E', n:3, q:'major', target:null, solved:0, third:false, justSolved:false};
+let lastSlideSound = 0;
+const Step2 = {
+  geo(){ const rel = SHAPES[S2.q][S2.shape]; const p = rel.filter(f => f != null); const cMin = Math.min(...p), span = Math.max(...p) - cMin; const nMin = 0; return {rel, cMin, nMin, nMax:Math.min(nMin + 11, MAX_FRET - span)}; },
+  inst(){
+    const g = this.geo(); S2.n = Math.max(g.nMin, Math.min(g.nMax, S2.n));
+    const frets = g.rel.map(f => f == null ? null : f - g.cMin + S2.n);
+    return makeInstance(S2.shape, S2.q, ((S2.n - g.cMin) % 12 + 12) % 12, frets);
+  },
+  reachable(){ const g = this.geo(); const out = []; for(let n = g.nMin; n <= g.nMax; n++) out.push(((n - g.cMin) % 12 + 12) % 12); return out; },
+  newTarget(){ const cur = this.inst().keyPc; const opts = this.reachable().filter(k => k !== cur); S2.target = rand(opts); S2.justSolved = false; },
+  boardHTML(inst){ return board({from:0, to:MAX_FRET, dots:singleDots(inst, {third:S2.third}), muted:mutedOf(inst), barre:barreOf(inst), label:`${chordLong(inst.keyPc, inst.q)} with the ${inst.shape}-shape`}); },
+  readoutHTML(inst){
+    const b = barreOf(inst);
+    const where = inst.minF === 0 ? 'open position: the nut is your barre' : b ? `index-finger barre at fret ${inst.minF}` : `index finger at fret ${inst.minF}`;
+    return `<span class="chord-big">${chordLabel(inst.keyPc, inst.q)}</span><span>${pill(inst.shape)} ${inst.shape}-shape, ${where}</span>`;
+  },
+  chalHTML(inst){
+    if(S2.target == null) return '';
+    return inst.keyPc === S2.target && S2.justSolved
+      ? `<div class="callout${S2.revealed ? '' : ' good'}"><strong>${S2.revealed ? 'Here it is:' : 'That\'s it:'} ${chordLong(S2.target, S2.q)}.</strong> Same ${S2.shape}-shape, new chord.${S2.revealed ? ' This one doesn\'t count; try the next on your own.' : ''} <button type="button" class="btn small" data-act="newchal">Next challenge</button></div>`
+      : `<div class="callout"><strong>Challenge:</strong> slide the ${S2.shape}-shape until it plays <strong>${chordLong(S2.target, S2.q)}</strong>. Find the root's fret first. <button type="button" class="btn small ghost" data-act="reveal">Show me</button></div>`;
+  },
+  draw(){
+    if(S2.target == null) this.newTarget();
+    const inst = this.inst(); const g = this.geo();
+    view.innerHTML = `
+    ${head(2, 'Make the shapes movable', 'In an open chord the nut does the job of a finger. Fret the shape with fingers 2, 3 and 4 instead, lay your index finger across the strings as a barre, and the same shape can move anywhere on the neck.')}
+    <section class="bench" aria-label="Movable shape workbench">
+      <div class="toolbar">
+        <div class="shape-btns" role="group" aria-label="Shape">${['E', 'A', 'C', 'G', 'D'].map(c => `<button type="button" class="shape-btn${c === S2.shape ? ' on' : ''}${c === 'A' ? ' dark-text' : ''}" style="--sc:${COL[c]}" data-act="shape" data-v="${c}" aria-pressed="${c === S2.shape}" aria-label="${c}-shape">${c}</button>`).join('')}</div>
+        ${seg('q', [['major', 'Major'], ['minor', 'Minor']], S2.q, 'Chord quality')}
+        <button type="button" class="btn" data-act="flip">Flip major ↔ minor</button>
+        <label class="check"><input type="checkbox" id="third" data-act="third"${S2.third ? ' checked' : ''}> Highlight the 3rd</label>
+        ${labelSeg()}
+      </div>
+      <div class="readout" id="s2-readout" aria-live="polite">${this.readoutHTML(inst)}</div>
+      <div class="slider-row">
+        <label for="slide" class="muted">Where your index finger sits (fret)</label>
+        <input type="range" id="slide" min="${g.nMin}" max="${g.nMax}" step="1" value="${S2.n}" data-input="n"${prefs.lefty ? ' style="direction:rtl"' : ''}>
+      </div>
+      <div class="board-wrap" id="s2-board">${this.boardHTML(inst)}</div>
+      ${legend(['root', 'tone', 'barre', 'mute'].concat(S2.third ? ['third'] : []))}
+      <div class="actions">
+        <button type="button" class="btn primary" data-act="strum">Strum<kbd>Space</kbd></button>
+        <button type="button" class="btn" data-act="arp">Arpeggio<kbd>A</kbd></button>
+        <button type="button" class="btn" data-act="step" data-v="-1">One fret down<kbd>${prefs.lefty ? '→' : '←'}</kbd></button>
+        <button type="button" class="btn" data-act="step" data-v="1">One fret up<kbd>${prefs.lefty ? '←' : '→'}</kbd></button>
+      </div>
+      <div id="s2-chal">${this.chalHTML(inst)}</div>
+    </section>
+    <div class="cards">
+      <article class="card"><h3>Fingering the ${S2.shape}-shape</h3><div id="s2-tab">${tabHTML(inst)}</div><p class="tipbox">${SHAPE_TIPS[S2.shape]}</p></article>
+      <article class="card"><h3>Major or minor: one note moves</h3><p>A minor chord is a major chord with its 3rd lowered by one fret. Turn on “Highlight the 3rd” and press Flip to see it.</p><p>In the ${S2.shape}-shape the 3rd is on the <strong>${THIRD_WHERE[S2.shape]}</strong>.</p>${S2.q === 'minor' && S2.shape === 'G' ? '<p class="muted">The full minor G-shape is almost never played. Use its middle strings: x-x-2-3-1-x.</p>' : ''}</article>
+      <article class="card"><h3>Try it on your guitar</h3><ol><li>Play an open E chord with fingers 2, 3 and 4. Your index finger is now free.</li><li>Slide everything up one fret and barre with your index: that's F.</li><li>Up two more frets: G. Same shape, new chord.</li></ol><p class="muted">Challenges solved: <strong>${S2.solved}</strong>. Solve 3 to finish this step.</p></article>
+    </div>
+    ${nextLink('step-3', 'map C up the whole neck')}`;
+  },
+  update(){
+    const inst = this.inst();
+    $('#s2-board').innerHTML = this.boardHTML(inst); $('#s2-readout').innerHTML = this.readoutHTML(inst);
+    $('#s2-chal').innerHTML = this.chalHTML(inst); $('#s2-tab').innerHTML = tabHTML(inst);
+    const sl = $('#slide'); if(sl && document.activeElement !== sl) sl.value = S2.n;
+    afterDraw();
+    clearTimeout(S2.pending);
+    if(S2.target != null && inst.keyPc === S2.target && !S2.justSolved) S2.pending = setTimeout(() => Step2.confirm(), 650);
+  },
+  setQ(q){ const pc = this.inst().keyPc; S2.q = q; const g = this.geo(); let n = g.nMin + (((pc + g.cMin - g.nMin) % 12) + 12) % 12; if(n > g.nMax) n -= 12; if(n >= g.nMin) S2.n = n; S2.target = null; render(); strum(notesOf(this.inst())); },
+  // A challenge counts once the shape rests on the target (or is strummed there), not when the slider passes through it.
+  confirm(){
+    if(route !== 'step-2') return;
+    const inst = this.inst();
+    if(S2.target == null || inst.keyPc !== S2.target || S2.justSolved) return;
+    clearTimeout(S2.pending); S2.justSolved = true; S2.revealed = false; S2.solved++; addXP(10);
+    toast('Found it · +10 XP'); announce(`Correct: that's ${chordLong(S2.target, S2.q)} with the ${S2.shape}-shape.`);
+    progress.seen.s2 = (progress.seen.s2 || 0) + 1; saveProgress();
+    $('#s2-chal').innerHTML = this.chalHTML(inst);
+    if(progress.seen.s2 >= 3) setTimeout(() => completeStep('step-2', 'Step 2'), 900);
+  },
+  move(n){ const g = this.geo(); const nn = Math.max(g.nMin, Math.min(g.nMax, n)); if(nn === S2.n && n !== S2.n) return; S2.n = nn; this.update(); const now = Date.now(); if(now - lastSlideSound > 140){ lastSlideSound = now; strum(notesOf(this.inst()), {gap:0.018, vel:0.6}); } },
+  actions:{
+    shape(v){ S2.shape = v; S2.target = null; render(); strum(notesOf(Step2.inst())); },
+    q(v){ Step2.setQ(v); },
+    flip(){ S2.third = true; Step2.setQ(S2.q === 'major' ? 'minor' : 'major'); },
+    third(_, el){ S2.third = el.checked; render(); },
+    strum(){ strum(notesOf(Step2.inst())); Step2.confirm(); },
+    arp(){ arpeggio(notesOf(Step2.inst())); },
+    step(v){ Step2.move(S2.n + Number(v)); },
+    newchal(){ S2.revealed = false; Step2.newTarget(); Step2.update(); },
+    reveal(){ S2.justSolved = true; S2.revealed = true; const g = Step2.geo(); for(let n = g.nMin; n <= g.nMax; n++) if(((n - g.cMin) % 12 + 12) % 12 === S2.target){ S2.n = n; break; } Step2.update(); strum(notesOf(Step2.inst())); }
+  },
+  inputs:{ n(v){ Step2.move(Number(v)); } },
+  keys:{space(){ strum(notesOf(Step2.inst())); Step2.confirm(); }, left(){ Step2.move(S2.n + (prefs.lefty ? 1 : -1)); }, right(){ Step2.move(S2.n + (prefs.lefty ? -1 : 1)); }, char(k){ if(k === 'a'){ arpeggio(notesOf(Step2.inst())); return true; } }}
+};
+
+/* ================= Map views (Steps 3, 4 and the explorer) ================= */
+function mapBoard(st, list){
+  const act = st.focus ? st.idx : null;
+  const pos = new Map();
+  list.forEach((inst, i) => notesOf(inst, stringsFor(st.voicing, inst)).forEach(n => {
+    const k = n.s + ':' + n.f; if(!pos.has(k)) pos.set(k, {...n, shapes:[]}); pos.get(k).shapes.push(i);
+  }));
+  const links = new Set();
+  if(act != null) for(const j of [act - 1, act + 1]) if(list[j]) sharedRoots(list[act], list[j]).forEach(n => links.add(n.s + ':' + n.f));
+  const dots = [...pos.values()].map(p => {
+    const inAct = act != null && p.shapes.includes(act);
+    const owner = list[inAct ? act : p.shapes[0]];
+    const cols = inAct ? [COL[list[act].shape]] : p.shapes.map(i => COL[list[i].shape]);
+    const one = cols.length === 1 ? owner.shape : null;
+    return {s:p.s, f:p.f, colors:cols, root:p.iv === 0, label:prefs.labels === 'shape' && !inAct && p.shapes.length > 1 ? p.shapes.map(i => list[i].shape).join('') : dotLabel(p.iv, owner, p.s, stringsFor(st.voicing, owner)), text:one ? textFor(one) : '#fff', dim:(act != null && !inAct) || (st.rootsOnly && p.iv !== 0), ring:inAct && links.has(p.s + ':' + p.f)};
+  });
+  if(act != null){
+    // Roots the chosen voicing leaves out are still the anchors for linking: keep them visible.
+    const a = list[act]; const shown = new Set(notesOf(a, stringsFor(st.voicing, a)).map(n => n.s + ':' + n.f));
+    rootsOf(a).filter(n => !shown.has(n.s + ':' + n.f)).forEach(n => dots.push({s:n.s, f:n.f, colors:['#3a2216'], label:'R', text:'#f3ecdc', cls:'anchor', ring:links.has(n.s + ':' + n.f)}));
+  }
+  let ghosts = [];
+  if(st.pent && act != null){
+    const inst = list[act]; const own = new Set(notesOf(inst, stringsFor(st.voicing, inst)).map(n => n.s + ':' + n.f));
+    ghosts = pentBox(inst).filter(n => !own.has(n.s + ':' + n.f)).map(n => ({s:n.s, f:n.f, color:COL[inst.shape], label:prefs.labels === 'finger' ? '' : prefs.labels === 'note' ? spell(keyName(st.key, st.q), n.iv) : prefs.labels === 'iv' ? IV_INFO[n.iv].lab : ''}));
+  }
+  const zones = list.map((inst, i) => ({lo:inst.minF, hi:inst.maxF, label:inst.shape, color:COL[inst.shape], active:i === act, id:i}));
+  const rn = keyName(st.key, st.q);
+  const cellLabel = (s, f) => {
+    const p = pos.get(s + ':' + f); if(!p) return BOTH_NAMES[(OPEN[s] + f) % 12];
+    return `${spell(rn, p.iv)}, the ${p.iv === 0 ? 'root' : p.iv === 7 ? '5th' : '3rd'} of ${chordLabel(st.key, st.q)}, in the ${p.shapes.map(i => list[i].shape).join(' and ')}-shape`;
+  };
+  const muted = act != null ? mutedOf(list[act], stringsFor(st.voicing, list[act])).map(ms => ({s:ms, f:Math.max(0, list[act].minF - 1)})) : [];
+  return board({from:0, to:MAX_FRET, dots, ghosts, zones, muted, cellLabel, label:`${chordLong(st.key, st.q)} in its CAGED shapes`});
+}
+function ringSVG(list, idx){
+  const start = list[0].shape; const si = ORDER.indexOf(start); const active = list[idx].shape;
+  const present = new Set(list.map(i => i.shape));
+  const cx = 110, cy = 110, R = 70; const pt = (i, r) => { const a = (-90 + i * 72) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+  let o = `<svg class="ring" viewBox="0 0 220 220" role="img" aria-label="The CAGED loop starting at the ${start}-shape"><defs><marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>`;
+  for(let i = 0; i < 5; i++){
+    const a1 = (-90 + i * 72 + 17) * Math.PI / 180, a2 = (-90 + (i + 1) * 72 - 17) * Math.PI / 180;
+    o += `<path d="M${(cx + R * Math.cos(a1)).toFixed(1)} ${(cy + R * Math.sin(a1)).toFixed(1)}A${R} ${R} 0 0 1 ${(cx + R * Math.cos(a2)).toFixed(1)} ${(cy + R * Math.sin(a2)).toFixed(1)}" fill="none" stroke="var(--muted)" stroke-width="1.6" marker-end="url(#arr)"/>`;
+  }
+  ORDER.forEach((s, i) => {
+    const [x, y] = pt(i, R); const [bx, by] = pt(i, R + 33); const k = (i - si + 5) % 5 + 1;
+    if(s === active) o += `<circle cx="${x}" cy="${y}" r="24" fill="none" stroke="var(--ink)" stroke-width="2.5"/>`;
+    o += `<circle cx="${x}" cy="${y}" r="19" style="fill:${COL[s]}"${present.has(s) ? '' : ' opacity=".35"'}/><text x="${x}" y="${y + 6.5}" text-anchor="middle" font-size="18" font-weight="800" style="fill:${textFor(s)}">${s}</text>`;
+    o += `<text x="${bx}" y="${by + 4}" text-anchor="middle" font-size="11.5" font-weight="600" style="fill:${k === 1 ? 'var(--accent)' : 'var(--muted)'}">${k === 1 ? 'start' : ordinal(k)}</text>`;
+  });
+  return o + '</svg>';
+}
+function shapesTable(list, idx){
+  return `<div class="table-wrap"><table class="shapes"><thead><tr><th scope="col">Shape</th>${STRING_LABEL.map(s => `<th scope="col">${s}</th>`).join('')}<th scope="col">Frets</th></tr></thead><tbody>${list.map((inst, i) => `<tr class="${i === idx ? 'on' : ''}" data-act="pick" data-v="${i}" tabindex="0" aria-label="${inst.shape}-shape, frets ${inst.minF} to ${inst.maxF}"><td>${pill(inst.shape)}</td>${inst.frets.map(f => `<td>${f == null ? 'x' : f}</td>`).join('')}<td>${inst.minF}–${inst.maxF}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function linkLine(a, b){
+  const sh = sharedRoots(a, b);
+  return `<li>${pill(a.shape)} → ${pill(b.shape)} <span>${sh.length ? sh.map(n => posName(n.s, n.f)).join(' and ') : 'no shared root'}</span></li>`;
+}
+const OCTAVE_RULES = `<ul><li>Low E string → D string: two frets higher.</li><li>A string → G string: two frets higher.</li><li>D string → B string: three frets higher.</li><li>G string → high e string: three frets higher.</li><li>Low E and high e: the same fret, two octaves apart.</li></ul>`;
+let walkT = [];
+function stopWalk(){ walkT.forEach(clearTimeout); walkT = []; }
+const LADDER = [50, 60, 80, 100];
+function predictBoard(st){
+  const dots = [];
+  for(let s = 0; s < 3; s++) for(let f = 0; f <= MAX_FRET; f++) if(((OPEN[s] + f - st.key) % 12 + 12) % 12 === 0) dots.push({s, f, colors:['#9fd8e0'], root:true, label:'R', text:'#14212b'});
+  return board({from:0, to:MAX_FRET, dots, label:`Roots of ${chordLong(st.key, st.q)} on the low E, A and D strings`});
+}
+function makeMapView(st, cfg){
+  const strOf = inst => stringsFor(st.voicing, inst);
+  const v = {
+    list(){ return instances(st.key, st.q); },
+    cur(){ const l = v.list(); st.idx = Math.max(0, Math.min(st.idx, l.length - 1)); return l[st.idx]; },
+    play(){ const inst = v.cur(); strum(notesOf(inst, strOf(inst))); },
+    drillKey(){ return st.q + st.key; },
+    focusMsg(){ const m = view.querySelector('#pred-msg'); if(m){ m.tabIndex = -1; m.focus({preventScroll:true}); } },
+    drillHTML(){
+      const d = st.drill; const best = progress.drills[v.drillKey()];
+      return `<div class="drill" id="drill">
+        <div><strong>Linking drill</strong> <span class="muted">· four beats per shape, up the neck and back down. Keep a finger on the shared root while you change.</span></div>
+        <div class="toolbar">
+          ${seg('dbpm', LADDER.map(b => [b, b + ' BPM']), d.bpm, 'Drill tempo')}
+          <label class="check"><input type="checkbox" id="dplay" data-act="dplay"${d.play ? ' checked' : ''}> Play each chord with me</label>
+          <button type="button" class="btn ${d.running ? '' : 'primary'}" data-act="drill">${d.running ? 'Stop drill' : 'Start drill'}</button>
+          <span class="countin" id="drill-count" aria-hidden="true">${d.count || ''}</span>
+          <div class="beats" id="drill-beats" aria-hidden="true">${[0, 1, 2, 3].map(i => `<span class="${i === d.beat ? 'on' : ''}"></span>`).join('')}</div>
+        </div>
+        ${d.ask ? `<div class="callout" role="status">Were all your changes clean at ${d.bpm} BPM? <button type="button" class="btn small primary" data-act="dyes">Yes, clean</button> <button type="button" class="btn small" data-act="dno">Not yet</button></div>` : ''}
+        ${d.msg ? `<p class="muted" role="status">${d.msg}</p>` : ''}
+        <p class="muted">Best clean tempo in ${chordLabel(st.key, st.q)}: <strong>${best ? best + ' BPM' : 'none yet'}</strong></p>
+      </div>`;
+    },
+    updateDrill(){ const c = $('#drill-count'), b = $('#drill-beats'); if(c) c.textContent = st.drill.count || ''; if(b) b.innerHTML = [0, 1, 2, 3].map(i => `<span class="${i === st.drill.beat ? 'on' : ''}"></span>`).join(''); },
+    startDrill(){
+      stopWalk(); st.walking = false;
+      const list = v.list(); const ids = list.map((_, i) => i); const path = ids.concat(ids.slice(0, -1).reverse());
+      Object.assign(st.drill, {running:true, ask:false, msg:'', beat:-1, count:null}); st.focus = true; st.idx = 0;
+      const ok = clockStart(st.drill.bpm, (t, n) => {
+        if(n < 4){ click(t, n === 0); return {count:4 - n}; }
+        const b = n - 4, k = Math.floor(b / 4), w = b % 4;
+        if(k >= path.length) return {end:true};
+        click(t, w === 0);
+        if(w === 0 && st.drill.play){ const inst = list[path[k]]; strum(notesOf(inst, strOf(inst)), {when:t, vel:0.55}); }
+        return {idx:path[k], beat:w};
+      }, p => {
+        if(!p) return;
+        if(p.end){ clockStop(); Object.assign(st.drill, {running:false, ask:true, beat:-1, count:null}); render(); return; }
+        if(p.count){ st.drill.count = p.count; v.updateDrill(); return; }
+        st.drill.count = null; st.drill.beat = p.beat;
+        if(p.idx !== st.idx){ st.idx = p.idx; render(); const c = v.cur(); announce(`${c.shape}-shape, frets ${c.minF} to ${c.maxF}`); } else v.updateDrill();
+        const mb = $('#map-board'); if(mb) mb.classList.toggle('pivot', p.beat === 3);
+      });
+      if(!ok) st.drill.running = false;
+      render();
+    },
+    draw(){
+      const list = v.list(); const inst = v.cur(); cfg.onVisit && cfg.onVisit(st, inst, list);
+      const prev = list[st.idx - 1], next = list[st.idx + 1];
+      const linkNext = next ? sharedRoots(inst, next) : [];
+      const voiceOpts = cfg.voicings || [['full', 'Full'], ['easy', 'Easy']];
+      const pred = cfg.predict && !st.revealed[st.q + st.key];
+      const L = prefs.lefty;
+      view.innerHTML = `
+      ${cfg.head(st)}
+      <section class="bench" aria-label="Neck map">
+        ${cfg.keyLock ? '' : `<div class="toolbar">${keyPicker('key', st.key, st.q)}${seg('q', [['major', 'Major'], ['minor', 'Minor']], st.q, 'Chord quality')}</div>`}
+        <div class="toolbar">
+          ${seg('focus', [['one', 'One shape'], ['all', 'All shapes']], st.focus ? 'one' : 'all', 'Highlight')}
+          ${seg('voicing', voiceOpts, st.voicing, 'Strings to play')}
+          ${labelSeg()}
+          <label class="check"><input type="checkbox" id="rootsonly" data-act="rootsOnly"${st.rootsOnly ? ' checked' : ''}> Roots only</label>
+          ${cfg.pent ? `<label class="check${st.focus ? '' : ' disabled'}" title="${st.focus ? '' : 'Choose One shape to see its scale box'}"><input type="checkbox" id="pent" data-act="pent"${st.pent ? ' checked' : ''}${st.focus ? '' : ' disabled'}> Pentatonic box${st.focus ? '' : ' (pick one shape)'}</label>` : ''}
+        </div>
+        ${pred ? (() => {
+          const rule = `<p>A root at fret <em>r</em> on the low E string gives an E-shape barred at <em>r</em>, or a G-shape that starts at <em>r</em> − 3${st.q === 'minor' ? ' (− 4 in minor)' : ''}. On the A string it gives an A-shape at <em>r</em>, or a C-shape at <em>r</em> − 3. On the D string it gives a D-shape at <em>r</em>. The lowest start wins.</p>`;
+          const firstTime = !(progress.seen.s4pred || []).length;
+          return `<div class="callout"><p><strong>${st.predStage ? `Right: the ${st.predStage}-shape. Now, at which fret does it start?` : `Predict first: which shape of ${chordLong(st.key, st.q)} sits closest to the nut?`}</strong></p>
+          <p>Here are its roots on the three lowest strings.${st.predStage ? ' Count back from the root to where your index finger sits (0 = open position).' : ''}</p>${firstTime ? rule : `<details><summary>Show the rule</summary>${rule}</details>`}</div>`;
+        })() : ''}
+        <div class="board-wrap" id="map-board">${pred ? predictBoard(st) : mapBoard(st, list)}</div>
+        ${pred ? `<div class="quiz-row" role="group" aria-label="Your prediction">${st.predStage
+            ? Array.from({length:13}, (_, f) => `<button type="button" class="btn opt" data-act="predf" data-v="${f}" aria-label="Fret ${f}">${f}</button>`).join('')
+            : ORDER.map(o => `<button type="button" class="shape-btn" style="--sc:${COL[o]}" data-act="pred" data-v="${o}" aria-label="${o}-shape">${o}</button>`).join('')}<button type="button" class="btn ghost" data-act="pred" data-v="skip">Skip, just show me</button></div>` : `
+        ${st.predMsg ? `<div class="callout${st.predOk ? ' good' : ''}" id="pred-msg">${st.predMsg}</div>` : ''}
+        ${legend(['root', st.focus ? 'link' : 'split', st.focus ? 'dim' : 'tone'].concat(st.focus && st.voicing !== 'full' ? ['anchor'] : [], st.focus ? ['mute'] : [], st.pent && st.focus && cfg.pent ? ['pent'] : []))}
+        <div class="actions">
+          <button type="button" class="btn" data-act="prev"${st.idx === 0 ? ' disabled' : ''}>${L ? 'Lower ▶' : '◀ Lower'}<kbd>${L ? '→' : '←'}</kbd></button>
+          <button type="button" class="btn" data-act="next"${st.idx === list.length - 1 ? ' disabled' : ''}>${L ? '◀ Higher' : 'Higher ▶'}<kbd>${L ? '←' : '→'}</kbd></button>
+          <div class="now">${pill(inst.shape)}<strong>${inst.shape}-shape</strong><span>frets ${inst.minF}–${inst.maxF}</span><span class="muted">${st.idx + 1} of ${list.length}</span></div>
+          <button type="button" class="btn primary" data-act="strum">Strum<kbd>Space</kbd></button>
+          <button type="button" class="btn" data-act="arp">Arpeggio<kbd>A</kbd></button>
+          <button type="button" class="btn" data-act="walk">${st.walking ? 'Stop the walk' : 'Walk the chain'}</button>
+        </div>
+        <p class="muted" id="note-info" aria-live="off">${next && linkNext.length ? `Dashed rings: the shared root${linkNext.length > 1 ? 's' : ''} with the next shape up (${next.shape}-shape) on the ${linkNext.map(n => posName(n.s, n.f)).join(' and ')}. Keep a finger there and build the next shape around it.` : prev ? 'This is the top of the chain on this neck. Walk back down using the shared roots.' : ''} Click a coloured bar to jump to a shape, or any fret to hear it.</p>
+        ${cfg.drill ? v.drillHTML() : ''}`}
+      </section>
+      ${cfg.extra ? cfg.extra(st, list) : ''}
+      <div class="cards">${cfg.cards(st, list, inst, pred)}</div>
+      ${cfg.footer ? cfg.footer() : ''}`;
+    },
+    actions:{
+      pred(val){
+        const list = v.list(); const ans = list[0].shape; st.revealed[st.q + st.key] = true; st.idx = 0; st.focus = true;
+        if(val === 'skip'){ st.predOk = false; st.predMsg = `The loop for ${chordLong(st.key, st.q)} starts with the ${ans}-shape at frets ${list[0].minF}–${list[0].maxF}.`; }
+        else if(val === ans){ st.revealed[st.q + st.key] = false; st.predStage = ans; announce(`Right shape. Now pick the fret where the ${ans}-shape starts.`); render(); const f0 = view.querySelector('[data-act="predf"]'); if(f0) f0.focus({preventScroll:true}); return; }
+        else { st.predOk = false; st.predMsg = `Not quite: the ${ans}-shape starts lowest, at frets ${list[0].minF}–${list[0].maxF}. Compare it with the ${val}-shape on the zone bars above.`; }
+        st.predStage = null; announce(st.predMsg); render(); v.play(); v.focusMsg();
+      },
+      predf(val){
+        const list = v.list(); const first = list[0]; st.revealed[st.q + st.key] = true; st.predStage = null; st.idx = 0; st.focus = true;
+        if(Number(val) === first.minF){
+          st.predOk = true; st.predMsg = `Spot on: the ${first.shape}-shape at frets ${first.minF}–${first.maxF} comes first, then ${list.slice(1, 5).map(i => i.shape).join(', ')}.`;
+          const seen = new Set(progress.seen.s4pred || []); seen.add(st.q + st.key); progress.seen.s4pred = [...seen]; progress.xp += 10; saveProgress();
+          cfg.onPredict && cfg.onPredict(st);
+        } else { st.predOk = false; st.predMsg = `Right shape, wrong fret: the ${first.shape}-shape starts at fret ${first.minF} (frets ${first.minF}–${first.maxF}).`; }
+        announce(st.predMsg); render(); v.play(); v.focusMsg();
+      },
+      key(val){ st.key = Number(val); st.idx = 0; st.predMsg = ''; st.predStage = null; stopAll(); render(); if(!(cfg.predict && !st.revealed[st.q + st.key])) v.play(); },
+      q(val){ st.q = val; st.predMsg = ''; st.predStage = null; stopAll(); render(); if(!(cfg.predict && !st.revealed[st.q + st.key])) v.play(); },
+      focus(val){ st.focus = val === 'one'; render(); },
+      voicing(val){ st.voicing = val; render(); v.play(); },
+      pent(_, el){ st.pent = el.checked; render(); },
+      rootsOnly(_, el){ st.rootsOnly = el.checked; render(); },
+      prev(){ if(st.idx > 0){ st.idx--; st.focus = true; render(); v.play(); } },
+      next(){ if(st.idx < v.list().length - 1){ st.idx++; st.focus = true; render(); v.play(); } },
+      pick(val){ st.idx = Number(val); st.focus = true; render(); v.play(); },
+      strum(){ v.play(); },
+      arp(){ const inst = v.cur(); arpeggio(notesOf(inst, strOf(inst))); },
+      walk(){
+        if(st.walking){ stopWalk(); st.walking = false; render(); return; }
+        if(st.drill.running){ clockStop(); st.drill.running = false; }
+        stopWalk(); st.walking = true; st.focus = true; const n = v.list().length;
+        for(let i = 0; i < n; i++) walkT.push(setTimeout(() => { st.idx = i; render(); v.play(); }, i * 1700));
+        walkT.push(setTimeout(() => { st.walking = false; render(); }, n * 1700));
+      },
+      dbpm(val){ st.drill.bpm = Number(val); if(st.drill.running) clock.bpm = st.drill.bpm; render(); },
+      dplay(_, el){ st.drill.play = el.checked; },
+      drill(){ if(st.drill.running){ clockStop(); Object.assign(st.drill, {running:false, beat:-1, count:null}); render(); } else v.startDrill(); },
+      dyes(){
+        const k = v.drillKey(); progress.drills[k] = Math.max(progress.drills[k] || 0, st.drill.bpm); progress.xp += 20; saveProgress();
+        const up = LADDER.find(b => b > st.drill.bpm);
+        Object.assign(st.drill, {ask:false, msg:up ? `Logged. Next time, try ${up} BPM.` : 'Logged at the top of the ladder. Try it in another key.'});
+        toast('Clean drill logged · +20 XP'); cfg.onDrill && cfg.onDrill(st); render();
+      },
+      dno(){ Object.assign(st.drill, {ask:false, msg:'No problem. Drop one step on the tempo ladder or switch to Easy shapes, and watch the shared root rather than your whole hand.'}); render(); }
+    },
+    onZone(i){ st.idx = i; st.focus = true; stopWalk(); st.walking = false; render(); v.play(); },
+    onNote(s, f){
+      playOne(s, f);
+      const midi = OPEN[s] + f; const iv = ((midi - st.key) % 12 + 12) % 12; const rn = keyName(st.key, st.q);
+      const chordIvs = st.q === 'minor' ? [0, 3, 7] : [0, 4, 7];
+      const name = IV_INFO[iv] ? spell(rn, iv) : MAJOR_NAMES[midi % 12];
+      const role = chordIvs.includes(iv) ? ({0:'the root', 3:'the minor 3rd', 4:'the major 3rd', 7:'the 5th'})[iv] + ' of the chord'
+        : PENT[st.q].includes(iv) ? `a pentatonic scale tone (${IV_INFO[iv].lab}), not in the chord` : 'not in the chord or its pentatonic scale';
+      const inShapes = [...new Set(v.list().filter(inst => inst.frets[s] === f).map(inst => inst.shape + '-shape'))];
+      announce(`${posName(s, f)}: ${name}, ${role}${inShapes.length ? `. Part of the ${inShapes.join(' and ')}` : ''}.`);
+    },
+    keys:{space(){ v.play(); }, left(){ prefs.lefty ? v.actions.next() : v.actions.prev(); }, right(){ prefs.lefty ? v.actions.prev() : v.actions.next(); }, char(k){ if(cfg.char && cfg.char(k)) return true; if(k === 'a'){ v.actions.arp(); return true; } }}
+  };
+  if(cfg.actions) Object.assign(v.actions, cfg.actions);
+  return v;
+}
+const newDrill = () => ({bpm:60, play:true, running:false, beat:-1, count:null, ask:false, msg:''});
+
+const S3 = {key:0, q:'major', idx:0, focus:true, voicing:'full', pent:false, rootsOnly:false, drill:newDrill(), revealed:{},
+  check:{active:false, n:0, correct:0, inst:null, picked:null, done:false}};
+const CHECK_LEN = 10, CHECK_PASS = 8;
+function checkStep3(){ if((progress.seen.s3check || 0) >= CHECK_PASS && progress.drills.major0) setTimeout(() => completeStep('step-3', 'Step 3'), 800); }
+function nextCheckQ(){
+  // Pick the shape first so each shape is equally likely, then one of its positions.
+  const c = S3.check; const list = instances(0, 'major'); let inst;
+  do{ const sh = rand(ORDER); inst = rand(list.filter(i => i.shape === sh)); } while(c.inst && inst.minF === c.inst.minF);
+  c.inst = inst; c.picked = null;
+}
+function checkBoard(){
+  const c = S3.check, inst = c.inst; const answered = c.picked != null;
+  const dots = notesOf(inst).map(n => answered
+    ? {s:n.s, f:n.f, colors:[COL[inst.shape]], root:n.iv === 0, label:dotLabel(n.iv, inst, n.s), text:textFor(inst.shape)}
+    : {s:n.s, f:n.f, colors:[n.iv === 0 ? '#9fd8e0' : '#ece5d6'], root:n.iv === 0, label:n.iv === 0 ? 'R' : '', text:'#14212b'});
+  return board({from:0, to:MAX_FRET, dots, label:'Shape check fretboard'});
+}
+function focusCheck(sel){ const sec = view.querySelector('[aria-label="Shape check"]'); if(!sec) return; const el = sec.querySelector(sel); if(el){ if(el.tagName === 'H2') el.setAttribute('tabindex', '-1'); el.focus({preventScroll:true}); } sec.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+function checkAnswer(v){
+  const c = S3.check; if(!c.active || c.picked != null) return;
+  c.picked = v; c.n++; const ok = v === c.inst.shape; if(ok) c.correct++;
+  record(`shape:major:${c.inst.shape}`, ok);
+  c.msg = ok ? `Correct: the ${c.inst.shape}-shape at frets ${c.inst.minF}–${c.inst.maxF}.` : `Not quite: that's the ${c.inst.shape}-shape at frets ${c.inst.minF}–${c.inst.maxF}. Look at where its roots sit.`;
+  if(c.n >= CHECK_LEN){
+    c.done = true; c.active = false;
+    const best = Math.max(progress.seen.s3check || 0, c.correct); progress.seen.s3check = best; saveProgress();
+    c.msg += c.correct >= CHECK_PASS ? ` You scored ${c.correct}/${CHECK_LEN}. Check passed.` : ` You scored ${c.correct}/${CHECK_LEN}. You need ${CHECK_PASS} to pass: walk the chain once more, then try again.`;
+    checkStep3();
+  }
+  announce(c.msg); render(); strum(notesOf(c.inst));
+}
+const Step3 = makeMapView(S3, {
+  keyLock:true, drill:true,
+  head:() => head(3, 'Map C major up the whole neck', 'Between the nut and fret 15, C major appears in five shapes, always in the order C, A, G, E, D, and then the C-shape again an octave up. Neighbouring shapes share a root note, which is how they lock together into one chain.'),
+  onDrill(){ checkStep3(); },
+  extra(){
+    const c = S3.check; const best = progress.seen.s3check || 0;
+    if(!c.active && !c.done) return `<section class="bench" aria-label="Shape check"><h2>Shape check</h2><p>Ten quick questions: a C major shape appears somewhere on the neck, and you name it. Score ${CHECK_PASS} or more to pass. Best so far: <strong>${best}/${CHECK_LEN}</strong>.</p><div><button type="button" class="btn primary" data-act="chkstart">Start the shape check</button></div></section>`;
+    if(c.done) return `<section class="bench" aria-label="Shape check"><h2>Shape check: ${c.correct}/${CHECK_LEN}</h2><p class="${c.correct >= CHECK_PASS ? 'feedback ok' : 'feedback no'}">${c.msg}</p><div><button type="button" class="btn" data-act="chkstart">Try again</button></div></section>`;
+    return `<section class="bench" aria-label="Shape check"><h2>Shape check · question ${Math.min(c.n + (c.picked == null ? 1 : 0), CHECK_LEN)} of ${CHECK_LEN} · ${c.correct} correct</h2>
+      <p>Which shape of C major is this? The notes marked R are its roots.</p>
+      <div class="board-wrap">${checkBoard()}</div>
+      <div class="quiz-row" role="group" aria-label="Answers">${ORDER.map(o => { const cls = c.picked != null ? (o === c.inst.shape ? ' right' : o === c.picked ? ' wrong' : '') : ''; return `<button type="button" class="shape-btn${cls}" style="--sc:${COL[o]}" data-act="chkans" data-v="${o}"${c.picked != null ? ' disabled' : ''} aria-label="${o}-shape">${o}</button>`; }).join('')}
+        ${c.picked != null ? `<button type="button" class="btn primary" data-act="chknext">Next<kbd>Enter</kbd></button>` : ''}</div>
+      <p class="feedback ${c.picked == null ? '' : c.picked === c.inst.shape ? 'ok' : 'no'}">${c.picked != null ? esc(c.msg) : ''}</p></section>`;
+  },
+  actions:{
+    chkstart(){ Object.assign(S3.check, {active:true, done:false, n:0, correct:0, inst:null, msg:''}); stopAll(); nextCheckQ(); render(); focusCheck('h2'); },
+    chkans(v){ checkAnswer(v); focusCheck('[data-act="chknext"], [data-act="chkstart"]'); },
+    chknext(){ nextCheckQ(); render(); focusCheck('[data-act="chkans"]'); }
+  },
+  char(k){
+    const c = S3.check; if(!c.active) return false;
+    if(c.picked == null && ORDER.includes(k.toUpperCase())){ checkAnswer(k.toUpperCase()); return true; }
+    if(c.picked != null && k === 'Enter'){ nextCheckQ(); render(); return true; }
+    return false;
+  },
+  cards(st, list, inst){
+    const best = progress.seen.s3check || 0;
+    return `
+    <article class="card"><h3>${inst.shape}-shape of C</h3>${tabHTML(inst, stringsFor(st.voicing, inst))}<p><strong>Roots:</strong> ${rootsOf(inst).map(r => posName(r.s, r.f)).join(' · ')}</p><p class="tipbox muted">${SHAPE_TIPS[inst.shape]}</p></article>
+    <article class="card"><h3>The chain and its links</h3><ul class="links">${list.slice(0, -1).map((a, i) => linkLine(a, list[i + 1])).join('')}</ul></article>
+    <article class="card"><h3>Octave shapes: where roots repeat</h3><p>Every root has twins. Learn these and you can find any shape from any root.</p>${OCTAVE_RULES}<p class="muted">Tick “Roots only” and pick All shapes to see every C on the neck.</p></article>
+    <article class="card"><h3>To finish this step</h3><ul class="criteria"><li class="${best >= CHECK_PASS ? 'ok' : ''}">Pass the shape check (${CHECK_PASS}/${CHECK_LEN}; best ${best})</li><li class="${progress.drills.major0 ? 'ok' : ''}">Finish one clean linking drill on C${progress.drills.major0 ? ` (best ${progress.drills.major0} BPM)` : ''}</li></ul><p class="muted">The full G- and D-shapes are a stretch. Switch to Easy and the anchor roots stay marked, so the links still work.</p></article>`;
+  },
+  footer:() => nextLink('step-4', 'any chord, any key')
+});
+
+const S4 = {key:7, q:'major', idx:0, focus:true, voicing:'full', pent:false, rootsOnly:false, drill:newDrill(), revealed:{}, predMsg:'', predOk:false};
+const drillKeysDone = () => Object.keys(progress.drills).filter(k => k !== 'major0').length;
+const PRED_NEED = 3;
+function checkStep4(){ if((progress.seen.s4pred || []).length >= PRED_NEED && drillKeysDone() >= 1) setTimeout(() => completeStep('step-4', 'Step 4'), 800); }
+const Step4 = makeMapView(S4, {
+  drill:true, predict:true,
+  head:() => head(4, 'Any chord, any key', 'The order C-A-G-E-D loops forever. To play a different chord you enter the loop at a different point. For each new key, work out where the loop starts before the app shows you.'),
+  onDrill(){ checkStep4(); },
+  onPredict(){ checkStep4(); },
+  cards(st, list, inst, pred){
+    const loop = list.slice(0, 5).map(i => i.shape).join(' → ');
+    const preds = (progress.seen.s4pred || []).length; const done = drillKeysDone();
+    const finish = `<article class="card"><h3>To finish this step</h3><ul class="criteria"><li class="${preds >= PRED_NEED ? 'ok' : ''}">Predict the starting shape and its fret correctly in ${PRED_NEED} keys (${Math.min(preds, PRED_NEED)}/${PRED_NEED})</li><li class="${done >= 1 ? 'ok' : ''}">Finish a clean linking drill in a key other than C major</li></ul></article>`;
+    const minorCard = `<article class="card"><h3>Major or minor</h3><p>Switch to Minor and watch: every shape keeps its roots, and only the 3rd drops one fret.</p><ul><li>E-shape: 3rd on the G string</li><li>A-shape: B string</li><li>C-shape: D string (high e is left out in minor)</li><li>G-shape: A and B strings</li><li>D-shape: high e string</li></ul></article>`;
+    if(pred) return `<article class="card"><h3>How to predict</h3><p>Find the lowest root on the low E, A and D strings. Each string anchors certain shapes:</p><ul><li>Low E string: E-shape (root under your barre) or G-shape (root under finger 3, three frets above your index).</li><li>A string: A-shape (root under your barre) or C-shape (root under finger 4, three frets above your index).</li><li>D string: D-shape (root under your index).</li></ul></article>${finish}${minorCard}`;
+    return `
+    <article class="card"><h3>Where the loop starts</h3>${ringSVG(list, st.idx)}<p>For ${chordLong(st.key, st.q)} the loop starts with the ${list[0].shape}-shape: <strong>${loop}</strong>.</p>${list.some(i => i.shape === 'G') ? '' : '<p class="muted">This chord has no playable G-shape below fret 15, so the loop skips it here.</p>'}</article>
+    <article class="card"><h3>All shapes of ${chordLabel(st.key, st.q)}</h3>${shapesTable(list, st.idx)}<p class="muted">Click a row to play it.</p></article>
+    ${finish}${minorCard}`;
+  },
+  footer:() => nextLink('step-5', 'make it musical')
+});
+
+const SX = {key:9, q:'minor', idx:2, focus:true, voicing:'full', pent:true, rootsOnly:false, drill:newDrill(), revealed:{}};
+const Explore = makeMapView(SX, {
+  voicings:VOICE_OPTS, pent:true, drill:true,
+  head:() => `<header class="lesson-head"><p class="eyebrow">Fretboard explorer</p><h1 tabindex="-1">Every chord, every shape</h1><p class="lede">All 12 major and minor chords in their five shapes, with the pentatonic box around each shape for soloing. Click any fret to hear it and see what it is.</p></header>`,
+  cards(st, list, inst){
+    return `
+    <article class="card"><h3>${chordLong(st.key, st.q)}</h3>${ringSVG(list, st.idx)}</article>
+    <article class="card"><h3>This shape</h3>${tabHTML(inst, stringsFor(st.voicing, inst))}<p class="tipbox">${SHAPE_TIPS[inst.shape]}</p>${shapesTable(list, st.idx)}</article>
+    <article class="card"><h3>Triads: the shapes on three strings</h3><p>On the G, B and high e strings, the major shapes give the three triad inversions: <strong>A-shape</strong> = root on the bottom (R-3-5), <strong>E-shape</strong> = 3rd on the bottom (3-5-R), <strong>C- and D-shapes</strong> = 5th on the bottom (5-R-3). The G-shape's triad sits on the D, G and B strings, and so does the minor C-shape's.</p><p class="muted">Choose Triads above to see them.</p></article>
+    <article class="card"><h3>From chord to solo</h3><p>The outlined notes complete the ${st.q} pentatonic box for this shape: two notes per string. The chord tones sit inside it, so aim for a coloured note, ideally the 3rd, when the chord changes.</p></article>`;
+  }
+});
+
+/* ================= Step 5: progressions ================= */
+const PROGS = [
+  {id:'145', name:'I – IV – V', deg:[[0, 'major', 'I'], [5, 'major', 'IV'], [7, 'major', 'V']]},
+  {id:'1564', name:'I – V – vi – IV', deg:[[0, 'major', 'I'], [7, 'major', 'V'], [9, 'minor', 'vi'], [5, 'major', 'IV']]},
+  {id:'1645', name:'I – vi – IV – V', deg:[[0, 'major', 'I'], [9, 'minor', 'vi'], [5, 'major', 'IV'], [7, 'major', 'V']]},
+  {id:'251', name:'ii – V – I', deg:[[2, 'minor', 'ii'], [7, 'major', 'V'], [0, 'major', 'I']]},
+  {id:'blues', name:'12-bar (I – IV – V)', deg:[[0, 'major', 'I'], [0, 'major', 'I'], [0, 'major', 'I'], [0, 'major', 'I'], [5, 'major', 'IV'], [5, 'major', 'IV'], [0, 'major', 'I'], [0, 'major', 'I'], [7, 'major', 'V'], [5, 'major', 'IV'], [0, 'major', 'I'], [7, 'major', 'V']]},
+  {id:'m145', name:'i – iv – v (minor key)', minor:true, deg:[[0, 'minor', 'i'], [5, 'minor', 'iv'], [7, 'minor', 'v']]},
+  {id:'m145V', name:'i – iv – V (minor key, major V)', minor:true, deg:[[0, 'minor', 'i'], [5, 'minor', 'iv'], [7, 'major', 'V']]},
+  {id:'m1637', name:'i – VI – III – VII (minor key)', minor:true, deg:[[0, 'minor', 'i'], [8, 'major', 'VI'], [3, 'major', 'III'], [10, 'major', 'VII']]}
+];
+const ZONES = [{id:'open', name:'Open (0–3)', lo:0, hi:3}, {id:'z3', name:'Frets 3–7', lo:3, hi:7}, {id:'z5', name:'Frets 5–9', lo:5, hi:9}, {id:'z7', name:'Frets 7–11', lo:7, hi:11}, {id:'z10', name:'Frets 10–14', lo:10, hi:14}];
+const S5 = {key:0, prog:'145', zone:'z3', voicing:'top4', style:'strum', bpm:84, click:true, third:false, playing:false, cur:0, beat:-1, count:null, valid:true, plan:null, ask:null, askMsg:'', zonesDone:new Set(progress.seen.s5 || [])};
+const curProg = () => PROGS.find(x => x.id === S5.prog);
+function progChords(){
+  const p = curProg(); const zone = ZONES.find(z => z.id === S5.zone);
+  const tonic = keyName(S5.key, p.minor ? 'minor' : 'major');
+  const chords = p.deg.map(([iv, q, roman]) => ({pc:(S5.key + iv) % 12, q, roman, rootName:spell(tonic, iv)}));
+  const plan = planProgression(chords, zone, S5.voicing);
+  return chords.map((c, i) => {
+    const inst = Object.assign({}, plan[i].inst, {rootName:c.rootName});
+    const strings = plan[i].notes.length < notesOf(inst).length ? stringsFor(S5.voicing, inst) : null;
+    return {...c, inst, notes:plan[i].notes, strings, lo:plan[i].lo, hi:plan[i].hi, name:c.rootName + (c.q === 'minor' ? 'm' : '')};
+  });
+}
+const arpSeq = ch => { const asc = [...ch.notes].sort((a, c) => a.midi - c.midi); return asc.concat(asc.slice(1, -1).reverse()); };
+function stopPlayer(){ clockStop(); S5.playing = false; S5.beat = -1; S5.count = null; const b = $('#p5-board'); if(b) b.classList.remove('soon'); }
+function startPlayer(){
+  S5.plan = progChords(); S5.valid = true; S5.ask = null; S5.askMsg = '';
+  const ok = clockStart(S5.bpm, (t, n) => {
+    if(n < 4){ click(t, n === 0); return {count:4 - n}; }
+    const plan = S5.plan; const b = n - 4; const len = plan.length; const ci = Math.floor(b / 4) % len, w = b % 4; const ch = plan[ci]; const spb = 60 / clock.bpm;
+    if(S5.style === 'strum'){
+      strum(ch.notes, {when:t, vel:w === 0 ? 0.85 : 0.6});
+      if(w === 1 || w === 3) strum(ch.notes, {when:t + spb / 2, down:false, vel:0.42, gap:0.02});
+    } else {
+      const seq = arpSeq(ch);
+      for(let e = 0; e < 2; e++){
+        let nn = seq[(w * 2 + e) % seq.length];
+        if(S5.third && w === 0 && e === 0){ const th = ch.notes.filter(x => x.iv === 3 || x.iv === 4).sort((a, c) => c.midi - a.midi)[0]; if(th) nn = th; }
+        playNote(nn.midi, t + e * spb / 2, S5.third && w === 0 && e === 0 ? 0.95 : 0.75, nn.s); flashAt(nn, t + e * spb / 2);
+      }
+    }
+    if(S5.click) click(t, w === 0);
+    return {ci, w, loopEnd:w === 3 && ci === len - 1};
+  }, p => {
+    if(!p) return;
+    if(p.count){ S5.count = p.count; Step5.updateBeats(); return; }
+    S5.count = null; const changed = p.ci !== S5.cur; S5.cur = p.ci; S5.beat = p.w;
+    if(changed){ Step5.update(); const ch = S5.plan[p.ci]; announce(`${ch.name}, ${ch.inst.shape}-shape`); } else Step5.updateBeats();
+    const b = $('#p5-board'); if(b) b.classList.toggle('soon', p.w === 3);
+    if(p.loopEnd){ if(S5.valid && !S5.zonesDone.has(S5.zone) && S5.ask == null){ S5.ask = S5.zone; Step5.updateAsk(); announce('Loop complete. Did you play along and stay in the zone?'); } S5.valid = true; }
+  });
+  S5.playing = ok;
+}
+function markZone(k){
+  const first = !S5.zonesDone.has(k); S5.zonesDone.add(k); progress.seen.s5 = [...S5.zonesDone];
+  if(first){ progress.xp += 10; toast('Zone logged · +10 XP'); } saveProgress();
+  if(S5.zonesDone.size >= 2) setTimeout(() => completeStep('step-5', 'Step 5'), 600);
+}
+const PATTERN = ['D', '', 'D', 'U', 'D', '', 'D', 'U'];
+const Step5 = {
+  plan(){ return S5.playing && S5.plan ? S5.plan : progChords(); },
+  beatsHTML(){
+    const cells = ['1', '&', '2', '&', '3', '&', '4', '&'];
+    const on = S5.beat >= 0 ? S5.beat * 2 : -1;
+    const chords = this.plan(); const ch = chords[S5.cur] || chords[0];
+    let body;
+    if(S5.style === 'strum') body = PATTERN;
+    else { const seq = arpSeq(ch); body = cells.map((_, i) => STRING_LABEL[seq[i % seq.length].s]); if(S5.third){ const th = ch.notes.filter(x => x.iv === 3 || x.iv === 4).sort((a, c) => c.midi - a.midi)[0]; if(th) body[0] = '3rd'; } }
+    const aria = S5.style === 'strum' ? 'Strum pattern: down, down up, down, down up' : `Picking pattern by string: ${body.join(' ')}`;
+    return `<span class="countin" aria-hidden="true">${S5.count || ''}</span><div class="pattern" role="img" aria-label="${aria}">${cells.map((c, i) => `<span class="c${i === on ? ' on' : ''}">${c}</span>`).join('')}${body.map((c, i) => `<span class="${i === on ? 'on' : ''}">${c}</span>`).join('')}</div>`;
+  },
+  cardsHTML(chords){
+    return chords.map((c, i) => `<button type="button" class="chord-card${i === S5.cur ? ' on' : ''}" style="--sc:${COL[c.inst.shape]}" data-act="card" data-v="${i}" aria-pressed="${i === S5.cur}"><span class="roman">${c.roman}</span><strong>${c.name}</strong><span class="meta">${pill(c.inst.shape)} frets ${c.lo}–${c.hi}</span></button>`).join('');
+  },
+  summary(chords){
+    const seen = new Set(); const parts = [];
+    chords.forEach(c => { const k = c.name + c.inst.shape; if(seen.has(k)) return; seen.add(k); parts.push(`<strong>${c.name}</strong> as ${'AE'.includes(c.inst.shape) ? 'an' : 'a'} ${c.inst.shape}-shape`); });
+    return parts.join(', ');
+  },
+  askHTML(){
+    if(S5.ask != null){ const z = ZONES.find(x => x.id === S5.ask); return `<div class="callout" role="status">Loop complete in ${z.name}. Did you play along on your guitar and stay inside the zone? <button type="button" class="btn small primary" data-act="zyes">Yes, I did</button> <button type="button" class="btn small" data-act="zno">Not yet</button></div>`; }
+    return S5.askMsg ? `<p class="muted" role="status">${S5.askMsg}</p>` : '';
+  },
+  nowHTML(chords){ const c = chords[S5.cur] || chords[0]; const nx = chords[(S5.cur + 1) % chords.length]; return `Now <strong>${c.name}</strong> ${pill(c.inst.shape)} · next ${nx.name}`; },
+  updateAsk(){ const a = $('#p5-ask'); if(a) a.innerHTML = this.askHTML(); },
+  boardHTML(chords){
+    const c = chords[S5.cur] || chords[0]; const nx = chords[(S5.cur + 1) % chords.length];
+    const nxSet = new Set(nx.notes.map(n => n.s + ':' + n.f));
+    const dots = c.notes.map(n => ({s:n.s, f:n.f, colors:[COL[c.inst.shape]], root:n.iv === 0, label:dotLabel(n.iv, c.inst, n.s, c.strings), text:textFor(c.inst.shape), third:S5.third && (n.iv === 3 || n.iv === 4), ring:nx !== c && nxSet.has(n.s + ':' + n.f) && fingerOf(c.inst, n.s, c.strings) !== '' && fingerOf(c.inst, n.s, c.strings) === fingerOf(nx.inst, n.s, nx.strings)}));
+    const own = new Set(c.notes.map(n => n.s + ':' + n.f));
+    const ghosts = nx === c || nx.name + nx.inst.minF === c.name + c.inst.minF ? [] : nx.notes.filter(n => !own.has(n.s + ':' + n.f)).map(n => ({s:n.s, f:n.f, color:COL[nx.inst.shape], r:10.5, cls:'next', label:fingerOf(nx.inst, n.s, nx.strings)}));
+    const zone = ZONES.find(z => z.id === S5.zone);
+    return board({from:0, to:MAX_FRET, dots, ghosts, muted:mutedOf(c.inst, c.strings), band:{lo:zone.lo, hi:zone.hi, label:'Your zone'}, label:`${c.name} with the ${c.inst.shape}-shape; dashed circles show the next chord, ${nx.name}`});
+  },
+  update(){
+    const chords = this.plan();
+    const a = $('#p5-cards'), b = $('#p5-board');
+    if(a) a.innerHTML = this.cardsHTML(chords); if(b) b.innerHTML = this.boardHTML(chords); const nw = $('#p5-now'); if(nw) nw.innerHTML = this.nowHTML(chords); this.updateBeats(); afterDraw();
+  },
+  updateBeats(){ const bt = $('#p5-beats'); if(bt) bt.innerHTML = this.beatsHTML(); },
+  draw(){
+    const chords = this.plan(); const p = curProg(); const zone = ZONES.find(z => z.id === S5.zone);
+    const outside = chords.some(c => c.lo < zone.lo || c.hi > zone.hi + 1);
+    view.innerHTML = `
+    ${head(5, 'Make it musical', 'Shapes become music when you stay in one area of the neck and let each chord use whichever shape sits closest. Pick a progression and a zone, then play along on your guitar.')}
+    <section class="bench${S5.playing ? ' playing' : ''}" aria-label="Progression player">
+      <div class="toolbar">
+        <label class="field" for="prog">Progression <select id="prog" data-change="prog">${PROGS.map(x => `<option value="${x.id}"${x.id === S5.prog ? ' selected' : ''}>${x.name}</option>`).join('')}</select></label>
+        <span class="muted">Key:</span>${keyPicker('key', S5.key, p.minor ? 'minor' : 'major')}
+      </div>
+      <div class="toolbar">${seg('zone', ZONES.map(z => [z.id, z.name]), S5.zone, 'Neck zone')}</div>
+      <div class="toolbar">
+        ${seg('voicing', VOICE_OPTS, S5.voicing, 'Strings to play')}
+        ${seg('style', [['strum', 'Strum'], ['arp', 'Arpeggio']], S5.style, 'Play style')}
+        ${S5.style === 'arp' ? `<label class="check"><input type="checkbox" id="land3" data-act="third"${S5.third ? ' checked' : ''}> Land on the 3rd</label>` : ''}
+        ${labelSeg()}
+      </div>
+      <div class="toolbar">
+        <label class="field" for="bpm">Tempo <input type="range" id="bpm" min="50" max="140" step="2" value="${S5.bpm}" data-input="bpm"> <output id="bpm-out" for="bpm">${S5.bpm} BPM</output></label>
+        <label class="check"><input type="checkbox" id="click" data-act="click"${S5.click ? ' checked' : ''}> Metronome click</label>
+      </div>
+      <p>In this zone: ${this.summary(chords)}.${outside ? ' <span class="muted">This key has few shapes inside this zone, so some chords reach just outside it.</span>' : ''}</p>
+      <div id="p5-cards" class="chord-row">${this.cardsHTML(chords)}</div>
+      <div class="board-wrap" id="p5-board">${this.boardHTML(chords)}</div>
+      ${legend(['root', 'keep', 'next', 'zone', 'mute'].concat(S5.third ? ['third'] : []))}
+      <div id="p5-ask">${this.askHTML()}</div>
+      <div class="p5-bar">
+        <button type="button" class="btn primary" data-act="play">${S5.playing ? 'Stop' : 'Play the loop'}<kbd>Space</kbd></button>
+        <span class="p5-now" id="p5-now">${this.nowHTML(chords)}</span>
+        <div class="beats" id="p5-beats">${this.beatsHTML()}</div>
+      </div>
+    </section>
+    <div class="cards">
+      <article class="card"><h3>To finish this step</h3><p>Play along with a full loop in two different zones, then confirm you stayed inside the box. You get a four-click count-in, and each chord lasts one bar.</p><div class="pchips">${ZONES.map(z => `<span class="pchip${S5.zonesDone.has(z.id) ? ' done' : ''}">${z.name}</span>`).join('')}</div></article>
+      <article class="card"><h3>Stay in one zone</h3><p>Play every chord without leaving the boxed frets. You'll end up mixing shapes, and that's the point: the shape that's closest wins. Notes with a dashed ring are shared with the next chord: leave those fingers down.</p></article>
+      <article class="card"><h3>Partial shapes are normal</h3><p>Strum only 4 strings or play the triads. These small chords sound great, leave room for other instruments and are how most players actually use CAGED.</p></article>
+      <article class="card"><h3>Arpeggiate and aim</h3><p>Pick each chord's notes one at a time. Turn on “Land on the 3rd” and the first note of every bar becomes the chord's 3rd: the note that tells the ear the chord changed. Then try it yourself.</p></article>
+    </div>
+    <div class="next"><a class="btn" href="#practice">Next: start your daily routine →</a></div>`;
+  },
+  refresh(){ S5.valid = false; S5.ask = null; if(S5.playing){ S5.plan = progChords(); } if(S5.cur >= this.plan().length) S5.cur = 0; render(); },
+  actions:{
+    key(v){ S5.key = Number(v); Step5.refresh(); },
+    zone(v){ S5.zone = v; Step5.refresh(); },
+    voicing(v){ S5.voicing = v; Step5.refresh(); },
+    style(v){ S5.style = v; render(); },
+    third(_, el){ S5.third = el.checked; Step5.update(); },
+    click(_, el){ S5.click = el.checked; },
+    play(){ if(S5.playing) stopPlayer(); else startPlayer(); render(); },
+    zyes(){ const k = S5.ask; S5.ask = null; S5.askMsg = 'Logged. Try another zone, or raise the tempo.'; markZone(k); Step5.updateAsk(); if(!S5.playing) render(); },
+    zno(){ S5.ask = null; S5.askMsg = 'Keep looping. Slow the tempo down, use 4-string shapes, and watch the dashed circles for where the next chord goes.'; Step5.updateAsk(); },
+    card(v){ S5.cur = Number(v); if(!S5.playing){ Step5.update(); strum(progChords()[S5.cur].notes); } }
+  },
+  inputs:{ bpm(v){ S5.bpm = Number(v); if(S5.playing) clock.bpm = S5.bpm; const o = $('#bpm-out'); if(o) o.textContent = v + ' BPM'; } },
+  changes:{ prog(v){ S5.prog = v; S5.cur = 0; Step5.refresh(); } },
+  keys:{space(){ Step5.actions.play(); }, left(){ if(!S5.playing){ const n = progChords().length; S5.cur = (S5.cur + n - 1) % n; Step5.update(); strum(progChords()[S5.cur].notes); } }, right(){ if(!S5.playing){ const n = progChords().length; S5.cur = (S5.cur + 1) % n; Step5.update(); strum(progChords()[S5.cur].notes); } }}
+};
+
+/* ================= Practice routine ================= */
+const TODAY_KEYS = [7, 9, 2, 4, 5];
+function todayKey(){ const d = new Date(); const n = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000); return TODAY_KEYS[((n % 5) + 5) % 5]; }
+function routine(){
+  const k = MAJOR_NAMES[todayKey()];
+  return [
+    {min:2, title:'Open chords with roots', text:'Play C, A, G, E and D. After each chord, play only its roots and say the note names out loud.', link:'step-1'},
+    {min:5, title:'C linking drill', text:'Run the linking drill on C. Start at 60 BPM and only move up the tempo ladder when every change is clean.', link:'step-3'},
+    {min:5, title:`Today's chord: ${k} major`, text:`Find all five shapes of ${k} major. Say where each root is before you play the shape, then run the drill.`, link:'explore', key:todayKey()},
+    {min:3, title:'A progression in one zone', text:'Loop I – IV – V without leaving one zone of the neck. Try 4-string shapes, then triads.', link:'step-5'}
+  ];
+}
+const R = {running:false, block:0, remaining:120, last:0, timer:null, skipped:false};
+function rTick(){
+  const now = Date.now(); R.remaining -= (now - R.last) / 1000; R.last = now;
+  if(R.remaining <= 0){
+    const rs = routine(); chime();
+    while(R.remaining <= 0){ R.block++; if(R.block >= rs.length){ finishRoutine(); return; } R.remaining += rs[R.block].min * 60; }
+    toast(`Next: ${rs[R.block].title}`);
+    if(route === 'practice') render();
+  }
+  updateTimerUI();
+}
+function rStart(){ R.running = true; R.last = Date.now(); clearInterval(R.timer); R.timer = setInterval(rTick, 250); ac(); }
+function rPause(){ R.running = false; clearInterval(R.timer); }
+function rReset(){ rPause(); R.block = 0; R.remaining = routine()[0].min * 60; R.skipped = false; }
+function finishRoutine(){
+  const skipped = R.skipped; rReset(); const t = todayStr(); const first = !progress.days.includes(t);
+  if(skipped){ toast('Routine finished. Days with skipped blocks don\'t count toward your streak.'); }
+  else {
+    if(first){ progress.days.push(t); progress.days = progress.days.slice(-120); progress.xp += 30; }
+    saveProgress(); toast(first ? 'Routine done for today · +30 XP' : 'Routine done again. Nice work.');
+  }
+  if(route === 'practice') render();
+}
+function updateTimerChip(){
+  const c = $('#chip-timer'); if(!c) return;
+  const active = R.running || R.block > 0 || R.remaining < routine()[0].min * 60;
+  c.hidden = !active; if(active) c.textContent = `Routine ${R.block + 1}/4 · ${fmtTime(R.remaining)}${R.running ? '' : ' paused'}`;
+}
+function updateTimerUI(){
+  updateTimerChip();
+  const t = $('#r-time'); if(!t) return;
+  const rs = routine(); const total = rs[R.block].min * 60;
+  t.textContent = fmtTime(R.remaining); $('#r-bar').style.width = (100 * (1 - R.remaining / total)).toFixed(1) + '%';
+}
+const Practice = {
+  draw(){
+    const rs = routine(); const b = rs[R.block]; const total = b.min * 60; const days = new Set(progress.days);
+    const last14 = Array.from({length:14}, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 13 + i); return todayStr(d); });
+    const st = streak();
+    view.innerHTML = `
+    <header class="lesson-head"><p class="eyebrow">Daily routine · 15 minutes</p><h1 tabindex="-1">Today's practice</h1><p class="lede">Four short blocks, every day. The timer keeps running while you open an exercise, and a chime tells you when to move on.</p></header>
+    <div class="routine">
+      <section class="timer-card" aria-label="Timer">
+        <p class="eyebrow">Block ${R.block + 1} of 4</p>
+        <div class="big-time" id="r-time">${fmtTime(R.remaining)}</div>
+        <p><strong>${b.title}</strong></p>
+        <div class="bar" aria-hidden="true"><span id="r-bar" style="width:${(100 * (1 - R.remaining / total)).toFixed(1)}%"></span></div>
+        <div class="actions">
+          <button type="button" class="btn primary" data-act="toggle">${R.running ? 'Pause' : (R.block > 0 || R.remaining < total ? 'Resume' : 'Start routine')}</button>
+          <button type="button" class="btn" data-act="skip">Skip block</button>
+          <button type="button" class="btn ghost" data-act="reset">Reset</button>
+        </div>
+        <button type="button" class="btn" data-act="open" data-v="${R.block}">Open this exercise →</button>
+        ${R.skipped ? '<p class="muted">You skipped a block, so today won\'t count toward your streak.</p>' : ''}
+      </section>
+      <ol class="blocks">${rs.map((x, i) => `<li class="${i < R.block ? 'done' : i === R.block ? 'on' : ''}"><span class="mins">${x.min} min</span><div><strong>${x.title}</strong><p class="muted">${x.text}</p><button type="button" class="btn small" data-act="open" data-v="${i}">Open exercise</button></div></li>`).join('')}</ol>
+    </div>
+    <div class="cards">
+      <article class="card"><h3>Your streak</h3><p class="stat">${st} ${st === 1 ? 'day' : 'days'}</p><div class="days" aria-label="Last 14 days">${last14.map(d => `<span class="${days.has(d) ? 'on' : ''}" title="${d}${days.has(d) ? ': practised' : ''}"></span>`).join('')}</div><p class="muted">Finish all four blocks without skipping to count a day. Progress is kept in this browser only.</p>${dueCount() ? `<p><a href="#train">${dueCount()} drill item${dueCount() === 1 ? ' is' : 's are'} due for review in Train →</a></p>` : ''}</article>
+      <article class="card"><h3>Common mistakes</h3><ul><li><strong>Naming the chord by the barre.</strong> The chord takes its name from the root. In the C- and G-shapes the root is three frets above your index finger.</li><li><strong>Strumming muted strings.</strong> D-shape: skip the low E and A. C-shape: the low E stays silent.</li><li><strong>Fretting every full shape.</strong> The full G- and D-shapes are hard; partial shapes are normal, not cheating.</li><li><strong>Moving on too fast.</strong> Get C clean at 60 BPM before adding keys.</li></ul></article>
+      <article class="card"><h3>Hand tips</h3><ul><li>Keep your thumb behind the neck for the C-, G- and D-shapes.</li><li>Barre with the bony side of your index finger, close to the fret.</li><li>A-shape: let the ring-finger barre mute the high e, or arch it.</li><li>Say the root's name out loud before every change.</li></ul></article>
+    </div>`;
+  },
+  actions:{
+    toggle(){ if(R.running) rPause(); else rStart(); render(); updateTimerChip(); },
+    skip(){ const rs = routine(); R.skipped = true; chime(); R.block++; if(R.block >= rs.length){ finishRoutine(); return; } R.remaining = rs[R.block].min * 60; render(); updateTimerChip(); },
+    reset(){ rReset(); render(); updateTimerChip(); },
+    open(v){ const x = routine()[Number(v)]; if(x.key != null){ SX.key = x.key; SX.q = 'major'; SX.idx = 0; SX.focus = true; SX.pent = false; } location.hash = x.link; }
+  },
+  keys:{space(){ Practice.actions.toggle(); }}
+};
+
+/* ================= Train: spaced repetition drills ================= */
+const T = {mode:'shape', minor:false, hint:true, q:null, picked:null, sel:new Set(), score:0, total:0, streak:0, feedback:'', ok:null};
+const TRAIN_MODES = [['shape', 'Name the shape'], ['chord', 'Name the chord'], ['roots', 'Roots in a shape'], ['build', 'Build a shape'], ['octaves', 'Every root on the neck'], ['ear', 'Major or minor?'], ['order', 'Shape order']];
+const HOME = {E:0, G:0, A:1, C:1, D:2}; // the string each shape's anchor root sits on
+const isClickMode = t => t === 'roots' || t === 'octaves' || t === 'build';
+const statOf = k => progress.stats[k] || {r:0, w:0};
+// Leitner boxes: a right answer moves an item up a box (seen again after 0, 1, 2, 4, 8 days); a miss sends it back to box 0.
+const BOX_DAYS = [0, 1, 2, 4, 8], DAY = 86400000;
+const isDue = s => s.r + s.w > 0 && Date.now() - (s.last || 0) >= BOX_DAYS[s.box || 0] * DAY;
+function weightOf(k){ const s = statOf(k); if(s.r + s.w === 0) return 1.5; return (isDue(s) ? 3 : 0.35) * (1 + s.w) / (1 + 0.3 * s.r); }
+function dueCount(){ return Object.values(progress.stats).filter(isDue).length; }
+function pickWeighted(items){ const ws = items.map(weightOf); let x = Math.random() * ws.reduce((a, b) => a + b, 0); for(let i = 0; i < items.length; i++){ x -= ws[i]; if(x <= 0) return items[i]; } return items[items.length - 1]; }
+function record(k, ok){ const s = statOf(k); if(ok){ s.r++; s.box = Math.min(4, (s.box || 0) + 1); } else { s.w++; s.box = 0; } s.last = Date.now(); progress.stats[k] = s; }
+function qualities(){ return T.minor ? ['major', 'minor'] : ['major']; }
+function randomShapeInstance(q, shape){
+  for(let i = 0; i < 20; i++){ const key = Math.floor(Math.random() * 12); const opts = instances(key, q).filter(x => x.shape === shape); if(opts.length) return rand(opts); }
+  return rand(instances(0, q));
+}
+function orderQ(){
+  const type = rand(['after', 'before', 'lowest']);
+  if(type === 'lowest'){ const k = Math.floor(Math.random() * 12); const l = instances(k, 'major'); return {type:'order', prompt:`Which shape of ${chordLong(k, 'major')} sits closest to the nut?`, options:ORDER, answer:l[0].shape, explain:`${chordLong(k, 'major')} starts the loop with the ${l[0].shape}-shape at frets ${l[0].minF}–${l[0].maxF}.`}; }
+  const s = rand(ORDER), i = ORDER.indexOf(s);
+  if(type === 'after') return {type:'order', prompt:`Going up the neck, which shape comes right after the ${s}-shape?`, options:ORDER, answer:ORDER[(i + 1) % 5], explain:`The loop runs C → A → G → E → D → C, so ${s} is followed by ${ORDER[(i + 1) % 5]}.`};
+  return {type:'order', prompt:`Which shape sits just below the ${s}-shape, toward the nut?`, options:ORDER, answer:ORDER[(i + 4) % 5], explain:`Going down the neck the loop runs backwards, so below ${s} comes ${ORDER[(i + 4) % 5]}.`};
+}
+function newQ(){
+  T.picked = null; T.sel = new Set(); T.feedback = ''; T.ok = null;
+  const qs = qualities();
+  if(T.mode === 'order'){ T.q = orderQ(); return; }
+  if(T.mode === 'octaves'){
+    const k = pickWeighted(MAJOR_NAMES.map((_, pc) => 'oct:' + pc)); const pc = Number(k.split(':')[1]);
+    const want = []; for(let s = 0; s < 6; s++) for(let f = 0; f <= 12; f++) if((OPEN[s] + f) % 12 === pc) want.push(s + ':' + f);
+    T.q = {type:'octaves', pc, want, stat:k, prompt:`Click every ${MAJOR_NAMES[pc]} between the nut and fret 12, then press Check.`, explain:`There are ${want.length} of them. The octave shapes find them fast: E→D string +2 frets, A→G +2, D→B +3, G→high e +3, and low E = high e.`};
+    return;
+  }
+  if(T.mode === 'build'){
+    const item = pickWeighted(qs.flatMap(q => ORDER.map(s => `build:${q}:${s}`))); const [, q, sh] = item.split(':');
+    const inst = randomShapeInstance(q, sh); const anchor = rootsOf(inst).find(n => n.s === HOME[sh]) || rootsOf(inst)[0];
+    const want = notesOf(inst).map(n => n.s + ':' + n.f).filter(k => k !== anchor.s + ':' + anchor.f);
+    T.q = {type:'build', inst, anchor, want, stat:item, prompt:`Build the ${sh}-shape of ${chordLong(inst.keyPc, q)} around this root (${posName(anchor.s, anchor.f)}). Click every other note, then press Check.`,
+      explain:`The full ${sh}-shape of ${chordLabel(inst.keyPc, q)}: ${inst.frets.map(f => f == null ? 'x' : f).join(' ')} (low E to high e).`};
+    return;
+  }
+  if(T.mode === 'ear'){
+    const k = pickWeighted(['ear:major', 'ear:minor']); const q = k.split(':')[1];
+    const inst = randomShapeInstance(q, rand(ORDER));
+    T.q = {type:'ear', inst, stat:k, prompt:'Listen. Is this chord major or minor?', options:['Major', 'Minor'], answer:q === 'major' ? 'Major' : 'Minor', explain:`It was ${chordLong(inst.keyPc, q)} (${inst.shape}-shape). Major sounds bright and settled; minor sounds darker because its 3rd is one fret lower.`};
+    return;
+  }
+  const prev = T.last;
+  let item, inst, tries = 0;
+  do{
+    if(T.mode === 'chord'){ item = pickWeighted(qs.flatMap(q => MAJOR_NAMES.map((_, pc) => `chord:${q}:${pc}`))); const [, q, pc] = item.split(':'); inst = rand(instances(Number(pc), q)); }
+    else { const pre = T.mode === 'roots' ? 'roots' : 'shape'; item = pickWeighted(qs.flatMap(q => ORDER.map(s => `${pre}:${q}:${s}`))); const [, q, s] = item.split(':'); inst = randomShapeInstance(q, s); }
+    tries++;
+  } while(prev && inst.shape === prev.shape && inst.keyPc === prev.keyPc && inst.q === prev.q && tries < 12);
+  T.last = inst;
+  const q = inst.q; const name = chordLabel(inst.keyPc, q);
+  const explain = `This is the ${inst.shape}-shape of ${chordLong(inst.keyPc, q)}, frets ${inst.minF}–${inst.maxF}. Roots: ${rootsOf(inst).map(r => posName(r.s, r.f)).join(' · ')}.`;
+  if(T.mode === 'shape') T.q = {type:'shape', inst, stat:item, prompt:'Which CAGED shape is this?', options:ORDER, answer:inst.shape, explain};
+  else if(T.mode === 'chord'){
+    const opts = new Set([name]); while(opts.size < 4) opts.add(chordLabel(Math.floor(Math.random() * 12), q));
+    T.q = {type:'chord', inst, stat:item, prompt:`This is a ${inst.shape}-shape. Which chord is it?`, options:shuffle([...opts]), answer:name, explain};
+  } else T.q = {type:'roots', inst, stat:item, prompt:`Click every root of this ${name} chord (${inst.shape}-shape), then press Check.`, explain};
+}
+function trainBoard(){
+  const q = T.q; const revealed = T.picked != null;
+  const NEU = '#ece5d6', NEU_ROOT = '#9fd8e0';
+  if(q.type === 'build'){
+    const want = new Set(q.want); const a = q.anchor; const dots = [{s:a.s, f:a.f, colors:['#9fd8e0'], root:true, label:'R', text:'#14212b'}];
+    if(revealed){
+      want.forEach(k => { const [s, f] = k.split(':').map(Number); const got = T.sel.has(k); dots.push({s, f, colors:[got ? 'var(--good)' : 'var(--warn)'], label:got ? '✓' : '!', text:'#fff'}); });
+      T.sel.forEach(k => { if(!want.has(k)){ const [s, f] = k.split(':').map(Number); dots.push({s, f, colors:['var(--bad)'], label:'✗', text:'#fff'}); } });
+    } else T.sel.forEach(k => { const [s, f] = k.split(':').map(Number); dots.push({s, f, colors:['var(--accent)'], cls:'sel', label:'', text:'#fff'}); });
+    return board({from:0, to:MAX_FRET, dots, label:'Build the shape fretboard'});
+  }
+  if(q.type === 'octaves'){
+    const want = new Set(q.want); const dots = [];
+    if(revealed){
+      want.forEach(k => { const [s, f] = k.split(':').map(Number); const got = T.sel.has(k); dots.push({s, f, colors:[got ? 'var(--good)' : 'var(--warn)'], root:true, label:got ? '✓' : '!', text:'#fff'}); });
+      T.sel.forEach(k => { if(!want.has(k)){ const [s, f] = k.split(':').map(Number); dots.push({s, f, colors:['var(--bad)'], label:'✗', text:'#fff'}); } });
+    } else T.sel.forEach(k => { const [s, f] = k.split(':').map(Number); dots.push({s, f, colors:['var(--accent)'], cls:'sel', label:'', text:'#fff'}); });
+    return board({from:0, to:12, dots, label:'Quiz fretboard, frets 0 to 12'});
+  }
+  const inst = q.inst;
+  const dots = notesOf(inst).map(n => {
+    const root = n.iv === 0; const k = n.s + ':' + n.f;
+    if(revealed){
+      if(q.type === 'roots'){ const sel = T.sel.has(k); if(root) return {s:n.s, f:n.f, colors:[sel ? 'var(--good)' : 'var(--warn)'], root:true, label:sel ? '✓' : '!', text:'#fff'}; return {s:n.s, f:n.f, colors:[sel ? 'var(--bad)' : COL[inst.shape]], label:sel ? '✗' : dotLabel(n.iv, inst, n.s), text:sel ? '#fff' : textFor(inst.shape)}; }
+      return {s:n.s, f:n.f, colors:[COL[inst.shape]], root, label:dotLabel(n.iv, inst, n.s), text:textFor(inst.shape)};
+    }
+    if(q.type === 'chord') return {s:n.s, f:n.f, colors:[COL[inst.shape]], root, label:'', text:'#fff'};
+    if(q.type === 'roots') return {s:n.s, f:n.f, colors:[T.sel.has(k) ? 'var(--accent)' : NEU], label:'', cls:T.sel.has(k) ? 'sel' : ''};
+    return {s:n.s, f:n.f, colors:[root && T.hint ? NEU_ROOT : NEU], root:root && T.hint, label:root && T.hint ? 'R' : '', text:'#14212b'};
+  });
+  return board({from:0, to:MAX_FRET, dots, label:'Quiz fretboard'});
+}
+function answerQ(v){
+  if(T.picked != null || !T.q) return;
+  const q = T.q; T.picked = v; T.total++;
+  let ok;
+  if(q.type === 'roots'){ const want = new Set(rootsOf(q.inst).map(n => n.s + ':' + n.f)); ok = want.size === T.sel.size && [...want].every(k => T.sel.has(k)); }
+  else if(q.type === 'octaves' || q.type === 'build'){ ok = q.want.length === T.sel.size && q.want.every(k => T.sel.has(k)); }
+  else ok = v === q.answer;
+  T.ok = ok; if(q.stat) record(q.stat, ok);
+  if(ok){ T.score++; T.streak++; progress.xp += 10; if(T.streak > (progress.best || 0)) progress.best = T.streak; }
+  else T.streak = 0;
+  saveProgress();
+  const lead = ok ? 'Correct.' : (isClickMode(q.type) ? `Not quite. ✓ found, ! missed, ✗ ${q.type === 'build' ? 'not in the shape' : 'not a root'}.` : `Not quite: the answer is ${q.answer}.`);
+  T.feedback = `${lead} ${q.explain}`; announce(T.feedback);
+  render(); if(q.inst) strum(notesOf(q.inst));
+  const nb = view.querySelector('[data-act="nextq"]'); if(nb) nb.focus({preventScroll:true});
+}
+function masteryHTML(){
+  return `<div class="mastery">${ORDER.map(s => {
+    let r = 0, w = 0; ['major', 'minor'].forEach(q => ['shape', 'roots', 'build'].forEach(p => { const x = statOf(`${p}:${q}:${s}`); r += x.r; w += x.w; }));
+    const n = r + w; const pct = n ? Math.round(100 * r / n) : 0;
+    return `<div class="mrow">${pill(s)}<div class="mbar" role="img" aria-label="${s}-shape: ${n ? pct + '% correct' : 'not practised yet'}"><span style="width:${pct}%;background:${COL[s]}"></span></div><span>${n ? `${pct}% · ${n}` : 'new'}</span></div>`;
+  }).join('')}</div>`;
+}
+const Train = {
+  draw(){
+    if(!T.q) newQ();
+    const q = T.q; const answered = T.picked != null;
+    const ans = isClickMode(q.type) ? '' : q.options.map((o, i) => {
+      const cls = answered ? (o === q.answer ? ' right' : o === T.picked ? ' wrong' : '') : '';
+      const mark = answered ? (o === q.answer ? ' ✓' : o === T.picked ? ' ✗' : '') : '';
+      return q.options === ORDER
+        ? `<button type="button" class="shape-btn${cls}" style="--sc:${COL[o]}" data-act="answer" data-v="${o}"${answered ? ' disabled' : ''} aria-label="${o}-shape${mark}">${o}${mark ? `<span class="sr-only">${mark}</span>` : ''}</button>`
+        : `<button type="button" class="btn opt${cls}" data-act="answer" data-v="${esc(o)}"${answered ? ' disabled' : ''}>${o}${mark}<kbd>${i + 1}</kbd></button>`;
+    }).join('');
+    const showBoard = q.type === 'octaves' || (q.inst && (q.type !== 'ear' || answered));
+    view.innerHTML = `
+    <header class="lesson-head"><p class="eyebrow">Train your eye and ear</p><h1 tabindex="-1">Recognise shapes at a glance</h1><p class="lede">Short drills that come back to what you get wrong more often. On the keyboard, press C, A, G, E or D (or 1–4) to answer and Enter for the next question.</p></header>
+    <section class="bench" aria-label="Quiz">
+      <div class="toolbar">${seg('mode', TRAIN_MODES, T.mode, 'Drill')}</div>
+      <div class="toolbar">
+        ${['shape', 'chord', 'roots', 'build'].includes(T.mode) ? `<label class="check"><input type="checkbox" id="minor" data-act="minor"${T.minor ? ' checked' : ''}> Include minor chords</label>` : ''}
+        ${T.mode === 'shape' ? `<label class="check"><input type="checkbox" id="hint" data-act="hint"${T.hint ? ' checked' : ''}> Show roots</label>` : ''}
+        <div class="scorebar"><span>Score <b>${T.score}/${T.total}</b></span><span>Streak <b>${T.streak}</b></span><span>Best streak <b>${progress.best || 0}</b></span><span>Due for review <b>${dueCount()}</b></span></div>
+      </div>
+      <h2>${esc(q.prompt)}</h2>
+      ${showBoard ? `<div class="board-wrap">${trainBoard()}</div>` : q.type === 'ear' ? `<div class="ear-hidden">The fretboard is hidden until you answer. Press Hear it (or Space) to play the chord again.</div>` : ''}
+      ${ans ? `<div class="answers" role="group" aria-label="Answers">${ans}</div>` : ''}
+      <p class="feedback ${T.ok === true ? 'ok' : T.ok === false ? 'no' : ''}" aria-live="polite">${esc(T.feedback)}</p>
+      <div class="actions">
+        ${isClickMode(q.type) && !answered ? `<button type="button" class="btn primary" data-act="check">Check<kbd>Enter</kbd></button>` : ''}
+        ${answered ? `<button type="button" class="btn primary" data-act="nextq">Next question<kbd>Enter</kbd></button>` : ''}
+        ${q.inst ? `<button type="button" class="btn" data-act="hear">Hear it<kbd>Space</kbd></button>` : ''}
+        ${!answered ? `<button type="button" class="btn ghost" data-act="skipq">Skip</button>` : ''}
+      </div>
+    </section>
+    <div class="cards">
+      <article class="card"><h3>Shape mastery</h3>${masteryHTML()}<p class="muted">From “Name the shape”, “Roots in a shape”, “Build a shape” and the Step 3 shape check. Weak shapes come up more often.</p></article>
+      <article class="card"><h3>How to use these drills</h3><ul><li>Say your answer out loud before you click it.</li><li>After each answer, play the shape on your guitar.</li><li>Five minutes a day beats an hour once a week. Items you get right come back after 1, 2, 4 and then 8 days; misses come back today.</li></ul></article>
+    </div>`;
+  },
+  actions:{
+    mode(v){ T.mode = v; T.q = null; render(); if(T.mode === 'ear') Train.actions.hear(); },
+    minor(_, el){ T.minor = el.checked; T.q = null; render(); },
+    hint(_, el){ T.hint = el.checked; render(); },
+    answer(v){ answerQ(v); },
+    check(){ answerQ('checked'); },
+    nextq(){ newQ(); render(); const h = view.querySelector('.bench h2'); if(h){ h.tabIndex = -1; h.focus({preventScroll:true}); } if(T.q.type === 'ear') Train.actions.hear(); },
+    skipq(){ Train.actions.nextq(); },
+    hear(){ if(T.q && T.q.inst) strum(notesOf(T.q.inst)); }
+  },
+  onNote(s, f){
+    playOne(s, f);
+    const q = T.q; if(!q || T.picked != null) return;
+    const k = s + ':' + f;
+    if((q.type === 'roots' && q.inst.frets[s] === f) || (q.type === 'octaves' && f <= 12) || (q.type === 'build' && !(s === q.anchor.s && f === q.anchor.f))){ if(T.sel.has(k)) T.sel.delete(k); else T.sel.add(k); boardFocus = {s, f}; render(); }
+  },
+  keys:{
+    space(){ Train.actions.hear(); },
+    char(k){
+      if(k === 'Enter'){ if(T.picked != null) Train.actions.nextq(); else if(T.q && isClickMode(T.q.type)) Train.actions.check(); return true; }
+      if(!T.q || T.picked != null) return false;
+      const up = k.toUpperCase();
+      if(T.q.options === ORDER && ORDER.includes(up)){ answerQ(up); return true; }
+      if(T.q.options && T.q.options !== ORDER && /^[1-4]$/.test(k) && T.q.options[Number(k) - 1]){ answerQ(T.q.options[Number(k) - 1]); return true; }
+      return false;
+    }
+  }
+};
+
+/* ================= Router and events ================= */
+const VIEWS = {'step-1':Step1, 'step-2':Step2, 'step-3':Step3, 'step-4':Step4, 'step-5':Step5, explore:Explore, practice:Practice, train:Train};
+function stopAll(){
+  stopWalk(); clockStop(); clearTimeout(S2.pending);
+  [S3, S4, SX].forEach(s => { s.walking = false; s.drill.running = false; s.drill.beat = -1; s.drill.count = null; });
+  S5.playing = false; S5.beat = -1; S5.count = null;
+}
+function go(){
+  stopAll();
+  const h = location.hash.slice(1); route = VIEWS[h] ? h : 'step-1'; V = VIEWS[route];
+  renderNav(); V.draw(); afterDraw(); window.scrollTo(0, 0);
+  const h1 = view.querySelector('h1'); if(h1 && go.started) h1.focus({preventScroll:true}); go.started = true;
+}
+let pointerAct = false;
+view.addEventListener('click', e => {
+  ac(); pointerAct = e.detail > 0; setTimeout(() => { pointerAct = false; }, 0);
+  const a = e.target.closest('[data-act]');
+  if(a && view.contains(a)){
+    const act = a.dataset.act, v = a.dataset.v;
+    if(act === 'labels'){ prefs.labels = v; savePrefs(); render(); return; }
+    if(V.actions && V.actions[act]) V.actions[act](v, a);
+    return;
+  }
+  const z = e.target.closest('[data-zone]'); if(z && V.onZone){ V.onZone(Number(z.dataset.zone)); return; }
+  const n = e.target.closest('[data-s]');
+  if(n){ const s = Number(n.dataset.s), f = Number(n.dataset.f); boardFocus = {s, f}; if(V.onNote) V.onNote(s, f); else playOne(s, f); }
+});
+view.addEventListener('input', e => { const el = e.target.closest('[data-input]'); if(el && V.inputs && V.inputs[el.dataset.input]) V.inputs[el.dataset.input](el.value, el); });
+view.addEventListener('change', e => { const el = e.target.closest('[data-change]'); if(el && V.changes && V.changes[el.dataset.change]) V.changes[el.dataset.change](el.value, el); });
+/* Keyboard on the fretboard: arrow keys walk the frets and strings, Enter or Space plays. */
+view.addEventListener('keydown', e => {
+  const t = e.target;
+  if(t.getAttribute && t.getAttribute('role') === 'radio' && ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)){
+    e.preventDefault(); e.stopPropagation();
+    const items = [...t.parentElement.querySelectorAll('[role="radio"]')]; let i = items.indexOf(t);
+    i = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : (i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    items[i].focus(); items[i].click(); return;
+  }
+  if(e.key === 'Enter' && t.matches && t.matches('tr[data-act]')){ e.preventDefault(); t.click(); return; }
+  if(t.matches && t.matches('[data-zone]') && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); e.stopPropagation(); t.dispatchEvent(new MouseEvent('click', {bubbles:true})); return; }
+  if(!(t.classList && t.classList.contains('hit'))) return;
+  const s = Number(t.dataset.s), f = Number(t.dataset.f); let ns = s, nf = f;
+  const right = prefs.lefty ? -1 : 1, up = prefs.lowTop ? -1 : 1;
+  if(e.key === 'ArrowRight') nf += right; else if(e.key === 'ArrowLeft') nf -= right;
+  else if(e.key === 'ArrowUp') ns += up; else if(e.key === 'ArrowDown') ns -= up;
+  else if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); t.dispatchEvent(new MouseEvent('click', {bubbles:true})); return; }
+  else return;
+  e.preventDefault(); e.stopPropagation();
+  const svg = t.ownerSVGElement; const nx = svg && svg.querySelector(`.hit[data-s="${ns}"][data-f="${nf}"]`);
+  if(nx){ t.setAttribute('tabindex', '-1'); nx.setAttribute('tabindex', '0'); nx.focus(); boardFocus = {s:ns, f:nf}; $('#sr').textContent = nx.getAttribute('aria-label'); }
+});
+document.addEventListener('keydown', e => {
+  if(e.metaKey || e.ctrlKey || e.altKey || !V) return;
+  const t = e.target; const tag = t.tagName;
+  if(tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SUMMARY') return;
+  if((tag === 'BUTTON' || tag === 'A' || tag === 'TR') && (e.key === ' ' || e.key === 'Enter')) return;
+  const k = V.keys || {};
+  if(e.key === ' ' && k.space){ e.preventDefault(); ac(); k.space(); }
+  else if(e.key === 'ArrowLeft' && k.left){ e.preventDefault(); ac(); k.left(); }
+  else if(e.key === 'ArrowRight' && k.right){ e.preventDefault(); ac(); k.right(); }
+  else if(k.char && k.char(e.key)){ e.preventDefault(); ac(); }
+});
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden && (clock.timer || clock.queue.length || walkT.length)){ stopAll(); if(V) render(); toast('Playback stopped while the tab was hidden. Press play to start again.'); }
+});
+$('#skip-board').addEventListener('click', () => { const h = view.querySelector('.hit[tabindex="0"]'); if(h) h.focus(); });
+$('#btn-sound').addEventListener('click', () => { ac(); setMuted(!audio.muted); });
+$('#chip-timer').addEventListener('click', () => { location.hash = 'practice'; });
+const optLefty = $('#opt-lefty'), optLow = $('#opt-lowtop');
+optLefty.checked = prefs.lefty; optLow.checked = prefs.lowTop;
+optLefty.addEventListener('change', () => { prefs.lefty = optLefty.checked; savePrefs(); render(); });
+optLow.addEventListener('change', () => { prefs.lowTop = optLow.checked; savePrefs(); render(); });
+document.addEventListener('click', e => { const d = $('#settings'); if(d.open && !d.contains(e.target)) d.open = false; });
+document.addEventListener('keydown', e => { const d = $('#settings'); if(e.key === 'Escape' && d.open){ d.open = false; d.querySelector('summary').focus(); } });
+window.addEventListener('hashchange', go);
+R.remaining = routine()[0].min * 60;
+renderChips();
+go();
+</script>
+</body>
+</html>
