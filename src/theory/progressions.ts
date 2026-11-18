@@ -22,8 +22,16 @@ const d = (iv: number, q: Quality, roman: string): Degree => ({ iv, q, roman });
 
 export const PROGS: readonly Progression[] = [
   { id: '145', name: 'I – IV – V', deg: [d(0, 'major', 'I'), d(5, 'major', 'IV'), d(7, 'major', 'V')] },
-  { id: '1564', name: 'I – V – vi – IV', deg: [d(0, 'major', 'I'), d(7, 'major', 'V'), d(9, 'minor', 'vi'), d(5, 'major', 'IV')] },
-  { id: '1645', name: 'I – vi – IV – V', deg: [d(0, 'major', 'I'), d(9, 'minor', 'vi'), d(5, 'major', 'IV'), d(7, 'major', 'V')] },
+  {
+    id: '1564',
+    name: 'I – V – vi – IV',
+    deg: [d(0, 'major', 'I'), d(7, 'major', 'V'), d(9, 'minor', 'vi'), d(5, 'major', 'IV')],
+  },
+  {
+    id: '1645',
+    name: 'I – vi – IV – V',
+    deg: [d(0, 'major', 'I'), d(9, 'minor', 'vi'), d(5, 'major', 'IV'), d(7, 'major', 'V')],
+  },
   { id: '251', name: 'ii – V – I', deg: [d(2, 'minor', 'ii'), d(7, 'major', 'V'), d(0, 'major', 'I')] },
   {
     id: 'blues',
@@ -35,7 +43,12 @@ export const PROGS: readonly Progression[] = [
     name: '12-bar blues with 7th chords',
     deg: [0, 0, 0, 0, 5, 5, 0, 0, 7, 5, 0, 7].map((iv) => d(iv, 'dom7', iv === 0 ? 'I7' : iv === 5 ? 'IV7' : 'V7')),
   },
-  { id: 'm145', name: 'i – iv – v (minor key)', minor: true, deg: [d(0, 'minor', 'i'), d(5, 'minor', 'iv'), d(7, 'minor', 'v')] },
+  {
+    id: 'm145',
+    name: 'i – iv – v (minor key)',
+    minor: true,
+    deg: [d(0, 'minor', 'i'), d(5, 'minor', 'iv'), d(7, 'minor', 'v')],
+  },
   {
     id: 'm145V',
     name: 'i – iv – V (minor key, major V)',

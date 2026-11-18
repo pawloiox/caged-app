@@ -41,10 +41,31 @@ export function routine(d: Date = new Date()): RoutineBlock[] {
   const tk = todayKey(d);
   const k = MAJOR_NAMES[tk]!;
   return [
-    { min: 2, title: 'Open chords with roots', text: 'Play C, A, G, E and D. After each chord, play only its roots and say the note names out loud.', to: '/learn/1' },
-    { min: 5, title: 'C linking drill', text: 'Run the linking drill on C. Start at 60 BPM and only move up the tempo ladder when every change is clean.', to: '/learn/3' },
-    { min: 5, title: `Today's chord: ${k} major`, text: `Find all five shapes of ${k} major. Say where each root is before you play the shape, then run the drill.`, to: `/explore?key=${tk}&q=major`, key: tk },
-    { min: 3, title: 'A progression in one zone', text: 'Loop I – IV – V without leaving one zone of the neck. Try 4-string shapes, then triads.', to: '/learn/5' },
+    {
+      min: 2,
+      title: 'Open chords with roots',
+      text: 'Play C, A, G, E and D. After each chord, play only its roots and say the note names out loud.',
+      to: '/learn/1',
+    },
+    {
+      min: 5,
+      title: 'C linking drill',
+      text: 'Run the linking drill on C. Start at 60 BPM and only move up the tempo ladder when every change is clean.',
+      to: '/learn/3',
+    },
+    {
+      min: 5,
+      title: `Today's chord: ${k} major`,
+      text: `Find all five shapes of ${k} major. Say where each root is before you play the shape, then run the drill.`,
+      to: `/explore?key=${tk}&q=major`,
+      key: tk,
+    },
+    {
+      min: 3,
+      title: 'A progression in one zone',
+      text: 'Loop I – IV – V without leaving one zone of the neck. Try 4-string shapes, then triads.',
+      to: '/learn/5',
+    },
   ];
 }
 

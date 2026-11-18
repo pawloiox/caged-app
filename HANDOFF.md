@@ -1,5 +1,7 @@
 # CAGED Lab: handoff to Claude Code
 
+> **Status (2026-11-18): rebuild round 1 is in this repo.** Phases 0–3 are built and tested; the independent critic pass was **deferred at the user's request**. See [section 11](#11-build-status-round-1) for what is done, what is not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the critic pass later.
+
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
 Read this whole document before writing code. Treat the reference HTML as the source of truth for behaviour and music data. Treat this document as the source of truth for priorities and architecture.
@@ -235,3 +237,102 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 - Report to the user in plain language: what changed, the scores, what's next.
 
 The user is an intermediate-beginner guitarist who practises with the app, so test flows with a real guitar in mind: hands are busy, so offer big targets, keyboard and foot-pedal-friendly shortcuts (Space plays and stops, arrow keys move), and minimal reading during play.
+
+---
+
+## 11. Build status (round 1)
+
+Built 2026-11-18 on Vite 8, React 19, TypeScript 6.0 (strict), React Router 8, Zustand 5, Dexie 4, Radix, Tailwind 4,
+Tone.js 15, pitchy 4 and vite-plugin-pwa 2. Deviations are recorded in `docs/adr/0001-stack-and-audio.md`. How to run
+everything is in `README.md`. Local git repo, branch `main`; no remote, and nothing is deployed.
+
+**Done**
+
+- `src/theory/`: ported line by line, plus dominant-7 shapes (E7, A7, C7, D7, G7 forms) and the D♯m spelling option.
+- Golden tests (section 6), all passing: chord tones in every key and quality, the C major chain and its shared roots,
+  voicing note counts, fingers for every fretted note, the spelling cases, all five standard pentatonic boxes (≥60
+  boxes), and the three planner cases. Dom7 voicings always contain the ♭7.
+- Steps 1–5, Explorer (major, minor and 7th), Practice, Train (8 modes) and Review now, at parity with v5 and keeping
+  every section 8 behaviour.
+- Section 9 gaps:
+  1. Review queue with a review streak.
+  2. Step 5 ear and hand check, recorded as `prog:<id>:<degree>`.
+  3. A one-line voicing explanation on each chord card.
+  4. A five-level shape-check ramp.
+  5. Dom7 shapes, plus a 12-bar blues with 7ths.
+  6. D♯m spelling.
+- Listening mode:
+  - A permission dialog that explains itself.
+  - A level meter, tuner and latency calibration (strum on 8 clicks).
+  - Step 1 roots played into the mic.
+  - A linking drill that holds until it hears the shared root and scores pivots per tempo.
+  - Step 5 per-bar strum checks and land-on-the-3rd checks that confirm a zone automatically.
+  - Train: "Roots in a shape" and "Ear + hand" listen to what you play.
+  - Every drill also has the no-mic self-check.
+- Sound and transport:
+  - Tone.js Transport for all musical timing.
+  - Count-ins and a separate metronome bus.
+  - Strum direction, string damping and round-robin variants.
+- Mobile and PWA:
+  - Upright neck on phones (auto, or chosen under View).
+  - 44 px touch targets and a sticky mini-player.
+  - Wake lock while playing, listening or running the routine.
+  - Installable, and works offline.
+- Exports: progress as JSON (export and import), and printable chord charts for today's key (print or save as PDF).
+- v5 localStorage progress and prefs are imported on first run.
+
+**Test evidence (all passing at the end of round 1)**
+
+- `npm run check`: typecheck, lint and 48 unit tests:
+  - golden theory tests;
+  - DSP accuracy: 100% single-note recognition over all 96 string × fret positions, clean and at 25 dB SNR;
+  - chord and wrong-3rd detection;
+  - Leitner, persistence and v5 import.
+- `npm run e2e`: 38 Playwright tests:
+  - every route renders with no console errors;
+  - axe reports no serious or critical issues, in light and dark;
+  - Steps 1–5 complete end to end;
+  - Step 1 works keyboard-only;
+  - 8 routes at 390 px: no horizontal scroll, upright neck, every target ≥44 px, axe clean;
+  - the app works offline through the service worker;
+  - v5 progress imports;
+  - timing: 700 beats in 5 minutes at 140 BPM, with under 1 ms error (offline render on the drill Transport).
+
+**Not verified yet (open items, in priority order)**
+
+1. **Real-guitar accuracy.** The ≥95% figure is measured on synthesised (Karplus-Strong) guitar, not on recordings.
+   Record about 100 clean single notes and 50 strums from a real guitar, add them as fixtures, and re-run
+   `tests/dsp.test.ts`. Tune `PitchTracker` clarity and the `checkChord` thresholds if needed.
+2. **Real-device listening drills.** Test the linking-drill hold/resume and the Step 5 bar windows with a real guitar,
+   with and without headphones, after calibrating latency on the Tuner page.
+3. **Guitar samples.** No licensed multisample set ships yet. Drop one into `public/samples/guitar/` (format in the ADR).
+4. **Lighthouse.** Not run yet (target: 95+ on PWA, accessibility and best practices). The main JS chunk is 666 kB
+   (215 kB gzipped); code-splitting the routes would help the performance score.
+5. **Mic flows have no automated E2E test.** A fake media stream (Chromium's `--use-file-for-fake-audio-capture`)
+   could feed recorded fixtures into the drills.
+6. **Dev-tool audit warnings.** `npm audit` reports advisories in build tooling (picomatch/tinyglobby under Vite);
+   nothing in the shipped bundle.
+7. **Phase 4** (accounts and sync): not started. Ask the user first.
+
+## 12. Deferred critic pass: how to run it
+
+The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
+user's request. To run it later:
+
+1. **Snapshot first.** Tag the build under review, so the best round can be shipped rather than the latest:
+   `git tag round-1 && npm run build`.
+2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
+   this repository, `caged-lab-v5-reference.html` and this document, and ask it to:
+   - run `npm install`, `npm run check`, `npm run build`, `npm run e2e` and `npm run preview`;
+   - use the app as an intermediate-beginner guitarist would: on desktop, keyboard-only, and at 390 px;
+   - check the music data against sections 5 and 6;
+   - score 1–10 on the same rubric as section 2 (music correctness, pedagogy, UX, accessibility, engineering,
+     overall), with a short justification each;
+   - compare the scores with v4/v5 (8.5 / 8 / 7.5 / 7 / 7.5 / 8);
+   - list findings ranked by severity, each with a concrete reproduction.
+3. **Also run Lighthouse** on the preview build (`npx lighthouse http://localhost:4173 --view`) and attach the PWA,
+   accessibility and best-practices scores.
+4. **Fix the findings**, re-run `npm run check` and `npm run e2e`, then tag `round-2`. Repeat until every area scores 8
+   or more and overall is 9 or more (section 2).
+5. **Record each round's scores** in the table in section 2.
+

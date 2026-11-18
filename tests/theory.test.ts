@@ -54,7 +54,11 @@ describe('instances', () => {
 
   it('C major neighbours share roots A3, G5, E8+e8, D10, B13', () => {
     const l = instances(0, 'major');
-    const links = l.slice(0, -1).map((a, i) => sharedRoots(a, l[i + 1]!).map(pos).sort());
+    const links = l.slice(0, -1).map((a, i) =>
+      sharedRoots(a, l[i + 1]!)
+        .map(pos)
+        .sort(),
+    );
     expect(links).toEqual([['1:3'], ['3:5'], ['0:8', '5:8'], ['2:10'], ['4:13']]);
   });
 
@@ -129,7 +133,12 @@ describe('voicings', () => {
             const strings = stringsFor(v, inst);
             for (const n of notesOf(inst, strings)) {
               const fg = fingerOf(inst, n.s, strings);
-              const exempt = q === 'minor' && inst.shape === 'G' && inst.minF > 0 && !strings && (n.s === 0 || n.s === 1 || n.s === 5);
+              const exempt =
+                q === 'minor' &&
+                inst.shape === 'G' &&
+                inst.minF > 0 &&
+                !strings &&
+                (n.s === 0 || n.s === 1 || n.s === 5);
               const label = `${k}${q} ${fmt(inst)} ${v} s${n.s}`;
               if (exempt) expect(fg, label).toBe('');
               else if (n.f === 0) expect(fg, label).toBe('○');
@@ -148,7 +157,8 @@ describe('voicings', () => {
             const ns = notesOf(inst, strings)
               .map((n) => ({ f: n.f, g: Number(fingerOf(inst, n.s, strings)) }))
               .filter((x) => x.g > 0);
-            for (const a of ns) for (const b of ns) if (a.f < b.f) expect(a.g, `${k}${q} ${fmt(inst)} ${v}`).toBeLessThan(b.g);
+            for (const a of ns)
+              for (const b of ns) if (a.f < b.f) expect(a.g, `${k}${q} ${fmt(inst)} ${v}`).toBeLessThan(b.g);
           }
         }
   });
@@ -193,30 +203,85 @@ describe('spelling', () => {
 describe('pentatonic boxes', () => {
   // The five standard boxes of A minor pentatonic, normalised so the lowest fret is 0.
   const STANDARD = [
-    [[5, 8], [5, 7], [5, 7], [5, 7], [5, 8], [5, 8]],
-    [[8, 10], [7, 10], [7, 10], [7, 9], [8, 10], [8, 10]],
-    [[10, 12], [10, 12], [10, 12], [9, 12], [10, 13], [10, 12]],
-    [[12, 15], [12, 15], [12, 14], [12, 14], [13, 15], [12, 15]],
-    [[15, 17], [15, 17], [14, 17], [14, 17], [15, 17], [15, 17]],
+    [
+      [5, 8],
+      [5, 7],
+      [5, 7],
+      [5, 7],
+      [5, 8],
+      [5, 8],
+    ],
+    [
+      [8, 10],
+      [7, 10],
+      [7, 10],
+      [7, 9],
+      [8, 10],
+      [8, 10],
+    ],
+    [
+      [10, 12],
+      [10, 12],
+      [10, 12],
+      [9, 12],
+      [10, 13],
+      [10, 12],
+    ],
+    [
+      [12, 15],
+      [12, 15],
+      [12, 14],
+      [12, 14],
+      [13, 15],
+      [12, 15],
+    ],
+    [
+      [15, 17],
+      [15, 17],
+      [14, 17],
+      [14, 17],
+      [15, 17],
+      [15, 17],
+    ],
   ].map((b) => {
     const m = Math.min(...b.flat());
     return JSON.stringify(b.map((p) => p.map((f) => f - m)));
   });
   const shapeOf = (inst: Instance) => {
     const box = pentBox(inst);
-    const per = [0, 1, 2, 3, 4, 5].map((s) => box.filter((n) => n.s === s).map((n) => n.f).sort((a, b) => a - b));
+    const per = [0, 1, 2, 3, 4, 5].map((s) =>
+      box
+        .filter((n) => n.s === s)
+        .map((n) => n.f)
+        .sort((a, b) => a - b),
+    );
     const m = Math.min(...per.flat());
     return { per, norm: JSON.stringify(per.map((p) => p.map((f) => f - m))) };
   };
 
   it('C major E-shape box is the standard one', () => {
     const e = instances(0, 'major').find((i) => i.shape === 'E')!;
-    expect(pentBox(e).map(pos)).toEqual(['0:8', '0:10', '1:7', '1:10', '2:7', '2:10', '3:7', '3:9', '4:8', '4:10', '5:8', '5:10']);
+    expect(pentBox(e).map(pos)).toEqual([
+      '0:8',
+      '0:10',
+      '1:7',
+      '1:10',
+      '2:7',
+      '2:10',
+      '3:7',
+      '3:9',
+      '4:8',
+      '4:10',
+      '5:8',
+      '5:10',
+    ]);
   });
 
   it('A minor G-shape box has B string 3 and 5', () => {
     const g = instances(9, 'minor').find((i) => i.shape === 'G')!;
-    const b = pentBox(g).filter((n) => n.s === 4).map((n) => n.f);
+    const b = pentBox(g)
+      .filter((n) => n.s === 4)
+      .map((n) => n.f);
     expect(b).toEqual([3, 5]);
   });
 
@@ -243,7 +308,9 @@ describe('pentatonic boxes', () => {
           expect(Math.max(...fs) - Math.min(...fs)).toBeLessThanOrEqual(4);
           for (const n of box) expect(PENT[q]).toContain(n.iv);
           for (let s = 0; s < 6; s++) expect(box.filter((n) => n.s === s).length).toBeLessThanOrEqual(2);
-          if (inst.maxF <= 12) for (let s = 0; s < 6; s++) expect(box.filter((n) => n.s === s).length, `${k}${q} ${fmt(inst)} s${s}`).toBe(2);
+          if (inst.maxF <= 12)
+            for (let s = 0; s < 6; s++)
+              expect(box.filter((n) => n.s === s).length, `${k}${q} ${fmt(inst)} s${s}`).toBe(2);
         }
   });
 
@@ -322,7 +389,10 @@ describe('planner', () => {
         for (const v of VOICINGS)
           for (const c of buildProgression(k, 'blues7', z.id, v)) {
             expect(c.q).toBe('dom7');
-            expect(c.notes.some((n) => n.iv === 10), `${k} ${z.id} ${v} ${c.name}`).toBe(true);
+            expect(
+              c.notes.some((n) => n.iv === 10),
+              `${k} ${z.id} ${v} ${c.name}`,
+            ).toBe(true);
           }
   });
 

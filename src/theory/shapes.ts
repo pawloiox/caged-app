@@ -13,20 +13,60 @@ export const ORDER: readonly Shape[] = ['C', 'A', 'G', 'E', 'D'];
 /** The pitch class of the open chord each shape is named after. */
 export const SHAPE_PC: Record<Shape, number> = { C: 0, A: 9, G: 7, E: 4, D: 2 };
 /** Chord tones as intervals above the root. */
-export const CHORD_IVS: Record<Quality, readonly number[]> = { major: [0, 4, 7], minor: [0, 3, 7], dom7: [0, 4, 7, 10] };
+export const CHORD_IVS: Record<Quality, readonly number[]> = {
+  major: [0, 4, 7],
+  minor: [0, 3, 7],
+  dom7: [0, 4, 7, 10],
+};
 
 export const SHAPES: Record<Quality, Record<Shape, Frets>> = {
-  major: { C: [null, 3, 2, 0, 1, 0], A: [null, 3, 5, 5, 5, 3], G: [8, 7, 5, 5, 5, 8], E: [8, 10, 10, 9, 8, 8], D: [null, null, 10, 12, 13, 12] },
-  minor: { C: [null, 3, 1, 0, 1, null], A: [null, 3, 5, 5, 4, 3], G: [8, 6, 5, 5, 4, 8], E: [8, 10, 10, 8, 8, 8], D: [null, null, 10, 12, 13, 11] },
+  major: {
+    C: [null, 3, 2, 0, 1, 0],
+    A: [null, 3, 5, 5, 5, 3],
+    G: [8, 7, 5, 5, 5, 8],
+    E: [8, 10, 10, 9, 8, 8],
+    D: [null, null, 10, 12, 13, 12],
+  },
+  minor: {
+    C: [null, 3, 1, 0, 1, null],
+    A: [null, 3, 5, 5, 4, 3],
+    G: [8, 6, 5, 5, 4, 8],
+    E: [8, 10, 10, 8, 8, 8],
+    D: [null, null, 10, 12, 13, 11],
+  },
   // Dominant 7th forms (C7 written in each shape): E7 1-3-1-2-1-1, A7 x-1-3-1-4-1, C7 x-3-2-4-1-x, D7 x-x-1-3-2-4, G7 4-3-1-1-1-2.
-  dom7: { C: [null, 3, 2, 3, 1, null], A: [null, 3, 5, 3, 5, 3], G: [8, 7, 5, 5, 5, 6], E: [8, 10, 8, 9, 8, 8], D: [null, null, 10, 12, 11, 12] },
+  dom7: {
+    C: [null, 3, 2, 3, 1, null],
+    A: [null, 3, 5, 3, 5, 3],
+    G: [8, 7, 5, 5, 5, 6],
+    E: [8, 10, 8, 9, 8, 8],
+    D: [null, null, 10, 12, 11, 12],
+  },
 };
 
 /** Fingers for the movable versions. The full minor G-shape is impractical: only its middle strings get fingers. */
 export const FINGERS: Record<Quality, Record<Shape, Frets>> = {
-  major: { C: [null, 4, 3, 1, 2, 1], A: [null, 1, 2, 3, 4, 1], G: [3, 2, 1, 1, 1, 4], E: [1, 3, 4, 2, 1, 1], D: [null, null, 1, 2, 4, 3] },
-  minor: { C: [null, 4, 2, 1, 3, null], A: [null, 1, 3, 4, 2, 1], G: [null, null, 2, 3, 1, null], E: [1, 3, 4, 1, 1, 1], D: [null, null, 1, 3, 4, 2] },
-  dom7: { C: [null, 3, 2, 4, 1, null], A: [null, 1, 3, 1, 4, 1], G: [4, 3, 1, 1, 1, 2], E: [1, 3, 1, 2, 1, 1], D: [null, null, 1, 3, 2, 4] },
+  major: {
+    C: [null, 4, 3, 1, 2, 1],
+    A: [null, 1, 2, 3, 4, 1],
+    G: [3, 2, 1, 1, 1, 4],
+    E: [1, 3, 4, 2, 1, 1],
+    D: [null, null, 1, 2, 4, 3],
+  },
+  minor: {
+    C: [null, 4, 2, 1, 3, null],
+    A: [null, 1, 3, 4, 2, 1],
+    G: [null, null, 2, 3, 1, null],
+    E: [1, 3, 4, 1, 1, 1],
+    D: [null, null, 1, 3, 4, 2],
+  },
+  dom7: {
+    C: [null, 3, 2, 4, 1, null],
+    A: [null, 1, 3, 1, 4, 1],
+    G: [4, 3, 1, 1, 1, 2],
+    E: [1, 3, 1, 2, 1, 1],
+    D: [null, null, 1, 3, 2, 4],
+  },
 };
 
 /**
@@ -34,15 +74,45 @@ export const FINGERS: Record<Quality, Record<Shape, Frets>> = {
  * The dom7 C-shape's open version is B7 (x-2-1-2-0-x), since the C7 form starts at fret 1.
  */
 export const OPEN_FINGERS: Record<Quality, Record<Shape, Frets>> = {
-  major: { C: [null, 3, 2, 0, 1, 0], A: [null, 0, 1, 2, 3, 0], G: [2, 1, 0, 0, 0, 3], E: [0, 2, 3, 1, 0, 0], D: [null, null, 0, 1, 3, 2] },
-  minor: { C: [null, 3, 1, 0, 2, null], A: [null, 0, 2, 3, 1, 0], G: [3, 2, 1, 1, 0, 4], E: [0, 2, 3, 0, 0, 0], D: [null, null, 0, 2, 3, 1] },
-  dom7: { C: [null, 2, 1, 3, 0, null], A: [null, 0, 2, 0, 3, 0], G: [3, 2, 0, 0, 0, 1], E: [0, 2, 0, 1, 0, 0], D: [null, null, 0, 2, 1, 3] },
+  major: {
+    C: [null, 3, 2, 0, 1, 0],
+    A: [null, 0, 1, 2, 3, 0],
+    G: [2, 1, 0, 0, 0, 3],
+    E: [0, 2, 3, 1, 0, 0],
+    D: [null, null, 0, 1, 3, 2],
+  },
+  minor: {
+    C: [null, 3, 1, 0, 2, null],
+    A: [null, 0, 2, 3, 1, 0],
+    G: [3, 2, 1, 1, 0, 4],
+    E: [0, 2, 3, 0, 0, 0],
+    D: [null, null, 0, 2, 3, 1],
+  },
+  dom7: {
+    C: [null, 2, 1, 3, 0, null],
+    A: [null, 0, 2, 0, 3, 0],
+    G: [3, 2, 0, 0, 0, 1],
+    E: [0, 2, 0, 1, 0, 0],
+    D: [null, null, 0, 2, 1, 3],
+  },
 };
 
 /** Fingers for partial voicings of movable shapes, keyed by the strings played (0 = low E). */
 export const PART_FINGERS: Record<Quality, Record<Shape, Record<string, readonly number[]>>> = {
-  major: { E: { '2345': [3, 2, 1, 1], '345': [2, 1, 1] }, A: { '345': [2, 3, 1] }, C: { '2345': [3, 1, 2, 1], '345': [1, 2, 1] }, G: { '234': [1, 1, 1] }, D: { '345': [1, 3, 2] } },
-  minor: { E: { '2345': [3, 1, 1, 1], '345': [1, 1, 1] }, A: { '2345': [3, 4, 2, 1], '345': [3, 2, 1] }, C: { '234': [2, 1, 3] }, G: {}, D: { '345': [2, 3, 1] } },
+  major: {
+    E: { '2345': [3, 2, 1, 1], '345': [2, 1, 1] },
+    A: { '345': [2, 3, 1] },
+    C: { '2345': [3, 1, 2, 1], '345': [1, 2, 1] },
+    G: { '234': [1, 1, 1] },
+    D: { '345': [1, 3, 2] },
+  },
+  minor: {
+    E: { '2345': [3, 1, 1, 1], '345': [1, 1, 1] },
+    A: { '2345': [3, 4, 2, 1], '345': [3, 2, 1] },
+    C: { '234': [2, 1, 3] },
+    G: {},
+    D: { '345': [2, 3, 1] },
+  },
   dom7: { E: { '2345': [1, 2, 1, 1] }, A: { '1234': [1, 3, 1, 4] }, C: {}, G: { '2345': [1, 1, 1, 2] }, D: {} },
 };
 

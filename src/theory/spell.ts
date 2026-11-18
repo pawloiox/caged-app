@@ -37,7 +37,8 @@ export function keyName(pc: number, q: Quality, minorSpelling: MinorSpelling = '
 export const qualitySuffix = (q: Quality): string => (q === 'minor' ? 'm' : q === 'dom7' ? '7' : '');
 export const qualityWord = (q: Quality): string => (q === 'minor' ? 'minor' : q === 'dom7' ? 'seventh' : 'major');
 
-export const chordLabel = (pc: number, q: Quality, sp: MinorSpelling = 'flat'): string => keyName(pc, q, sp) + qualitySuffix(q);
+export const chordLabel = (pc: number, q: Quality, sp: MinorSpelling = 'flat'): string =>
+  keyName(pc, q, sp) + qualitySuffix(q);
 export const chordLong = (pc: number, q: Quality, sp: MinorSpelling = 'flat'): string =>
   keyName(pc, q, sp) + (q === 'dom7' ? '7' : ' ' + qualityWord(q));
 

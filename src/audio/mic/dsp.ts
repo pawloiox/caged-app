@@ -135,7 +135,8 @@ export function checkChord(chroma: Float32Array, pcs: readonly number[], root: n
     return { verdict: 'wrong-third', inSet, message: 'Wrong 3rd: that sounded major/minor the other way round.' };
   if (!rootOk || inSet < 0.6) return { verdict: 'wrong', inSet, message: 'That was not the chord on the screen.' };
   if (!thirdOk) return { verdict: 'wrong', inSet, message: "Couldn't hear the 3rd. Check the string that carries it." };
-  if (set.has(fifth) && c[fifth]! < 0.12) return { verdict: 'no-fifth', inSet, message: 'Good. (The 5th was quiet, which is fine.)' };
+  if (set.has(fifth) && c[fifth]! < 0.12)
+    return { verdict: 'no-fifth', inSet, message: 'Good. (The 5th was quiet, which is fine.)' };
   return { verdict: 'match', inSet, message: 'Clean.' };
 }
 

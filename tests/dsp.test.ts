@@ -93,14 +93,16 @@ describe('chord recognition (chroma over ~150 ms after the onset)', () => {
   function chromaAfterOnset(sig: Float32Array) {
     const acc = new Float32Array(12);
     const start = Math.floor(0.03 * SR);
-    for (let t = start; t + 4096 <= start + Math.floor(0.15 * SR) + 4096; t += 1024) addChroma(acc, chromaOf(sig.subarray(t, t + 4096), SR));
+    for (let t = start; t + 4096 <= start + Math.floor(0.15 * SR) + 4096; t += 1024)
+      addChroma(acc, chromaOf(sig.subarray(t, t + 4096), SR));
     return acc;
   }
   const midisOf = (shape: 'C' | 'A' | 'G' | 'E' | 'D', q: 'major' | 'minor', key?: number) => {
     const inst = key == null ? openChord(shape, q) : instances(key, q).find((i) => i.shape === shape)!;
     return { inst, midis: notesOf(inst).map((n) => n.midi) };
   };
-  const pcsOf = (key: number, q: 'major' | 'minor') => (q === 'minor' ? [0, 3, 7] : [0, 4, 7]).map((i) => (key + i) % 12);
+  const pcsOf = (key: number, q: 'major' | 'minor') =>
+    (q === 'minor' ? [0, 3, 7] : [0, 4, 7]).map((i) => (key + i) % 12);
 
   it('accepts every open chord and every movable major/minor shape in several keys', () => {
     let pass = 0;
@@ -108,7 +110,11 @@ describe('chord recognition (chroma over ~150 ms after the onset)', () => {
     for (const q of ['major', 'minor'] as const)
       for (const key of [0, 2, 4, 5, 7, 9, 11])
         for (const inst of instances(key, q)) {
-          const sig = renderStrum(notesOf(inst).map((n) => n.midi), SR, { seed: key * 7 + inst.minF });
+          const sig = renderStrum(
+            notesOf(inst).map((n) => n.midi),
+            SR,
+            { seed: key * 7 + inst.minF },
+          );
           const r = checkChord(chromaAfterOnset(sig), pcsOf(key, q), key, (key + (q === 'minor' ? 3 : 4)) % 12);
           total++;
           if (r.verdict === 'match' || r.verdict === 'no-fifth') pass++;
@@ -151,7 +157,8 @@ describe('onset detection', () => {
     });
     const det = new OnsetDetector();
     const found: number[] = [];
-    for (let i = 0; i + 512 <= sig.length; i += 512) if (det.push(rms(sig, i, i + 512), (i / SR) * 1000)) found.push(i / SR);
+    for (let i = 0; i + 512 <= sig.length; i += 512)
+      if (det.push(rms(sig, i, i + 512), (i / SR) * 1000)) found.push(i / SR);
     expect(found.length).toBe(starts.length);
     found.forEach((t, i) => expect(Math.abs(t - starts[i]!)).toBeLessThan(0.03));
   });
