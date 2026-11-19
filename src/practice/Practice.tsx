@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { exportJSON, importJSON, resetAll, toast, useProgress } from '../store/app';
+import { exportJSON, importJSON, notify, resetAll, useProgress, useUi } from '../store/app';
 import { dueKeys } from '../train/leitner';
 import { fmtTime, routine, streakOf, todayKey, todayStr, MAJOR_NAMES } from '../theory';
 import { Card, PageHead } from '../ui/controls';
@@ -23,6 +23,7 @@ export default function Practice() {
   const progress = useProgress();
   const nav = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const storageProblem = useUi((u) => u.storageProblem);
   const [confirmReset, setConfirmReset] = useState(false);
   const rs = routine();
   const b = rs[r.block]!;
@@ -128,6 +129,12 @@ export default function Practice() {
             Progress lives on this device (it works offline). Keep a copy, move it to another device, or print today's
             chord charts.
           </p>
+          {storageProblem ? (
+            <p className="callout warn">
+              This browser isn't saving progress (private mode or blocked site data). Export a copy before you close the
+              app.
+            </p>
+          ) : null}
           <div className="actions">
             <button
               type="button"
@@ -151,9 +158,9 @@ export default function Practice() {
                 if (!f) return;
                 try {
                   importJSON(await f.text());
-                  toast('Progress imported.');
+                  notify('Progress imported.');
                 } catch (err) {
-                  toast(err instanceof Error ? err.message : 'That file could not be read.');
+                  notify(err instanceof Error ? err.message : 'That file could not be read.');
                 }
                 e.target.value = '';
               }}
@@ -172,7 +179,7 @@ export default function Practice() {
                   onClick={async () => {
                     await resetAll();
                     setConfirmReset(false);
-                    toast('Progress erased.');
+                    notify('Progress erased.');
                   }}
                 >
                   Erase everything

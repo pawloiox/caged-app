@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { engine } from '../audio/engine';
 import { routine } from '../theory/routine';
-import { announce, logRoutineDay, toast } from '../store/app';
+import { announce, logRoutineDay, notify, toast } from '../store/app';
 
 /** The 15-minute routine timer. It keeps running while the player opens an exercise. Not musical timing. */
 interface RoutineState {
@@ -74,8 +74,8 @@ export function skipBlock() {
 function finish() {
   const skipped = useRoutine.getState().skipped;
   resetRoutine();
-  if (skipped) toast("Routine finished. Days with skipped blocks don't count toward your streak.");
-  else toast(logRoutineDay() ? 'Routine done for today · +30 XP' : 'Routine done again. Nice work.');
+  if (skipped) notify("Routine finished. Days with skipped blocks don't count toward your streak.");
+  else notify(logRoutineDay() ? 'Routine done for today · +30 XP' : 'Routine done again. Nice work.');
 }
 
 export const routineActive = (s: RoutineState): boolean =>

@@ -493,6 +493,11 @@ export function LinkingDrill({
   const [ask, setAsk] = useState(false);
   const [msg, setMsg] = useState('');
   /** Visible message and the one live region, together. */
+  const msgRef = useRef<HTMLParagraphElement>(null);
+  const askRef = useRef<HTMLParagraphElement>(null);
+  /** Move focus to the next thing to read or do, once React has rendered it (focus never falls to <body>). */
+  const focusSoon = (r: React.RefObject<HTMLElement | null>) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => r.current?.focus({ preventScroll: true })));
   const say = (m: string) => {
     setMsg(m);
     if (m) announce(m);
@@ -521,7 +526,8 @@ export function LinkingDrill({
     const pv = cur.current.pv;
     if (e.type !== 'note' || !pv || pv.heard || e.t < pv.start) return;
     if (e.reading.clarity < PICK_CLARITY) return;
-    if (pv.midis.some((m) => m === e.midi || Math.abs(m - e.midi) === 12)) {
+    // Exact pitch: the shared root at that string and fret, not the same note in another octave.
+    if (pv.midis.includes(e.midi)) {
       pv.heard = true;
       setHold('');
     }
@@ -608,7 +614,9 @@ export function LinkingDrill({
           } else {
             setAsk(true);
             announce(`Drill finished. Were all your changes clean at ${bpm} BPM?`);
+            focusSoon(askRef);
           }
+          if (judged) focusSoon(msgRef);
           return;
         }
         setCount(null);
@@ -687,7 +695,9 @@ export function LinkingDrill({
       ) : null}
       {ask ? (
         <div className="callout">
-          <p>Were all your changes clean at {bpm} BPM?</p>
+          <p ref={askRef} tabIndex={-1}>
+            Were all your changes clean at {bpm} BPM?
+          </p>
           <div className="actions">
             <button
               type="button"
@@ -700,6 +710,7 @@ export function LinkingDrill({
                   up ? `Logged. Next time, try ${up} BPM.` : 'Logged at the top of the ladder. Try it in another key.',
                 );
                 toast('Clean drill logged · +20 XP');
+                focusSoon(msgRef);
               }}
             >
               Yes, clean
@@ -712,6 +723,7 @@ export function LinkingDrill({
                 say(
                   'No problem. Drop one step on the tempo ladder or switch to Easy shapes, and watch the shared root rather than your whole hand.',
                 );
+                focusSoon(msgRef);
               }}
             >
               Not yet
@@ -726,7 +738,11 @@ export function LinkingDrill({
           </span>
         </p>
       ) : null}
-      {msg ? <p className="muted">{msg}</p> : null}
+      {msg ? (
+        <p className="muted" ref={msgRef} tabIndex={-1}>
+          {msg}
+        </p>
+      ) : null}
       <p className="muted">
         Best clean tempo in {chordLabel(keyPc, q, sp)}: <strong>{best ? `${best} BPM` : 'none yet'}</strong>
         {heardScores

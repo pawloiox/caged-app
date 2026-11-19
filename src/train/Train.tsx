@@ -22,7 +22,7 @@ import {
   type Shape,
 } from '../theory';
 import { Card, Check, Kbd, PageHead, Seg, ShapeAnswer } from '../ui/controls';
-import { useHotkeys } from '../ui/hooks';
+import { useHotkeys, useVertical } from '../ui/hooks';
 import { dueKeys, pickWeighted, weightOf } from './leitner';
 import { TRAIN_MODES, isClickMode, makeQuestion, modeOfStat, type Mode, type Question } from './questions';
 
@@ -88,6 +88,8 @@ export default function Train() {
   const headRef = useRef<HTMLHeadingElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const feedbackRef = useRef<HTMLParagraphElement>(null);
+  // Upright phone neck: Ear + hand draws only the zone ±1 fret, like Step 5.
+  const vertical = useVertical();
 
   const hear = (qq = q) => {
     if (!qq?.inst) return;
@@ -166,7 +168,7 @@ export default function Train() {
     if (q.type === 'earhand') {
       // Name first, then the hand: find the root inside the zone.
       setOk(good);
-      const m = `${good ? 'Right' : 'Not quite'}: ${q.explain} Now find its root inside frets ${q.ear!.zone.lo}–${q.ear!.zone.hi}.`;
+      const m = `${good ? 'Right' : 'Not quite'}: ${q.explain.charAt(0).toLowerCase()}${q.explain.slice(1)} Now find its root inside frets ${q.ear!.zone.lo}–${q.ear!.zone.hi}.`;
       setFeedback(m);
       announce(m);
       setRootPhase('find');
@@ -542,7 +544,9 @@ export default function Train() {
             {q.type === 'earhand' ? feedbackEl : null}
             {showBoard ? (
               <Fretboard
-                to={bd.to}
+                {...(vertical && q.type === 'earhand'
+                  ? { from: Math.max(0, q.ear!.zone.lo - 1), to: Math.min(15, q.ear!.zone.hi + 1) }
+                  : { to: bd.to })}
                 dots={bd.dots}
                 barre={trainBarre}
                 band={q.type === 'earhand' ? { lo: q.ear!.zone.lo, hi: q.ear!.zone.hi, label: 'Your zone' } : null}

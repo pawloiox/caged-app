@@ -398,6 +398,7 @@ export function Fretboard(props: FretboardProps) {
   const dotAt = new Map(dots.map((d) => [`${d.s}:${d.f}`, d]));
   const ghostAt = new Map(ghosts.map((d) => [`${d.s}:${d.f}`, d]));
   const badgeAt = new Map((props.badges ?? []).map((d) => [`${d.s}:${d.f}`, d]));
+  const mutedStrings = new Set(muted.map((m) => (typeof m === 'object' ? m.s : m)));
   const defaultCellLabel = (s: number, f: number): string => {
     const k = `${s}:${f}`;
     const d = dotAt.get(k);
@@ -408,6 +409,7 @@ export function Fretboard(props: FretboardProps) {
       ghostAt.get(k)?.desc ?? null,
     ].filter(Boolean);
     if (!d && !ghostAt.get(k) && props.emptyLabel) parts.push(props.emptyLabel);
+    if (!d && mutedStrings.has(s)) parts.push("this string isn't played");
     return parts.join(', ');
   };
   if (clickable) {

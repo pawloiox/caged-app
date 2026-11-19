@@ -112,7 +112,7 @@ function ShapeCheck() {
       if (level === 1) patchSeen({ s3check: Math.max(best, cc) });
       if (pass) patchSeen({ s3level: Math.max(levelDone, level) });
       m += pass
-        ? ` You scored ${cc}/${CHECK_LEN}. Level ${level} passed.${level < 5 ? ` Next: level ${level + 1}, ${LEVELS[level]!.name.toLowerCase()}.` : ''}`
+        ? ` You scored ${cc}/${CHECK_LEN}. Level ${level} passed.${level < 5 ? ` Next: level ${level + 1} (${LEVELS[level]!.name}).` : ''}`
         : ` You scored ${cc}/${CHECK_LEN}. You need ${CHECK_PASS} to pass: walk the chain once more, then try again.`;
     }
     setMsg(m);

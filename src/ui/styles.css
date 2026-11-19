@@ -1050,6 +1050,7 @@ table.shapes button.rowbtn {
 }
 .tap-link {
   display: inline-flex;
+  gap: 0.3em;
   align-items: center;
   min-height: var(--tap);
 }

@@ -20,14 +20,22 @@ interface UiState {
   live: string;
   /** Steps completed during this visit: the step page shows a lasting "complete, next step" callout. */
   justCompleted: string[];
+  /** Progress can't be saved (no IndexedDB, or a save failed). */
+  storageProblem: boolean;
 }
-export const useUi = create<UiState>(() => ({ toast: null, live: '', justCompleted: [] }));
+export const useUi = create<UiState>(() => ({ toast: null, live: '', justCompleted: [], storageProblem: false }));
 let toastId = 0;
 let lastSaid = '';
 let lastAt = 0;
 export function toast(msg: string): void {
   useUi.setState({ toast: { id: ++toastId, msg } });
 }
+/** A message that is the whole outcome of an action: shown as a toast AND announced (toasts are aria-hidden). */
+export function notify(msg: string): void {
+  toast(msg);
+  announce(msg);
+}
+
 /**
  * Announce through the one polite live region. An identical message within 1.5 s is an echo (a re-render)
  * and is dropped; after that, the same words are announced again, e.g. a second "Not quite" after a retry.
@@ -124,6 +132,21 @@ export function logReviewDay(): void {
 
 /* ---------------- Persistence ---------------- */
 let repo: ProgressRepository = new MemoryRepository();
+
+/**
+ * Storage is unavailable (private mode, blocked site data, quota): say so once, never silently lose progress.
+ * The warning waits a moment so it reaches the live region after the app has rendered.
+ */
+let storageWarned = false;
+function saveFailed(): void {
+  useUi.setState({ storageProblem: true });
+  if (storageWarned) return;
+  storageWarned = true;
+  setTimeout(
+    () => notify("Progress can't be saved in this browser. Use Export on the Practice page to keep a copy."),
+    1200,
+  );
+}
 let hydrated = false;
 export const isHydrated = (): boolean => hydrated;
 
@@ -145,7 +168,9 @@ export async function hydrate(r?: ProgressRepository): Promise<{ imported: boole
     usePrefs.setState(normalizePrefs(prefs));
   } catch {
     repo = new MemoryRepository();
+    saveFailed();
   }
+  if (repo instanceof MemoryRepository && !r) saveFailed();
   const pf = usePrefs.getState();
   engine.muted = pf.muted;
   engine.guitarVol = pf.guitarVol;
@@ -156,18 +181,18 @@ export async function hydrate(r?: ProgressRepository): Promise<{ imported: boole
   let t2: ReturnType<typeof setTimeout> | undefined;
   useProgress.subscribe((p) => {
     clearTimeout(t1);
-    t1 = setTimeout(() => void repo.saveProgress(p).catch(() => {}), 250);
+    t1 = setTimeout(() => void repo.saveProgress(p).catch(saveFailed), 250);
   });
   usePrefs.subscribe((p) => {
     clearTimeout(t2);
-    t2 = setTimeout(() => void repo.savePrefs(p).catch(() => {}), 250);
+    t2 = setTimeout(() => void repo.savePrefs(p).catch(saveFailed), 250);
   });
   // Debounced saves would be lost if the tab closes within 250 ms: flush on pagehide / hidden.
   const flush = () => {
     clearTimeout(t1);
     clearTimeout(t2);
-    void repo.saveProgress(useProgress.getState()).catch(() => {});
-    void repo.savePrefs(usePrefs.getState()).catch(() => {});
+    void repo.saveProgress(useProgress.getState()).catch(saveFailed);
+    void repo.savePrefs(usePrefs.getState()).catch(saveFailed);
   };
   if (typeof window !== 'undefined') {
     window.addEventListener('pagehide', flush);
@@ -198,7 +223,7 @@ export function importJSON(text: string): void {
   if (!data || typeof data !== 'object' || !('progress' in data))
     throw new Error('This file is not a CAGED Lab export.');
   useProgress.setState(normalizeProgress(data.progress));
-  if (data.prefs) usePrefs.setState(normalizePrefs(data.prefs));
+  if (data.prefs) setPrefs(normalizePrefs(data.prefs));
 }
 
 export async function resetAll(): Promise<void> {

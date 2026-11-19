@@ -59,6 +59,41 @@ export const usePlayer = create<PlayerState>(() => ({
 
 let current: { id: string; onStop?: () => void } | null = null;
 
+interface BeatDeps {
+  bpm: () => number;
+  draw: (fn: () => void, time: number) => void;
+  click: (time: number, accent: boolean) => void;
+  end: () => void;
+}
+
+/**
+ * The per-beat handler every loop runs on the Transport: count-in clicks, then the spec's beats, with UI
+ * updates handed to Draw at audio time. Shared by startLoop and the offline timing self-test, so the test
+ * measures the app's own loop path, not just Tone's scheduler.
+ */
+export function beatHandler<P>(spec: LoopSpec<P>, deps: BeatDeps): (time: number) => void {
+  const countIn = spec.countIn ?? 4;
+  let n = 0;
+  return (time) => {
+    const k = n++;
+    if (k < countIn) {
+      deps.click(time, k === 0);
+      deps.draw(() => spec.ui({ kind: 'count', n: countIn - k }), time);
+      return;
+    }
+    const spb = 60 / deps.bpm();
+    const p = spec.beat(time, k - countIn, spb);
+    if (p === 'end') {
+      deps.draw(() => {
+        spec.ui({ kind: 'end' });
+        deps.end();
+      }, time);
+      return;
+    }
+    if (p != null) deps.draw(() => spec.ui({ kind: 'beat', p, time }), time);
+  };
+}
+
 export async function startLoop<P>(spec: LoopSpec<P>): Promise<boolean> {
   if (!engine.ensure()) return false;
   const Tone = await loadTone();
@@ -68,27 +103,13 @@ export async function startLoop<P>(spec: LoopSpec<P>): Promise<boolean> {
   transport.cancel(0);
   transport.position = 0;
   transport.bpm.value = spec.bpm;
-  const countIn = spec.countIn ?? 4;
-  let n = 0;
   transport.scheduleRepeat(
-    (time) => {
-      const k = n++;
-      if (k < countIn) {
-        engine.click(time, k === 0);
-        draw.schedule(() => spec.ui({ kind: 'count', n: countIn - k }), time);
-        return;
-      }
-      const spb = 60 / transport.bpm.value;
-      const p = spec.beat(time, k - countIn, spb);
-      if (p === 'end') {
-        draw.schedule(() => {
-          spec.ui({ kind: 'end' });
-          stopLoop();
-        }, time);
-        return;
-      }
-      if (p != null) draw.schedule(() => spec.ui({ kind: 'beat', p, time }), time);
-    },
+    beatHandler(spec, {
+      bpm: () => transport.bpm.value,
+      draw: (fn, time) => draw.schedule(fn, time),
+      click: (time, accent) => engine.click(time, accent),
+      end: stopLoop,
+    }),
     '4n',
     0,
   );
@@ -126,11 +147,29 @@ export const isLooping = (id?: string): boolean => (id ? current?.id === id : cu
  */
 export async function timingSelfTest(bpm = 140, seconds = 300): Promise<{ beats: number; maxErrorMs: number }> {
   const Tone = await loadTone();
-  const times: number[] = [];
+  const clicks: number[] = [];
+  const beats: number[] = [];
+  const uiTimes: number[] = [];
   await Tone.Offline(
     ({ transport }) => {
       transport.bpm.value = bpm;
-      transport.scheduleRepeat((t) => times.push(t), '4n', 0);
+      const spec: LoopSpec<number> = {
+        id: 'selftest',
+        label: 'self-test',
+        bpm,
+        beat: (time, n) => (beats.push(time), n),
+        ui: (ev) => ev.kind === 'beat' && uiTimes.push(ev.time),
+      };
+      transport.scheduleRepeat(
+        beatHandler(spec, {
+          bpm: () => transport.bpm.value,
+          draw: (fn) => fn(),
+          click: (time) => clicks.push(time),
+          end: () => {},
+        }),
+        '4n',
+        0,
+      );
       transport.start(0);
     },
     seconds,
@@ -138,7 +177,10 @@ export async function timingSelfTest(bpm = 140, seconds = 300): Promise<{ beats:
     8000,
   );
   const spb = 60 / bpm;
+  const all = [...clicks, ...beats];
   let maxErr = 0;
-  times.forEach((t, i) => (maxErr = Math.max(maxErr, Math.abs(t - i * spb))));
-  return { beats: times.length, maxErrorMs: maxErr * 1000 };
+  all.forEach((t, i) => (maxErr = Math.max(maxErr, Math.abs(t - i * spb))));
+  // Every beat's UI event must carry the beat's own audio time.
+  uiTimes.forEach((t, i) => (maxErr = Math.max(maxErr, Math.abs(t - beats[i]!))));
+  return { beats: all.length, maxErrorMs: maxErr * 1000 };
 }

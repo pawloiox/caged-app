@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-19): rebuild round 4 is in this repo.** Phases 0–3 are built and tested. Three independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8 or more; round 4 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
+> **Status (2026-11-19): rebuild round 5 is in this repo.** Phases 0–3 are built and tested. Four independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall (Music 9.5, every area at 8 or more); round 5 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -32,7 +32,8 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | Rebuild `round-1.1` (critic 1) | 9 | 8.5 | 7.5 | 7.5 | 8 | 8 |
 | Rebuild `round-2` (critic 2) | 9 | 8.5 | 8 | 8 | 8.5 | 8.5 |
 | Rebuild `round-3` (critic 3) | 9 | 8.5 | 8 | 8 | 8 | 8.5 |
-| Rebuild `round-4` | not yet reviewed (fixes every critic-3 finding) | | | | | |
+| Rebuild `round-4` (critic 4) | 9.5 | 8.5 | 8.5 | 8 | 8 | 8.5 |
+| Rebuild `round-5` | not yet reviewed (fixes every critic-4 finding) | | | | | |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -313,8 +314,9 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 4. **Lighthouse.** Round 3, mobile defaults, preview build: performance 94–95, accessibility 100, best practices 100
    on `/learn/1`, `/learn/5` and `/explore` (CLS 0.001, TBT 40–70 ms). Lighthouse 12+ has no PWA category, so the
    "PWA 95+" target can't be scored; the manifest, icons and offline service worker are tested in E2E instead.
-5. **Mic flows have no automated E2E test.** A fake media stream (Chromium's `--use-file-for-fake-audio-capture`)
-   could feed recorded fixtures into the drills.
+5. **Mic E2E covers single notes only.** `e2e/mic.spec.ts` feeds a synthesised WAV through Chromium's fake
+   microphone (Step 1 roots, Tuner). Strum checks and the linking-drill hold aren't driven end to end, because a
+   looped file can't be synchronised with the Transport.
 6. **Dev-tool audit warnings.** `npm audit` reports advisories in build tooling (picomatch/tinyglobby under Vite);
    nothing in the shipped bundle.
 7. **Phase 4** (accounts and sync): not started. Ask the user first.
@@ -324,7 +326,7 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
 user's request. To run it later:
 
-1. **Snapshot first.** Tag the build under review (the next one is `round-4`, already tagged), so the best round can
+1. **Snapshot first.** Tag the build under review (the next one is `round-5`, already tagged), so the best round can
    be shipped rather than the latest. Run Lighthouse from a temp folder, not the repo: under WSL it writes
    `C:\Users\…\lighthouse.*` profile folders into the current directory (now in `.gitignore`).
 2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
@@ -393,6 +395,19 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - Imported progress is validated field by field (tested).
 - An independent additive-synthesis guitar model now tests note recognition at 44.1 and 48 kHz (≥95%), so the
   DSP isn't only tested against the app's own synth.
+
+**Round 4 (`round-4`): 8.5 overall (Music 9.5).** Findings fixed in `round-5`:
+- Focus fell to `<body>` after "Yes, clean" / "Not yet" (Steps 3–4) and "Yes, I did" / "Not yet" (Step 5). Focus
+  now goes to the question when the drill ends and to the reply after answering (tested).
+- Outcome-only toasts (routine finished, import, erase, v5 import) are now also announced.
+- Train Ear + hand draws only the zone on the upright phone neck (tested).
+- Mic E2E: a synthesised WAV through Chromium's fake microphone passes the Step 1 root test unaided and is
+  identified by the Tuner.
+- Save failures warn once and the Practice page shows a "not saving" notice, instead of failing silently.
+- The pivot must be the shared root in its own octave; imported prefs reach the audio engine; level message
+  casing; muted strings named in cell labels; chord cards say when a chord reaches outside the zone; wording
+  fixes; `robots.txt`.
+- The 5-minute timing test now runs the app's own beat handler (count-in, beats, UI events), not just Tone.
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.

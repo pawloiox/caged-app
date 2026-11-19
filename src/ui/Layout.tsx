@@ -143,7 +143,7 @@ function ViewMenu() {
               ['sharp', 'D♯ minor'],
             ]}
             onChange={(v) => setPrefs({ minorSpelling: v })}
-            label="Spell the minor key on pitch 3 as"
+            label="Minor key spelling: E♭ minor or D♯ minor"
           />
           <h2 className="card-title">Sound</h2>
           <label className="field">

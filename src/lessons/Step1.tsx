@@ -24,6 +24,9 @@ import { useHotkeys } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
 
 const k = (n: { s: number; f: number }) => `${n.s}:${n.f}`;
+/** "a, b and c" — the positions themselves contain commas, so list them with semicolons. */
+const listOf = (xs: string[]) =>
+  xs.length <= 2 ? xs.join(' and ') : `${xs.slice(0, -1).join('; ')}; and ${xs[xs.length - 1]}`;
 
 export default function Step1() {
   const prefs = usePrefs();
@@ -70,7 +73,7 @@ export default function Step1() {
 
   /** On a miss, say how many roots were found and how many marks were wrong, never where the missing ones are. */
   function feedbackFor(ok: boolean, selNow: Set<string>): string {
-    if (ok) return `Correct: ${rn} major's roots are on the ${roots.map((r) => posName(r.s, r.f)).join(' and ')}.`;
+    if (ok) return `Correct: ${rn} major's roots are on the ${listOf(roots.map((r) => posName(r.s, r.f)))}.`;
     const found = roots.filter((r) => selNow.has(k(r))).length;
     const wrong = [...selNow].filter((x) => !roots.some((r) => k(r) === x)).length;
     return `Not quite: ${found} of ${roots.length} roots found${wrong ? `, and ${wrong} mark${wrong > 1 ? 's are' : ' is'} not a root (✗)` : ''}. Look again, then retry.`;

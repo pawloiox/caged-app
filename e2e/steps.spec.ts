@@ -102,7 +102,10 @@ test('Step 3: shape check level 1 and a linking drill complete the step', async 
   await page.getByRole('radio', { name: '100 BPM' }).click();
   await page.getByRole('button', { name: 'Start drill' }).click();
   await expect(page.locator('.mini')).toBeVisible();
-  await page.getByRole('button', { name: 'Yes, clean' }).click({ timeout: 60_000 });
+  // When the drill ends, focus moves to the question; after answering, to the reply (never to <body>).
+  await expect(page.locator('#drill').getByText(/Were all your changes clean/)).toBeFocused({ timeout: 60_000 });
+  await page.getByRole('button', { name: 'Yes, clean' }).click();
+  await expect(page.locator(':focus')).toContainText('Logged');
   await stepDone(page, 3);
 });
 
@@ -137,6 +140,7 @@ test('Step 5: confirmed loops in two zones; chord cards explain each voicing; ea
     await page.getByRole('radio', { name: zone }).click();
     await page.getByRole('button', { name: /Play the loop/ }).click();
     await page.getByRole('button', { name: 'Yes, I did' }).click({ timeout: 30_000 });
+    await expect(page.locator(':focus')).toContainText('Logged');
     await page.getByRole('button', { name: /^Stop/ }).first().click();
   }
   await stepDone(page, 5);

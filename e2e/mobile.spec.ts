@@ -60,3 +60,11 @@ test('390px phone: Step 5 draws only the zone on the upright neck', async ({ pag
   const vb = (await board.getAttribute('viewBox'))!.split(' ').map(Number);
   expect(vb[3]!).toBeLessThan(500);
 });
+
+test('390px phone: Train Ear + hand draws only the zone on the upright neck', async ({ page }) => {
+  await page.goto('/train/earhand');
+  await page.getByRole('group', { name: 'Answers' }).getByRole('button').first().click();
+  const board = page.locator('svg.fb');
+  await expect(board).toBeVisible();
+  expect(await board.getByRole('button', { name: /fret 15,/ }).count()).toBe(0);
+});

@@ -270,6 +270,10 @@ export default function Step5() {
   const [soon, setSoon] = useState(false);
   const [ask, setAsk] = useState<string | null>(null);
   const [askMsg, setAskMsg] = useState('');
+  const askMsgRef = useRef<HTMLParagraphElement>(null);
+  // The answered question unmounts its buttons: move focus to the reply, never to <body>.
+  const focusAskMsg = () =>
+    requestAnimationFrame(() => requestAnimationFrame(() => askMsgRef.current?.focus({ preventScroll: true })));
   const sayAsk = (m: string) => {
     setAskMsg(m);
     if (m) announce(m);
@@ -514,6 +518,8 @@ export default function Step5() {
             desc: `next chord ${nx.name}: ${fingerOf(nx.inst, n.s, nx.strings) === '○' ? 'open string' : 'finger ' + fingerOf(nx.inst, n.s, nx.strings)}`,
           }));
   const outside = chords.some((ch) => ch.lo < zone.lo || ch.hi > zone.hi + 1);
+  /** How far a planned chord reaches past the zone (the planner allows it when nothing fits inside). */
+  const outBy = (ch: ChordPlan) => Math.max(0, zone.lo - ch.lo, ch.hi - zone.hi);
   // Upright phone neck: draw only the zone (±1 fret, widened to any chord that reaches outside it), so the
   // zone fills the screen instead of a 15-fret neck you have to scroll.
   const vertical = useVertical();
@@ -659,6 +665,7 @@ export default function Step5() {
                 <span className="meta">
                   <Pill s={ch.inst.shape} /> {ch.inst.minF === 0 ? 'open' : `${ch.inst.shape}-shape`}, frets {ch.lo}–
                   {ch.hi}
+                  {outBy(ch) ? ` · ${outBy(ch)} fret${outBy(ch) > 1 ? 's' : ''} outside your zone` : ''}
                 </span>
                 <span className="why">{explainChoice(ch)}</span>
                 {v ? (
@@ -707,6 +714,7 @@ export default function Step5() {
                   markZone(ask);
                   setAsk(null);
                   sayAsk('Logged. Try another zone, or raise the tempo.');
+                  focusAskMsg();
                 }}
               >
                 Yes, I did
@@ -719,6 +727,7 @@ export default function Step5() {
                   sayAsk(
                     'Keep looping. Slow the tempo down, use 4-string shapes, and watch the dashed circles for where the next chord goes.',
                   );
+                  focusAskMsg();
                 }}
               >
                 Not yet
@@ -726,7 +735,9 @@ export default function Step5() {
             </div>
           </div>
         ) : askMsg ? (
-          <p className="muted">{askMsg}</p>
+          <p className="muted" ref={askMsgRef} tabIndex={-1}>
+            {askMsg}
+          </p>
         ) : null}
         {loops > 0 && !playing && !ear ? (
           <div className="callout">
