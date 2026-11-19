@@ -208,7 +208,7 @@ export function Card({
 }) {
   return (
     <article className={`card ${className}`}>
-      {title ? <h3>{title}</h3> : null}
+      {title ? <h2 className="card-title">{title}</h2> : null}
       {children}
     </article>
   );

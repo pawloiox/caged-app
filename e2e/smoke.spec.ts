@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { noSeriousA11y } from './helpers';
 
 const ROUTES = [
@@ -83,4 +84,25 @@ test('v5 localStorage progress is imported', async ({ page }) => {
   await page.goto('/learn/2');
   await expect(page.getByText('123', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Open chords and roots \(completed\)/ })).toBeVisible();
+});
+
+test('headings never skip a level', async ({ page }) => {
+  for (const r of ['/learn/1', '/learn/3', '/learn/5', '/explore', '/practice', '/train/shape', '/tuner']) {
+    await page.goto(r);
+    await expect(page.locator('h1')).toBeVisible();
+    const res = await new AxeBuilder({ page }).withRules(['heading-order']).analyze();
+    expect(res.violations.map((v) => `${r}: ${v.id}`)).toEqual([]);
+  }
+});
+
+test('Practice and progress chips lay out as rows, not stacked bars', async ({ page }) => {
+  await page.goto('/practice');
+  const days = await page.getByRole('list', { name: 'Last 14 days' }).boundingBox();
+  expect(days!.height).toBeLessThan(60);
+  await page.goto('/learn/1');
+  const chips = await page.getByRole('list', { name: 'Chords passed' }).boundingBox();
+  expect(chips!.height).toBeLessThan(60);
+  await page.goto('/learn/5');
+  const zones = await page.getByRole('list', { name: 'Zones confirmed' }).boundingBox();
+  expect(zones!.height).toBeLessThan(100);
 });

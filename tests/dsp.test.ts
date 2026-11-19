@@ -1,6 +1,8 @@
+import { PitchDetector } from 'pitchy';
 import { describe, expect, it } from 'vitest';
 import { mulberry32, renderPluck, renderStrum } from '../src/audio/ks';
 import {
+  PICK_CLARITY,
   NoteStabilizer,
   OnsetDetector,
   PitchTracker,
@@ -161,5 +163,35 @@ describe('onset detection', () => {
       if (det.push(rms(sig, i, i + 512), (i / SR) * 1000)) found.push(i / SR);
     expect(found.length).toBe(starts.length);
     found.forEach((t, i) => expect(Math.abs(t - starts[i]!)).toBeLessThan(0.03));
+  });
+});
+
+describe('pivot check: a picked note versus a strum', () => {
+  // The linking drill accepts the shared root only from a single picked string (clarity ≥ PICK_CLARITY).
+  const det = PitchDetector.forFloat32Array(2048);
+  const clarity = (sig: Float32Array) => {
+    const cs: number[] = [];
+    for (let t = 2048; t <= 0.25 * SR; t += 512) cs.push(det.findPitch(sig.subarray(t - 2048, t), SR)[1]);
+    return cs.sort((a, b) => a - b)[Math.floor(cs.length / 2)]!;
+  };
+  it('single notes on every string clear the gate; strummed chords in five keys do not', () => {
+    for (let s = 0; s < 6; s++)
+      for (let f = 0; f <= 12; f += 3)
+        expect(
+          clarity(renderPluck(OPEN[s as 0]! + f, SR, { rng: mulberry32(s * 20 + f), duration: 0.5 })),
+          `s${s} f${f}`,
+        ).toBeGreaterThanOrEqual(PICK_CLARITY);
+    for (const k of [0, 2, 4, 7, 9])
+      for (const inst of instances(k, 'major'))
+        expect(
+          clarity(
+            renderStrum(
+              notesOf(inst).map((n) => n.midi),
+              SR,
+              { duration: 0.5, seed: k },
+            ),
+          ),
+          `${k} ${inst.shape}@${inst.minF}`,
+        ).toBeLessThan(PICK_CLARITY);
   });
 });

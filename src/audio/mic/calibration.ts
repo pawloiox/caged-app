@@ -11,6 +11,9 @@ export async function calibrateLatency(onProgress?: (i: number) => void): Promis
   if (!ctx) return null;
   const prev = listener.latency;
   listener.latency = 0;
+  // The clicks must be heard even with "Sound off": unmute for the measurement, then restore.
+  const wasMuted = engine.muted;
+  if (wasMuted) engine.setMuted(false);
   const spb = 60 / 90;
   const t0 = ctx.currentTime + 0.5;
   const clicks = Array.from({ length: 8 }, (_, i) => t0 + i * spb);
@@ -29,6 +32,7 @@ export async function calibrateLatency(onProgress?: (i: number) => void): Promis
     tick();
   });
   off();
+  if (wasMuted) engine.setMuted(true);
   const gaps: number[] = [];
   clicks.slice(2).forEach((c) => {
     const hit = onsets.find((o) => o >= c - 0.12 && o <= c + 0.35);

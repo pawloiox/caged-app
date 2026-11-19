@@ -2,6 +2,8 @@
 import {
   BOTH_NAMES,
   barreFor,
+  qualitySuffix,
+  rootNameOf,
   IV_INFO,
   chordLabel,
   dotLabel,
@@ -56,7 +58,22 @@ export function singleDots(
     text: textFor(inst.shape),
     dim: !!opts.rootsOnly && n.iv !== 0,
     third: !!opts.third && (n.iv === 3 || n.iv === 4),
+    desc: noteDesc(inst, n.s, n.iv, opts.strings, ctx.sp),
   }));
+}
+
+/** "the 3rd of C, finger 2" — what a dot means, for screen readers. */
+export function noteDesc(
+  inst: Instance,
+  s: number,
+  iv: number,
+  strings: readonly number[] | null | undefined,
+  sp: MinorSpelling,
+): string {
+  const fg = fingerOf(inst, s, strings);
+  const name = rootNameOf(inst, sp);
+  const finger = fg === '○' ? ', open string' : fg ? `, finger ${fg}` : '';
+  return `the ${roleOf(iv)} of ${name}${qualitySuffix(inst.q)}${finger}`;
 }
 
 export const mutedSpecs = (inst: Instance, strings?: readonly number[] | null, onBoard = false): MutedSpec[] =>

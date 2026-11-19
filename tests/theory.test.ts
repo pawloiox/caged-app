@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CHORD_IVS,
   barreFor,
+  shapeTip,
   ORDER,
   PENT,
   PROGS,
@@ -450,5 +451,17 @@ describe('barres', () => {
             expect(fingerOf(inst, b.s2, strings), label).toBe('1');
             for (const n of notesOf(inst, strings)) expect(n.f, label).toBeGreaterThanOrEqual(b.f);
           }
+  });
+});
+
+describe('shape tips', () => {
+  it('open chords get a tip from their real fingering, not the movable-shape tip', () => {
+    const c = instances(0, 'major')[0]!;
+    expect(c.minF).toBe(0);
+    const tip = shapeTip(c);
+    expect(tip).toContain('x-3-2-0-1-0');
+    expect(tip).toContain('A string fret 3 (finger 3)');
+    expect(tip).not.toContain('finger 4');
+    expect(shapeTip(instances(0, 'major').find((i) => i.shape === 'E')!)).toMatch(/^Full: fingers 1-3-4-2-1-1/);
   });
 });

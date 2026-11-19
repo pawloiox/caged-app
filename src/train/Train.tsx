@@ -82,6 +82,7 @@ export default function Train() {
   const last = useRef<Instance | null>(null);
   const headRef = useRef<HTMLHeadingElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  const feedbackRef = useRef<HTMLParagraphElement>(null);
 
   const hear = (qq = q) => {
     if (!qq?.inst) return;
@@ -157,6 +158,8 @@ export default function Train() {
       setFeedback(m);
       announce(m);
       setRootPhase('find');
+      // Keep focus on the next thing to do: the instruction, then Tab into the board.
+      requestAnimationFrame(() => feedbackRef.current?.focus({ preventScroll: true }));
       return;
     }
     const lead = good
@@ -267,7 +270,17 @@ export default function Train() {
     if (!q) return { dots: [], to: MAX_FRET };
     const mark = (k: string, color: string, label: string, root = false): DotSpec => {
       const [s, f] = k.split(':').map(Number) as [number, number];
-      return { s, f, colors: [color], label, text: '#fff', root };
+      const desc =
+        label === '✓'
+          ? 'found'
+          : label === '!'
+            ? 'missed'
+            : label === '✗'
+              ? 'marked, but wrong'
+              : label === ''
+                ? 'marked'
+                : label;
+      return { s, f, colors: [color], label, text: '#fff', root, desc };
     };
     if (q.type === 'earhand') {
       const tr = rootTries.map((t) => ({
@@ -326,6 +339,7 @@ export default function Train() {
               root: true,
               label: on ? '✓' : '!',
               text: '#fff',
+              desc: on ? 'root, found' : 'root, missed',
             };
           return {
             s: n.s,
@@ -344,7 +358,16 @@ export default function Train() {
           text: textFor(inst.shape),
         };
       }
-      if (q.type === 'chord') return { s: n.s, f: n.f, colors: [COL[inst.shape]], root, label: '', text: '#fff' };
+      if (q.type === 'chord')
+        return {
+          s: n.s,
+          f: n.f,
+          colors: [COL[inst.shape]],
+          root,
+          label: '',
+          text: '#fff',
+          desc: root ? 'root of the chord' : 'note of the chord',
+        };
       if (q.type === 'roots')
         return {
           s: n.s,
@@ -352,6 +375,7 @@ export default function Train() {
           colors: [sel.has(k) ? 'var(--accent)' : NEUTRAL],
           label: '',
           cls: sel.has(k) ? 'sel' : '',
+          desc: sel.has(k) ? 'chord note, marked as a root' : 'chord note',
         };
       return {
         s: n.s,
@@ -359,6 +383,7 @@ export default function Train() {
         colors: [root && hint ? NEUTRAL_ROOT : NEUTRAL],
         root: root && hint,
         label: root && hint ? 'R' : '',
+        desc: root && hint ? 'root (hint)' : 'note of the shape',
         text: '#14212b',
       };
     });
@@ -503,6 +528,7 @@ export default function Train() {
                 band={q.type === 'earhand' ? { lo: q.ear!.zone.lo, hi: q.ear!.zone.hi, label: 'Your zone' } : null}
                 onCell={onCell}
                 label={q.type === 'earhand' ? 'Find the root inside your zone' : 'Quiz fretboard'}
+                hidePitch={!answered && ['chord', 'roots', 'octaves', 'build', 'earhand'].includes(q.type)}
               />
             ) : q.type === 'ear' || q.type === 'earhand' ? (
               <div className="ear-hidden">
@@ -516,7 +542,9 @@ export default function Train() {
                 {optionButtons}
               </div>
             ) : null}
-            <p className={`feedback ${ok === true ? 'ok' : ok === false ? 'no' : ''}`}>{feedback}</p>
+            <p ref={feedbackRef} tabIndex={-1} className={`feedback ${ok === true ? 'ok' : ok === false ? 'no' : ''}`}>
+              {feedback}
+            </p>
             <div className="actions">
               {isClickMode(q.type) && picked == null ? (
                 <button type="button" className="btn primary" onClick={() => answer('checked')}>

@@ -3,9 +3,9 @@ import { create } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { checkChord, type ChordVerdict } from '../audio/mic/dsp';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
-import { COL, barreSpec, mutedSpecs, textFor } from '../fretboard/build';
+import { COL, barreSpec, mutedSpecs, noteDesc, textFor } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
-import { Fretboard, type DotSpec, type GhostSpec } from '../fretboard/Fretboard';
+import { Fretboard, type BadgeSpec, type DotSpec, type GhostSpec } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
 import { addXP, announce, patchSeen, recordStat, toast, usePrefs, useProgress } from '../store/app';
 import {
@@ -95,6 +95,7 @@ function EarCheck({
   const [rootOk, setRootOk] = useState<boolean | null>(null);
   const [tried, setTried] = useState<Array<{ s: number; f: number; ok: boolean }>>([]);
   const headRef = useRef<HTMLHeadingElement>(null);
+  const findRef = useRef<HTMLParagraphElement>(null);
 
   const playIt = () => {
     const tonic = chords[0]!;
@@ -164,6 +165,7 @@ function EarCheck({
         : `It was ${target.roman}, ${target.name}. Now find its root inside your zone.`,
     );
     setPhase('root');
+    requestAnimationFrame(() => findRef.current?.focus({ preventScroll: true }));
   };
 
   const dots: DotSpec[] =
@@ -210,7 +212,7 @@ function EarCheck({
             {nameOk ? 'Right' : 'Not quite'}: it was <strong>{target.roman}</strong>, {target.name}.
           </p>
           {phase === 'root' ? (
-            <p>
+            <p ref={findRef} tabIndex={-1}>
               <strong>Now find its root inside your zone</strong> (frets {zone.lo}–{zone.hi}): tap it on the fretboard,
               or play it on your guitar with the mic on.
             </p>
@@ -298,6 +300,17 @@ export default function Step5() {
         ok,
         kind: ok ? 'third' : 'not-third',
         text: ok ? `3rd ✓` : `${name}, not the 3rd`,
+      };
+      setVerdicts({ ...loopVerdicts.current });
+    } else if (s.style === 'arp' && !s.third && e.type === 'note') {
+      // Plain arpeggio: the first note of the bar must belong to the chord.
+      w.done = true;
+      const iv = mod12(e.midi - ch.pc);
+      const ok = CHORD_IVS[ch.q].includes(iv);
+      loopVerdicts.current[w.ci] = {
+        ok,
+        kind: ok ? 'match' : 'wrong',
+        text: ok ? `${spell(ch.rootName, iv)} ✓` : `${spell(ch.rootName, iv)}, not in ${ch.name}`,
       };
       setVerdicts({ ...loopVerdicts.current });
     } else if (s.style === 'strum' && e.type === 'strum') {
@@ -434,6 +447,10 @@ export default function Step5() {
   useHotkeys({ space: ear ? undefined : toggle, lower: () => step(-1), higher: () => step(1) });
 
   const nxSet = new Set(nx.notes.map((n) => `${n.s}:${n.f}`));
+  const keepsFinger = (n: { s: number; f: number }) => {
+    const fg = fingerOf(c.inst, n.s, c.strings);
+    return nx !== c && n.f > 0 && nxSet.has(`${n.s}:${n.f}`) && fg !== '' && fg === fingerOf(nx.inst, n.s, nx.strings);
+  };
   const dots: DotSpec[] = c.notes.map((n) => {
     const fg = fingerOf(c.inst, n.s, c.strings);
     return {
@@ -444,10 +461,24 @@ export default function Step5() {
       label: dotLabel(ctx.labels, n.iv, c.inst, n.s, c.strings, ctx.sp),
       text: textFor(c.inst.shape),
       third: s.third && (n.iv === 3 || n.iv === 4),
-      // Common-tone rings only when the same finger stays down.
-      ring: nx !== c && nxSet.has(`${n.s}:${n.f}`) && fg !== '' && fg === fingerOf(nx.inst, n.s, nx.strings),
+      // Common-tone rings only when the same finger stays down (never on open strings: no finger there).
+      ring: nx !== c && n.f > 0 && nxSet.has(`${n.s}:${n.f}`) && fg !== '' && fg === fingerOf(nx.inst, n.s, nx.strings),
+      desc:
+        noteDesc(c.inst, n.s, n.iv, c.strings, ctx.sp) +
+        (keepsFinger(n) ? '; keep this finger down for ' + nx.name : ''),
     };
   });
+  // Shared notes where the next chord uses a different finger: show the new finger as a badge.
+  const badges: BadgeSpec[] =
+    nx === c
+      ? []
+      : c.notes
+          .filter((n) => n.f > 0 && nxSet.has(`${n.s}:${n.f}`) && !keepsFinger(n))
+          .map((n) => {
+            const nf = fingerOf(nx.inst, n.s, nx.strings);
+            return { s: n.s, f: n.f, label: nf, color: COL[nx.inst.shape], desc: `${nx.name} uses finger ${nf} here` };
+          })
+          .filter((b) => b.label && b.label !== '○');
   const own = new Set(c.notes.map((n) => `${n.s}:${n.f}`));
   const ghosts: GhostSpec[] =
     nx === c || nx.name + nx.inst.minF === c.name + c.inst.minF
@@ -461,6 +492,7 @@ export default function Step5() {
             r: 10.5,
             cls: 'next' as const,
             label: fingerOf(nx.inst, n.s, nx.strings),
+            desc: `next chord ${nx.name}: ${fingerOf(nx.inst, n.s, nx.strings) === '○' ? 'open string' : 'finger ' + fingerOf(nx.inst, n.s, nx.strings)}`,
           }));
   const outside = chords.some((ch) => ch.lo < zone.lo || ch.hi > zone.hi + 1);
 
@@ -515,7 +547,14 @@ export default function Step5() {
           />
         </div>
         <div className="toolbar">
-          <Seg value={s.voicing} options={VOICE_OPTS} onChange={(v) => set({ voicing: v })} label="Strings to play" />
+          <Seg
+            value={s.voicing}
+            options={
+              prog.id === 'blues7' ? VOICE_OPTS.map(([v, l]) => [v, v === 'tri' ? '4-note' : l] as const) : VOICE_OPTS
+            }
+            onChange={(v) => set({ voicing: v })}
+            label="Strings to play"
+          />
           <Seg
             value={s.style}
             options={[
@@ -561,7 +600,7 @@ export default function Step5() {
                 ? 'Each bar, strum the chord on beat 1.'
                 : s.third
                   ? 'Each bar, pick the 3rd on beat 1.'
-                  : 'Turn on “Land on the 3rd” to have your 3rds checked.'}
+                  : 'Each bar, pick a note of the chord on beat 1 (turn on “Land on the 3rd” to aim for the 3rd).'}
             </span>
           </MicToggle>
         </div>
@@ -612,6 +651,7 @@ export default function Step5() {
           id="p5-board"
           dots={dots}
           ghosts={ghosts}
+          badges={badges}
           muted={mutedSpecs(c.inst, c.strings)}
           barre={barreSpec(c.inst, c.strings, COL[c.inst.shape])}
           band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}

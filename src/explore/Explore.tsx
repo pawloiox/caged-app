@@ -4,7 +4,7 @@ import { engine, toPlayable } from '../audio/engine';
 import { CagedRing, ShapesTable, Tab } from '../fretboard/extras';
 import { MapBench, createMapStore, useMapList } from '../lessons/map';
 import { usePrefs } from '../store/app';
-import { DOM7_TIPS, SHAPE_TIPS, VOICE_OPTS, chordLong, notesOf, stringsFor, type Quality } from '../theory';
+import { VOICE_OPTS, chordLong, shapeTip, notesOf, stringsFor, type Quality } from '../theory';
 import { Card, PageHead } from '../ui/controls';
 
 const useSX = createMapStore({ key: 9, q: 'minor', idx: 2, voicing: 'full', pent: true });
@@ -43,14 +43,20 @@ export default function Explore() {
         title="Every chord, every shape"
         lede="All 12 major, minor and dominant-7th chords in their five shapes, with the pentatonic box around each shape for soloing. Tap any fret to hear it and see what it is."
       />
-      <MapBench store={useSX} qualities={QUALS} voicings={VOICE_OPTS} pent drill />
+      <MapBench
+        store={useSX}
+        qualities={QUALS}
+        voicings={st.q === 'dom7' ? VOICE_OPTS.map(([v, l]) => [v, v === 'tri' ? '4-note' : l] as const) : VOICE_OPTS}
+        pent
+        drill
+      />
       <div className="cards">
         <Card title={chordLong(st.key, st.q, sp)}>
           <CagedRing list={list} idx={idx} />
         </Card>
         <Card title="This shape">
           <Tab inst={inst} strings={stringsFor(st.voicing, inst)} />
-          <p className="tipbox">{st.q === 'dom7' ? DOM7_TIPS[inst.shape] : SHAPE_TIPS[inst.shape]}</p>
+          <p className="tipbox">{shapeTip(inst, sp)}</p>
           <ShapesTable
             list={list}
             idx={idx}

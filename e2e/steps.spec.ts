@@ -7,7 +7,7 @@ test.describe.configure({ mode: 'serial' });
 async function passRootTest(page: Page, c: string) {
   await page.getByRole('radio', { name: new RegExp(`^${c} major`) }).click();
   for (const r of rootsOf(openChord(c as 'C')))
-    await page.getByRole('button', { name: `${posName(r.s, r.f)}, press to mark as a root` }).click();
+    await page.getByRole('button', { name: `${posName(r.s, r.f)}, chord note`, exact: true }).click();
   await page.getByRole('button', { name: 'Check', exact: true }).click();
   await expect(page.locator('.feedback.ok')).toContainText('Correct');
 }
@@ -21,16 +21,29 @@ test('Step 1: the no-labels root test completes the step (and the answer is hidd
   await stepDone(page, 1);
 });
 
+test('Step 1: a missed test never reveals the missing roots', async ({ page }) => {
+  await page.goto('/learn/1');
+  await page.getByRole('button', { name: 'Test yourself on C' }).click();
+  await page.getByRole('button', { name: 'Check', exact: true }).click();
+  await expect(page.locator('.feedback.no')).toContainText('0 of 2 roots found');
+  await expect(page.getByText(/^Roots:/)).toHaveCount(0);
+  await expect(page.locator('g.dot text', { hasText: '!' })).toHaveCount(0);
+  // Cell names don't give pitches away during the test.
+  await expect(page.getByRole('button', { name: /A string, fret 3, C/ })).toHaveCount(0);
+});
+
 test('Step 1 by keyboard only: arrows walk the frets, Enter marks', async ({ page }) => {
   await page.goto('/learn/1');
   await page.getByRole('button', { name: 'Test yourself on C' }).focus();
   await page.keyboard.press('Enter');
-  const start = page.getByRole('button', { name: 'A string, fret 3, press to mark as a root' });
+  // Focus moves to the next action, not back to <body>.
+  await expect(page.getByRole('button', { name: 'Check', exact: true })).toBeFocused();
+  const start = page.getByRole('button', { name: 'A string, fret 3, chord note' });
   await start.focus();
   await page.keyboard.press('Enter');
   for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
   for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowLeft');
-  await expect(page.getByRole('button', { name: 'B string, fret 1, press to mark as a root' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'B string, fret 1, chord note' })).toBeFocused();
   await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Check', exact: true }).focus();
   await page.keyboard.press('Enter');
@@ -126,11 +139,12 @@ test('Step 5: confirmed loops in two zones; chord cards explain each voicing; ea
   await page.getByRole('button', { name: 'Take the check' }).click();
   await page.getByRole('group', { name: 'Roman numerals' }).getByRole('button').first().click();
   await expect(page.getByText(/Now find its root inside your zone/).first()).toBeVisible();
+  await expect(page.locator(':focus')).toContainText('Now find its root');
 });
 
 test('Train: answer by keyboard, then the review queue serves the miss', async ({ page }) => {
   await page.goto('/train/order');
-  await page.getByRole('heading', { level: 2 }).waitFor();
+  await page.getByRole('region', { name: 'Quiz' }).getByRole('heading', { level: 2 }).waitFor();
   await page.keyboard.press('c');
   await expect(page.locator('.feedback')).not.toBeEmpty();
   await page.goto('/train/shape');

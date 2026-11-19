@@ -1,9 +1,9 @@
-import '@fontsource-variable/bricolage-grotesque/opsz.css';
-import '@fontsource/ibm-plex-sans/400.css';
-import '@fontsource/ibm-plex-sans/500.css';
-import '@fontsource/ibm-plex-sans/600.css';
-import '@fontsource/ibm-plex-mono/400.css';
-import '@fontsource/ibm-plex-mono/600.css';
+// Latin subsets only (the display face is declared in styles.css): smaller CSS and precache.
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-600.css';
 import './ui/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -21,4 +21,4 @@ void hydrate().then(({ imported }) => {
   if (imported) setTimeout(() => toast('Imported your progress from the previous version.'), 600);
 });
 
-if (import.meta.env.PROD) registerSW({ immediate: true, onOfflineReady: () => toast('Ready to work offline.') });
+if (import.meta.env.PROD) registerSW({ immediate: true });

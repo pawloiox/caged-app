@@ -107,7 +107,7 @@ function ViewMenu() {
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content className="menu" sideOffset={6} align="end" collisionPadding={12}>
-          <h3>Neck</h3>
+          <h2 className="card-title">Neck</h2>
           <Check checked={p.lefty} onChange={(v) => setPrefs({ lefty: v })}>
             Left-handed neck
           </Check>
@@ -124,7 +124,7 @@ function ViewMenu() {
             onChange={(v) => setPrefs({ neck: v })}
             label="Neck direction"
           />
-          <h3>Look</h3>
+          <h2 className="card-title">Look</h2>
           <Seg
             value={p.theme}
             options={[
@@ -144,7 +144,7 @@ function ViewMenu() {
             onChange={(v) => setPrefs({ minorSpelling: v })}
             label="Spell the minor key on pitch 3 as"
           />
-          <h3>Sound</h3>
+          <h2 className="card-title">Sound</h2>
           <label className="field">
             Guitar
             <input
@@ -331,7 +331,8 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
-      {player.active ? (
+      {/* Step 5 has its own sticky transport bar; a second Stop pill would cover its strum pattern. */}
+      {player.active && !(player.id === 'loop' && loc.pathname === '/learn/5') ? (
         <div className="mini no-print" role="region" aria-label="Now playing">
           <span className="lbl">
             ▶ {player.label}
@@ -341,7 +342,7 @@ export function Layout() {
             Stop<kbd>Space</kbd>
           </button>
         </div>
-      ) : rActive && !onPractice ? (
+      ) : rActive && !onPractice && !player.active ? (
         <div className="mini no-print" role="region" aria-label="Routine timer">
           <span className="lbl">
             Routine {routineSt.block + 1}/4 · {fmtTime(routineSt.remaining)}

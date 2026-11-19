@@ -23,9 +23,11 @@ export function weightOf(s: Stat | undefined, now = Date.now()): number {
 
 export function record(s: Stat | undefined, ok: boolean, now = Date.now()): Stat {
   const cur = s ?? { r: 0, w: 0, box: 0, last: now };
-  return ok
-    ? { r: cur.r + 1, w: cur.w, box: Math.min(4, (cur.box || 0) + 1), last: now }
-    : { r: cur.r, w: cur.w + 1, box: 0, last: now };
+  if (!ok) return { r: cur.r, w: cur.w + 1, box: 0, last: now };
+  // A right answer moves the item up only when it was due (or new). Answering again before then counts
+  // as practice, without pushing the next review further out.
+  const due = !s || s.r + s.w === 0 || isDue(s, now);
+  return due ? { r: cur.r + 1, w: cur.w, box: Math.min(4, (cur.box || 0) + 1), last: now } : { ...cur, r: cur.r + 1 };
 }
 
 export function pickWeighted<T>(items: readonly T[], weight: (t: T) => number, rnd: () => number = Math.random): T {

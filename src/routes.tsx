@@ -1,20 +1,64 @@
-import { createBrowserRouter, Navigate, useParams } from 'react-router';
+import { lazy, Suspense, type ComponentType } from 'react';
+import { createBrowserRouter, isRouteErrorResponse, Link, Navigate, useParams, useRouteError } from 'react-router';
 import { nextStep } from './store/criteria';
 import { useProgress } from './store/app';
 import { Layout } from './ui/Layout';
-import Step1 from './lessons/Step1';
-import Step2 from './lessons/Step2';
-import Step3 from './lessons/Step3';
-import Step4 from './lessons/Step4';
-import Step5 from './lessons/Step5';
-import Explore from './explore/Explore';
-import Practice from './practice/Practice';
-import Train from './train/Train';
-import Tuner from './listen/Tuner';
-import Diagnostics from './listen/Diagnostics';
-import PrintCharts from './print/PrintCharts';
 import { PageHead } from './ui/controls';
-import { Link } from 'react-router';
+
+// Every page is its own chunk, so the first visit downloads only the shell and the page it lands on.
+const Step1 = lazy(() => import('./lessons/Step1'));
+const Step2 = lazy(() => import('./lessons/Step2'));
+const Step3 = lazy(() => import('./lessons/Step3'));
+const Step4 = lazy(() => import('./lessons/Step4'));
+const Step5 = lazy(() => import('./lessons/Step5'));
+const Explore = lazy(() => import('./explore/Explore'));
+const Practice = lazy(() => import('./practice/Practice'));
+const Train = lazy(() => import('./train/Train'));
+const Tuner = lazy(() => import('./listen/Tuner'));
+const Diagnostics = lazy(() => import('./listen/Diagnostics'));
+const PrintCharts = lazy(() => import('./print/PrintCharts'));
+
+function Page({ C }: { C: ComponentType }) {
+  return (
+    <Suspense
+      fallback={
+        <p className="muted" role="status">
+          Loading…
+        </p>
+      }
+    >
+      <C />
+    </Suspense>
+  );
+}
+
+/** Shown instead of a blank screen if a page fails to render. Progress is safe in IndexedDB. */
+function RouteError() {
+  const err = useRouteError();
+  const msg = isRouteErrorResponse(err)
+    ? `${err.status} ${err.statusText}`
+    : err instanceof Error
+      ? err.message
+      : String(err);
+  return (
+    <main id="main" style={{ padding: 24, maxWidth: 640 }}>
+      <PageHead
+        eyebrow="Something went wrong"
+        title="This page hit a problem"
+        lede="Your progress is saved on this device. Reloading usually fixes it."
+      />
+      <p className="muted">Details: {msg}</p>
+      <div className="actions" style={{ marginTop: 16 }}>
+        <button type="button" className="btn primary" onClick={() => location.reload()}>
+          Reload
+        </button>
+        <a className="btn" href="/">
+          Go to your next step
+        </a>
+      </div>
+    </main>
+  );
+}
 
 const STEPS = [Step1, Step2, Step3, Step4, Step5];
 
@@ -22,7 +66,20 @@ function Learn() {
   const { n } = useParams();
   const i = Number(n);
   const C = STEPS[i - 1];
-  return C ? <C key={i} /> : <Navigate to="/learn/1" replace />;
+  return C ? (
+    <Suspense
+      key={i}
+      fallback={
+        <p className="muted" role="status">
+          Loading…
+        </p>
+      }
+    >
+      <C />
+    </Suspense>
+  ) : (
+    <Navigate to="/learn/1" replace />
+  );
 }
 
 function Home() {
@@ -47,16 +104,17 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
       { path: 'learn/:n', element: <Learn /> },
-      { path: 'explore', element: <Explore /> },
-      { path: 'practice', element: <Practice /> },
+      { path: 'explore', element: <Page C={Explore} /> },
+      { path: 'practice', element: <Page C={Practice} /> },
       { path: 'train', element: <Navigate to="/train/shape" replace /> },
-      { path: 'train/:mode', element: <Train /> },
-      { path: 'tuner', element: <Tuner /> },
-      { path: 'diagnostics', element: <Diagnostics /> },
-      { path: 'print', element: <PrintCharts /> },
+      { path: 'train/:mode', element: <Page C={Train} /> },
+      { path: 'tuner', element: <Page C={Tuner} /> },
+      { path: 'diagnostics', element: <Page C={Diagnostics} /> },
+      { path: 'print', element: <Page C={PrintCharts} /> },
       { path: '*', element: <NotFound /> },
     ],
   },

@@ -22,14 +22,25 @@ interface UiState {
 export const useUi = create<UiState>(() => ({ toast: null, live: '' }));
 let toastId = 0;
 let lastSaid = '';
+let lastAt = 0;
 export function toast(msg: string): void {
   useUi.setState({ toast: { id: ++toastId, msg } });
 }
-/** Announce to screen readers. Never repeats the same message back to back. */
+/**
+ * Announce through the one polite live region. An identical message within 1.5 s is an echo (a re-render)
+ * and is dropped; after that, the same words are announced again, e.g. a second "Not quite" after a retry.
+ */
 export function announce(msg: string): void {
-  if (!msg || msg === lastSaid) return;
+  const now = Date.now();
+  if (!msg || (msg === lastSaid && now - lastAt < 1500)) return;
+  const repeat = msg === useUi.getState().live;
   lastSaid = msg;
-  useUi.setState({ live: msg });
+  lastAt = now;
+  if (repeat) {
+    // Same text as what is in the region: clear it first so assistive tech notices the change.
+    useUi.setState({ live: '' });
+    setTimeout(() => useUi.setState({ live: msg }), 60);
+  } else useUi.setState({ live: msg });
 }
 
 /* ---------------- Prefs ---------------- */
@@ -143,6 +154,17 @@ export async function hydrate(r?: ProgressRepository): Promise<{ imported: boole
     clearTimeout(t2);
     t2 = setTimeout(() => void repo.savePrefs(p).catch(() => {}), 250);
   });
+  // Debounced saves would be lost if the tab closes within 250 ms: flush on pagehide / hidden.
+  const flush = () => {
+    clearTimeout(t1);
+    clearTimeout(t2);
+    void repo.saveProgress(useProgress.getState()).catch(() => {});
+    void repo.savePrefs(usePrefs.getState()).catch(() => {});
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
+  }
   if (imported) {
     void repo.saveProgress(useProgress.getState());
     void repo.savePrefs(usePrefs.getState());

@@ -58,11 +58,24 @@ export default function Step1() {
         toast(`${chord}: roots found · +10 XP`);
       }
     }
-    const msg = ok
-      ? `Correct: ${rn} major's roots are on the ${roots.map((r) => posName(r.s, r.f)).join(' and ')}.`
-      : 'Not quite. ✓ found, ! missed, ✗ not a root. Look again, then retry.';
-    announce(msg);
-    engine.arpeggio(toPlayable(roots), 0.45);
+    announce(feedbackFor(ok, selNow));
+    // Only a pass plays the roots: on a miss the sound would give the answer away.
+    if (ok) engine.arpeggio(toPlayable(roots), 0.45);
+    requestAnimationFrame(() => actionRef.current?.focus({ preventScroll: true }));
+  };
+
+  /** On a miss, say how many roots were found and how many marks were wrong, never where the missing ones are. */
+  function feedbackFor(ok: boolean, selNow: Set<string>): string {
+    if (ok) return `Correct: ${rn} major's roots are on the ${roots.map((r) => posName(r.s, r.f)).join(' and ')}.`;
+    const found = roots.filter((r) => selNow.has(k(r))).length;
+    const wrong = [...selNow].filter((x) => !roots.some((r) => k(r) === x)).length;
+    return `Not quite: ${found} of ${roots.length} roots found${wrong ? `, and ${wrong} mark${wrong > 1 ? 's are' : ' is'} not a root (✗)` : ''}. Look again, then retry.`;
+  }
+
+  const startTest = () => {
+    setTest(true);
+    setSel(new Set());
+    setResult(null);
     requestAnimationFrame(() => actionRef.current?.focus({ preventScroll: true }));
   };
 
@@ -73,6 +86,7 @@ export default function Step1() {
     setHeard('');
     if (nx) setChord(nx);
     else setTest(false);
+    requestAnimationFrame(() => actionRef.current?.focus({ preventScroll: true }));
   };
 
   useEffect(() => {
@@ -123,6 +137,20 @@ export default function Step1() {
     return notesOf(inst).map((n) => {
       const key = k(n);
       const on = sel.has(key);
+      if (result === false) {
+        if (on && want.has(key))
+          return {
+            s: n.s,
+            f: n.f,
+            colors: ['var(--good)'],
+            root: true,
+            label: '✓',
+            text: '#fff',
+            desc: 'marked, a root',
+          };
+        if (on) return { s: n.s, f: n.f, colors: ['var(--bad)'], label: '✗', text: '#fff', desc: 'marked, not a root' };
+        return { s: n.s, f: n.f, colors: [NEUTRAL], label: '', desc: 'chord note' };
+      }
       if (result != null) {
         if (want.has(key))
           return {
@@ -141,7 +169,14 @@ export default function Step1() {
           text: on ? '#fff' : '#14212b',
         };
       }
-      return { s: n.s, f: n.f, colors: [on ? 'var(--accent)' : NEUTRAL], cls: on ? 'sel' : '', label: '' };
+      return {
+        s: n.s,
+        f: n.f,
+        colors: [on ? 'var(--accent)' : NEUTRAL],
+        cls: on ? 'sel' : '',
+        label: '',
+        desc: on ? 'chord note, marked as a root' : 'chord note',
+      };
     });
   };
 
@@ -166,12 +201,7 @@ export default function Step1() {
     );
   };
 
-  const feedback =
-    result == null
-      ? ''
-      : result
-        ? `Correct: ${rn} major's roots are on the ${roots.map((r) => posName(r.s, r.f)).join(' and ')}.`
-        : 'Not quite. ✓ found, ! missed, ✗ not a root. Look again, then retry.';
+  const feedback = result == null ? '' : feedbackFor(result, sel);
 
   return (
     <>
@@ -243,7 +273,8 @@ export default function Step1() {
           cw={72}
           dots={test ? testDots() : singleDots(inst, ctx, { rootsOnly })}
           muted={mutedSpecs(inst)}
-          cellLabel={test && result == null ? () => 'press to mark as a root' : undefined}
+          hidePitch={test}
+          emptyLabel={test ? 'not in the chord' : undefined}
           onCell={onCell}
           label={`${rn} major in open position`}
         />
@@ -298,15 +329,7 @@ export default function Step1() {
               <button type="button" className="btn" onClick={pick}>
                 Pick each note<Kbd>A</Kbd>
               </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  setTest(true);
-                  setSel(new Set());
-                  setResult(null);
-                }}
-              >
+              <button type="button" className="btn" onClick={startTest}>
                 Test yourself on {rn}
               </button>
             </>
@@ -321,7 +344,7 @@ export default function Step1() {
       <div className="cards">
         <Card title={`${rn} major, open`}>
           <Tab inst={inst} />
-          {test && result == null ? (
+          {test && result !== true ? (
             <p className="muted">Roots hidden during the test.</p>
           ) : (
             <p>

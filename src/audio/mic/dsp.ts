@@ -141,6 +141,12 @@ export function checkChord(chroma: Float32Array, pcs: readonly number[], root: n
 }
 
 /* ---------- Pitch ---------- */
+/**
+ * Clarity (McLeod NSDF peak) above which a heard note counts as a single picked string, not a strum.
+ * Synthetic tests: single notes ≥ 0.998, strummed chords ≤ 0.944. Real strings are less periodic, hence 0.96.
+ */
+export const PICK_CLARITY = 0.96;
+
 export interface PitchReading {
   hz: number;
   clarity: number;

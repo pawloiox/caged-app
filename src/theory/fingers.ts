@@ -1,5 +1,6 @@
-import type { Instance } from './instances';
-import { FINGERS, OPEN_FINGERS, PART_FINGERS } from './shapes';
+import { notesOf, type Instance } from './instances';
+import { DOM7_TIPS, FINGERS, OPEN_FINGERS, PART_FINGERS, SHAPE_TIPS } from './shapes';
+import { STRING_NAME } from './tuning';
 import { IV_INFO, keyName, spell, type MinorSpelling } from './spell';
 
 /** Finger number for string s, '○' for an open string, '' when no finger applies. */
@@ -65,4 +66,24 @@ export function barreFor(inst: Instance, strings?: readonly number[] | null): Fi
     .filter((s) => s >= 0);
   if (ss.length < 2) return null;
   return { f: inst.minF, s1: Math.min(...ss), s2: Math.max(...ss) };
+}
+
+/**
+ * Fingering tip for an instance. Open-position shapes get a tip generated from their real fingering, because
+ * the movable-shape tips (index barre, "root under finger 4") don't describe an open chord.
+ */
+export function shapeTip(inst: Instance, sp: MinorSpelling = 'flat'): string {
+  if (inst.minF > 0) return (inst.q === 'dom7' ? DOM7_TIPS : SHAPE_TIPS)[inst.shape];
+  const tab = inst.frets.map((f) => (f == null ? 'x' : String(f))).join('-');
+  const fingers = inst.frets.map((f, s) => (f == null ? 'x' : f === 0 ? '0' : fingerOf(inst, s))).join('-');
+  const name = keyName(inst.keyPc, inst.q, sp) + (inst.q === 'minor' ? 'm' : inst.q === 'dom7' ? '7' : '');
+  const roots = notesOf(inst)
+    .filter((n) => n.iv === 0)
+    .map((n) =>
+      n.f === 0
+        ? `the open ${STRING_NAME[n.s as 0]} string`
+        : `${STRING_NAME[n.s as 0]} string fret ${n.f} (finger ${fingerOf(inst, n.s)})`,
+    );
+  const muted = inst.frets.map((f, s) => (f == null ? STRING_NAME[s as 0] : null)).filter(Boolean);
+  return `Open ${name}: ${tab}, fingers ${fingers} (0 = open string). Roots: ${roots.join(' and ')}.${muted.length ? ` Don't strum the ${muted.join(' or ')} string${muted.length > 1 ? 's' : ''}.` : ''} The open strings do the job of the barre; move it up the neck and your index finger takes their place.`;
 }

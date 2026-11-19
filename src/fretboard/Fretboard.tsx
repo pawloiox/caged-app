@@ -16,6 +16,8 @@ export interface DotSpec {
   ring?: boolean;
   third?: boolean;
   cls?: string;
+  /** What this note is, for the cell's accessible name ("the 3rd of C, finger 2"). */
+  desc?: string;
 }
 export interface GhostSpec {
   s: number;
@@ -24,6 +26,15 @@ export interface GhostSpec {
   label?: string;
   r?: number;
   cls?: 'next' | 'anchor';
+  desc?: string;
+}
+/** A small number badge at the top-right of a dot (e.g. the next chord's finger on a shared note). */
+export interface BadgeSpec {
+  s: number;
+  f: number;
+  label: string;
+  color: string;
+  desc?: string;
 }
 export interface ZoneSpec {
   id: number;
@@ -56,6 +67,11 @@ export interface FretboardProps {
   muted?: Array<number | MutedSpec>;
   label: string;
   cellLabel?: (s: number, f: number) => string;
+  /** Leave pitch names out of cell labels (quizzes where the pitch would give the answer away). */
+  hidePitch?: boolean;
+  /** Label for cells with no dot, e.g. "not in the chord". */
+  emptyLabel?: string;
+  badges?: BadgeSpec[];
   onCell?: (s: number, f: number) => void;
   onZone?: (id: number) => void;
   clickable?: boolean;
@@ -132,7 +148,7 @@ export function Fretboard(props: FretboardProps) {
     const zoneW = hasZones ? 42 : 0;
     const leftPad = zoneW + 40;
     const rightPad = band ? 34 : 18;
-    const openTop = 24;
+    const openTop = 20;
     const nutY = 70;
     const W = leftPad + 5 * ss + rightPad;
     const H = nutY + cells * fh + 16;
@@ -365,11 +381,26 @@ export function Fretboard(props: FretboardProps) {
       </text>,
     );
   }
+  const dotAt = new Map(dots.map((d) => [`${d.s}:${d.f}`, d]));
+  const ghostAt = new Map(ghosts.map((d) => [`${d.s}:${d.f}`, d]));
+  const badgeAt = new Map((props.badges ?? []).map((d) => [`${d.s}:${d.f}`, d]));
+  const defaultCellLabel = (s: number, f: number): string => {
+    const k = `${s}:${f}`;
+    const d = dotAt.get(k);
+    const parts = [
+      props.hidePitch ? null : BOTH_NAMES[pcAt(s, f)],
+      d ? (d.desc ?? (d.dim ? 'note of another shape' : 'marked note')) : null,
+      badgeAt.get(k)?.desc ?? null,
+      ghostAt.get(k)?.desc ?? null,
+    ].filter(Boolean);
+    if (!d && !ghostAt.get(k) && props.emptyLabel) parts.push(props.emptyLabel);
+    return parts.join(', ');
+  };
   if (clickable) {
     for (let s = 0; s < 6; s++)
       for (let f = fMin; f <= to; f++) {
         const [a0, a1] = g.cellA(f);
-        const name = props.cellLabel ? props.cellLabel(s, f) : BOTH_NAMES[pcAt(s, f)];
+        const name = props.cellLabel ? props.cellLabel(s, f) : defaultCellLabel(s, f);
         out.push(
           <rect
             key={`h${s}-${f}`}
@@ -470,6 +501,19 @@ export function Fretboard(props: FretboardProps) {
         </g>,
       );
     });
+
+  (props.badges ?? []).forEach((b) => {
+    const [cx, cy] = pt(g.A(b.f), g.B(b.s));
+    const [bx, by] = [cx + 10, cy - 10];
+    out.push(
+      <g key={`bd${b.s}-${b.f}`} className="badge" pointerEvents="none" aria-hidden="true">
+        <circle cx={bx} cy={by} r={7.5} style={{ fill: '#1b1009', stroke: b.color }} />
+        <text x={bx} y={by + 3.4} className="glabel">
+          {b.label}
+        </text>
+      </g>,
+    );
+  });
 
   const style = g.vertical
     ? { width: g.W, maxWidth: '100%' }

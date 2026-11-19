@@ -8,7 +8,7 @@ import { announce, patchSeen, recordStat, usePrefs, useProgress } from '../store
 import { CHECK_LEN, CHECK_PASS } from '../store/criteria';
 import {
   ORDER,
-  SHAPE_TIPS,
+  shapeTip,
   chordLong,
   dotLabel,
   instances,
@@ -287,7 +287,7 @@ export default function Step3() {
               .map((r) => posName(r.s, r.f))
               .join(' · ')}
           </p>
-          <p className="tipbox muted">{SHAPE_TIPS[inst.shape]}</p>
+          <p className="tipbox muted">{shapeTip(inst)}</p>
         </Card>
         <Card title="The chain and its links">
           <LinkList list={list} />

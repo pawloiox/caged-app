@@ -30,7 +30,8 @@ type Sub = (e: MicEvent) => void;
 const FRAME = 2048;
 const CHROMA_FRAME = 4096;
 const RING = 8192;
-const STRUM_WINDOW = 0.15;
+/** Seconds of chroma gathered after the first clean frame (≈ the first 150–200 ms of the strum). */
+const STRUM_WINDOW = 0.11;
 
 class Listener {
   private stream: MediaStream | null = null;
@@ -149,9 +150,11 @@ class Listener {
 
     if (this.strum) {
       const s = this.strum;
-      if (t - s.start >= 0.03 && this.filled >= CHROMA_FRAME && s.hops++ % 2 === 0)
+      // Only frames that lie wholly after the onset: earlier ones still hold the previous chord ringing.
+      const frameSec = CHROMA_FRAME / sr;
+      if (t - s.start >= frameSec + 0.005 && this.filled >= CHROMA_FRAME && s.hops++ % 2 === 0)
         addChroma(s.acc, chromaOf(this.frame(CHROMA_FRAME), sr));
-      if (t - s.start >= STRUM_WINDOW) {
+      if (t - s.start >= frameSec + STRUM_WINDOW) {
         this.emit({ type: 'strum', t: s.start, chroma: s.acc });
         this.strum = null;
       }

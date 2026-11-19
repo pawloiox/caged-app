@@ -6,17 +6,27 @@ import { defaultProgress } from '../src/store/types';
 import { BOX_DAYS, DAY, isDue, pickWeighted, record, weightOf } from '../src/train/leitner';
 
 describe('Leitner scheduler', () => {
-  it('moves up a box on a right answer and back to 0 on a miss', () => {
-    let s = record(undefined, true, 0);
+  it('moves up a box on a right answer when due, and back to 0 on a miss', () => {
+    let t = 0;
+    let s = record(undefined, true, t);
     expect(s.box).toBe(1);
-    s = record(s, true, 0);
-    s = record(s, true, 0);
-    s = record(s, true, 0);
-    s = record(s, true, 0);
+    for (let b = 1; b < 4; b++) {
+      t += BOX_DAYS[b]! * DAY;
+      s = record(s, true, t);
+    }
     expect(s.box).toBe(4);
-    s = record(s, false, 0);
+    s = record(s, false, t);
     expect(s.box).toBe(0);
     expect(s.w).toBe(1);
+  });
+
+  it('does not promote an item answered again before it is due', () => {
+    let s = record(undefined, true, 0); // box 1, due in a day
+    s = record(s, true, 1000);
+    s = record(s, true, 2000);
+    expect(s.box).toBe(1);
+    expect(s.r).toBe(3);
+    expect(s.last).toBe(0);
   });
 
   it('is due after 0, 1, 2, 4 and 8 days', () => {

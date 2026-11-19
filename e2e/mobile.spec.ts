@@ -21,3 +21,17 @@ for (const r of ['/learn/1', '/learn/2', '/learn/3', '/learn/5', '/explore', '/p
     await noSeriousA11y(page, 'mobile ' + r);
   });
 }
+
+test('390px phone: Step 5 keeps one transport bar while playing (no mini-player on top)', async ({ page }) => {
+  await page.goto('/learn/5');
+  await page.getByRole('button', { name: /Play the loop/ }).click();
+  await expect(page.getByRole('button', { name: /^Stop/ }).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Now playing' })).toHaveCount(0);
+  await page.getByRole('button', { name: /^Stop/ }).first().click();
+});
+
+test('390px phone: open-string cells on the upright neck are 44px tall', async ({ page }) => {
+  await page.goto('/learn/1');
+  const box = await page.getByRole('button', { name: /^high e string, open/ }).boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+});

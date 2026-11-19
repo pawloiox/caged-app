@@ -1,5 +1,17 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ===== Design tokens (ported from the v5 reference) ===== */
 :root {
   --bg: #eef1f2;
@@ -106,7 +118,8 @@ h2 {
   font-size: 1.3rem;
   font-weight: 650;
 }
-h3 {
+h3,
+.card-title {
   font-size: 1.02rem;
   font-weight: 650;
 }
@@ -474,7 +487,7 @@ main:focus {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 .seg.keys button {
-  min-width: 40px;
+  min-width: max(40px, var(--tap));
   font-family: var(--font-mono);
   font-size: 13px;
 }
@@ -616,18 +629,17 @@ output {
   gap: 10px;
   min-width: 0;
 }
-.card ol,
-.card ul {
+.card :where(ol, ul) {
   margin: 0;
   padding-left: 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.card ul {
+.card :where(ul) {
   list-style: disc;
 }
-.card ol {
+.card :where(ol) {
   list-style: decimal;
 }
 .card p {
@@ -666,6 +678,7 @@ table.tab .fg {
 }
 .pchips {
   display: flex;
+  flex-direction: row;
   gap: 6px;
   flex-wrap: wrap;
   list-style: none !important;
@@ -1056,6 +1069,9 @@ table.shapes button.rowbtn {
   border-color: var(--bad);
   opacity: 0.8;
 }
+.quiz-row .btn {
+  min-width: var(--tap);
+}
 .quiz-row {
   display: flex;
   flex-wrap: wrap;
@@ -1368,6 +1384,10 @@ table.shapes button.rowbtn {
   fill: none;
   stroke: rgba(255, 255, 255, 0.85);
   stroke-width: 1;
+}
+.fb .badge circle {
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
 }
 .fb .glabel {
   fill: #f3ecdc;

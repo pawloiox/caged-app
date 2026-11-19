@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
+import { PICK_CLARITY } from '../audio/mic/dsp';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
 import { COL, NEUTRAL_ROOT, barreSpec, mapVisuals, noteRole, type MapState } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
@@ -475,13 +476,22 @@ export function LinkingDrill({
     k: 0,
     w: 0,
     results: [] as boolean[],
-    pv: null as null | { start: number; midis: number[]; heard: boolean; held: boolean; text: string },
+    pv: null as null | {
+      start: number;
+      midis: number[];
+      heard: boolean;
+      held: boolean;
+      text: string;
+    },
   });
   const lastIdx = useRef(-1);
 
+  // A pivot counts when the shared root is PICKED as a single note. A strummed chord also contains the
+  // root, but its pitch clarity is far lower, so it doesn't count.
   const micOn = useMicEvents((e) => {
     const pv = cur.current.pv;
     if (e.type !== 'note' || !pv || pv.heard || e.t < pv.start) return;
+    if (e.reading.clarity < PICK_CLARITY) return;
     if (pv.midis.some((m) => m === e.midi || Math.abs(m - e.midi) === 12)) {
       pv.heard = true;
       setHold('');
