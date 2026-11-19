@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { engine, toPlayable } from '../audio/engine';
-import { mutedSpecs, singleDots } from '../fretboard/build';
+import { COL, barreSpec, mutedSpecs, singleDots } from '../fretboard/build';
 import { Legend, Pill, Tab } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
 import { addXP, announce, patchSeen, toast, usePrefs, useProgress } from '../store/app';
@@ -10,7 +10,6 @@ import {
   SHAPES,
   SHAPE_TIPS,
   THIRD_WHERE,
-  barreOf,
   chordLabel,
   chordLong,
   makeInstance,
@@ -141,7 +140,7 @@ export default function Step2() {
     },
   });
 
-  const b = barreOf(inst);
+  const b = barreSpec(inst, null);
   const where =
     inst.minF === 0
       ? 'open position: the nut is your barre'
@@ -211,7 +210,7 @@ export default function Step2() {
         <Fretboard
           dots={singleDots(inst, ctx, { third })}
           muted={mutedSpecs(inst)}
-          barre={barreOf(inst)}
+          barre={barreSpec(inst, null, COL[shape])}
           label={`${chordLong(inst.keyPc, q)} with the ${shape}-shape`}
         />
         <Legend keys={['root', 'tone', 'barre', 'mute', ...(third ? ['third'] : [])]} />

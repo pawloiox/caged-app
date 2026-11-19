@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CHORD_IVS,
+  barreFor,
   ORDER,
   PENT,
   PROGS,
@@ -404,5 +405,50 @@ describe('planner', () => {
     for (const l of lines) expect(l.length).toBeLessThan(110);
     const z5 = buildProgression(0, '145', 'z7', 'top4').map(explainChoice);
     for (const l of z5) expect(l).toMatch(/-shape, (barre|index) at fret \d+/);
+  });
+});
+
+describe('barres', () => {
+  const find = (key: number, q: Quality, shape: string) =>
+    instances(key, q).find((i) => i.shape === shape && i.minF > 0)!;
+  const fmtB = (b: ReturnType<typeof barreFor>) => (b ? `${b.f}:${b.s1}-${b.s2}` : 'none');
+
+  it('places the index barre where finger 1 lies across strings', () => {
+    expect(fmtB(barreFor(find(6, 'major', 'C')))).toBe('6:3-5'); // F♯ C-shape (the screenshot): index on G and e at 6
+    expect(fmtB(barreFor(find(5, 'major', 'E')))).toBe('1:0-5'); // F: full E-shape barre
+    expect(fmtB(barreFor(find(0, 'major', 'A')))).toBe('3:1-5'); // C: A-shape x-1-2-3-4-1
+    expect(fmtB(barreFor(find(0, 'major', 'G')))).toBe('5:2-4'); // C: G-shape index on D G B
+    expect(fmtB(barreFor(find(0, 'minor', 'E')))).toBe('8:0-5');
+    expect(fmtB(barreFor(find(0, 'dom7', 'A')))).toBe('3:1-5'); // C7 A-form
+  });
+
+  it('has no barre for open chords, the D-shape or the full minor G-shape', () => {
+    for (const k of KEYS) {
+      for (const inst of instances(k, 'major')) if (inst.minF === 0) expect(barreFor(inst)).toBeNull();
+      for (const inst of instances(k, 'major').filter((i) => i.shape === 'D')) expect(barreFor(inst)).toBeNull();
+      for (const inst of instances(k, 'minor').filter((i) => i.shape === 'G' && i.minF > 0))
+        expect(barreFor(inst)).toBeNull();
+    }
+  });
+
+  it('follows the voicing: the easy E-shape barres only B and e', () => {
+    const e = find(5, 'major', 'E');
+    expect(fmtB(barreFor(e, stringsFor('easy', e)))).toBe('1:4-5');
+    expect(fmtB(barreFor(e, stringsFor('tri', e)))).toBe('1:4-5');
+  });
+
+  it('every barre covers only played strings at the barre fret or above, and its ends are finger-1 notes', () => {
+    for (const q of ['major', 'minor', 'dom7'] as Quality[])
+      for (const k of KEYS)
+        for (const inst of instances(k, q))
+          for (const v of VOICINGS) {
+            const strings = stringsFor(v, inst);
+            const b = barreFor(inst, strings);
+            if (!b) continue;
+            const label = `${k}${q} ${fmt(inst)} ${v}`;
+            expect(fingerOf(inst, b.s1, strings), label).toBe('1');
+            expect(fingerOf(inst, b.s2, strings), label).toBe('1');
+            for (const n of notesOf(inst, strings)) expect(n.f, label).toBeGreaterThanOrEqual(b.f);
+          }
   });
 });

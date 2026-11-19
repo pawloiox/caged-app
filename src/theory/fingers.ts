@@ -42,3 +42,27 @@ export function dotLabel(
   if (mode === 'shape') return inst.shape;
   return '';
 }
+
+export interface FingerBarre {
+  /** Fret the index finger lies across. */
+  f: number;
+  /** Lowest and highest string the barre covers (0 = low E). */
+  s1: number;
+  s2: number;
+}
+
+/**
+ * The index-finger barre a player actually lays down for this voicing: two or more played strings at the
+ * shape's lowest fret, all fretted by finger 1. Open chords (the nut is the barre) and shapes whose lowest
+ * fret is a single fingertip, such as the D-shape, have none.
+ */
+export function barreFor(inst: Instance, strings?: readonly number[] | null): FingerBarre | null {
+  if (inst.minF === 0) return null;
+  const ss = inst.frets
+    .map((f, s) =>
+      f === inst.minF && (!strings || strings.includes(s)) && fingerOf(inst, s, strings) === '1' ? s : -1,
+    )
+    .filter((s) => s >= 0);
+  if (ss.length < 2) return null;
+  return { f: inst.minF, s1: Math.min(...ss), s2: Math.max(...ss) };
+}

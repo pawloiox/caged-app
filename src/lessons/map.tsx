@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
-import { COL, NEUTRAL_ROOT, mapVisuals, noteRole, type MapState } from '../fretboard/build';
+import { COL, NEUTRAL_ROOT, barreSpec, mapVisuals, noteRole, type MapState } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
@@ -102,6 +102,7 @@ export function MapBench({
   const strOf = (i: Instance) => stringsFor(st.voicing, i);
   const play = (i = inst) => engine.strum(toPlayable(notesOf(i, strOf(i))));
   const pred = !!predict && !st.revealed[st.q + st.key];
+  const barre = st.focus ? barreSpec(inst, stringsFor(st.voicing, inst), COL[inst.shape]) : null;
   const vis = useMemo(() => mapVisuals({ ...st, idx }, list, ctx), [st, idx, list, ctx.labels, ctx.sp]); // eslint-disable-line react-hooks/exhaustive-deps
   const next = list[idx + 1];
   const prev = list[idx - 1];
@@ -357,6 +358,7 @@ export function MapBench({
             ghosts={vis.ghosts}
             zones={vis.zones}
             muted={vis.muted}
+            barre={barre}
             cellLabel={vis.cellLabel}
             onCell={onCell}
             onZone={(i) => go(i)}
@@ -368,6 +370,7 @@ export function MapBench({
               'root',
               st.focus ? 'link' : 'split',
               st.focus ? 'dim' : 'tone',
+              ...(barre ? ['barre'] : []),
               ...(st.focus && st.voicing !== 'full' ? ['anchor'] : []),
               ...(st.focus ? ['mute'] : []),
               ...(st.pent && st.focus && pent ? ['pent'] : []),

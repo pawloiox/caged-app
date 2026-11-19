@@ -3,6 +3,7 @@ import { usePrefs } from '../store/app';
 import {
   MAJOR_NAMES,
   STRING_LABEL,
+  barreFor,
   buildProgression,
   chordLabel,
   fingerOf,
@@ -28,9 +29,10 @@ function ChordChart({
 }) {
   const notes = notesOf(inst, strings);
   const fretted = notes.filter((n) => n.f > 0).map((n) => n.f);
+  const barre = barreFor(inst, strings);
   const lo = inst.minF === 0 ? 1 : Math.min(...fretted);
   const rows = 5;
-  const W = 120;
+  const W = 134;
   const H = 150;
   const x = (s: number) => 18 + s * 17;
   const y = (f: number) => 30 + (f - lo + 0.5) * 22;
@@ -47,7 +49,7 @@ function ChordChart({
         {lo === 1 ? (
           <rect x={x(0) - 1} y={27} width={x(5) - x(0) + 2} height={4} fill="var(--ink)" />
         ) : (
-          <text x={x(5) + 6} y={y(lo) + 4} fontSize="10" fill="var(--muted)">
+          <text x={x(5) + 11} y={y(lo) + 4} fontSize="10" fill="var(--muted)">
             {lo}fr
           </text>
         )}
@@ -68,6 +70,16 @@ function ChordChart({
           if (f === 0) return <circle key={s} cx={x(s)} cy={18} r={4} fill="none" stroke="var(--ink)" />;
           return null;
         })}
+        {barre ? (
+          <rect
+            x={x(barre.s1) - 7.5}
+            y={y(barre.f) - 7.5}
+            width={x(barre.s2) - x(barre.s1) + 15}
+            height={15}
+            rx={7.5}
+            fill="var(--ink)"
+          />
+        ) : null}
         {notes
           .filter((n) => n.f > 0)
           .map((n) => (

@@ -1417,9 +1417,8 @@ table.shapes button.rowbtn {
   stroke-opacity: 0.9;
 }
 .fb .barre {
-  fill: rgba(255, 255, 255, 0.18);
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1.5;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1;
 }
 .fb .band {
   fill: rgba(255, 206, 110, 0.1);

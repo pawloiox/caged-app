@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { checkChord, type ChordVerdict } from '../audio/mic/dsp';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
-import { COL, mutedSpecs, textFor } from '../fretboard/build';
+import { COL, barreSpec, mutedSpecs, textFor } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
 import { Fretboard, type DotSpec, type GhostSpec } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
@@ -219,6 +219,7 @@ function EarCheck({
           <Fretboard
             band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}
             dots={dots}
+            barre={phase === 'done' ? barreSpec(target.inst, target.strings, COL[target.inst.shape]) : null}
             onCell={(s, f) => tryRoot(s, f)}
             label={`Find the root of ${target.name} inside frets ${zone.lo} to ${zone.hi}`}
           />
@@ -612,11 +613,22 @@ export default function Step5() {
           dots={dots}
           ghosts={ghosts}
           muted={mutedSpecs(c.inst, c.strings)}
+          barre={barreSpec(c.inst, c.strings, COL[c.inst.shape])}
           band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}
           soon={soon}
           label={`${c.name} with the ${c.inst.shape}-shape; dashed circles show the next chord, ${nx.name}`}
         />
-        <Legend keys={['root', 'keep', 'next', 'zone', 'mute', ...(s.third ? ['third'] : [])]} />
+        <Legend
+          keys={[
+            'root',
+            'keep',
+            'next',
+            'zone',
+            'mute',
+            ...(barreSpec(c.inst, c.strings) ? ['barre'] : []),
+            ...(s.third ? ['third'] : []),
+          ]}
+        />
         {ask ? (
           <div className="callout" role="status">
             <p>Loop complete in {zoneById(ask).name}. Did you play along on your guitar and stay inside the zone?</p>

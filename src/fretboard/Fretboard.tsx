@@ -51,7 +51,8 @@ export interface FretboardProps {
   ghosts?: GhostSpec[];
   zones?: ZoneSpec[];
   band?: BandSpec | null;
-  barre?: { f: number; s1: number; s2: number } | null;
+  /** Index-finger barre, drawn as a solid bar under the dots. `color` defaults to a neutral bone colour. */
+  barre?: { f: number; s1: number; s2: number; color?: string } | null;
   muted?: Array<number | MutedSpec>;
   label: string;
   cellLabel?: (s: number, f: number) => string;
@@ -68,6 +69,7 @@ export interface FretboardProps {
 
 const SW = [2.7, 2.2, 1.8, 1.4, 1.05, 0.85];
 const DARK = '#2a1b00';
+const NEUTRAL_BAR = '#ece5d6';
 let seq = 0;
 
 function slicePath(cx: number, cy: number, r: number, a0: number, a1: number): string {
@@ -390,9 +392,11 @@ export function Fretboard(props: FretboardProps) {
       <rect
         key="barre"
         className="barre"
-        {...box(g.A(barre.f) - 9, g.A(barre.f) + 9, b0 - 13, b1 + 13)}
-        rx={9}
+        {...box(g.A(barre.f) - 8, g.A(barre.f) + 8, b0 - 11, b1 + 11)}
+        rx={8}
+        style={{ fill: barre.color ?? NEUTRAL_BAR }}
         pointerEvents="none"
+        aria-hidden="true"
       />,
     );
   }

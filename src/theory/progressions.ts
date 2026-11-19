@@ -1,4 +1,5 @@
-import { barreOf, notesOf, type Instance, type Note } from './instances';
+import { barreFor } from './fingers';
+import { notesOf, type Instance, type Note } from './instances';
 import { planProgression, ZONES, type Zone } from './planner';
 import type { Quality } from './shapes';
 import { keyName, qualitySuffix, spell, type MinorSpelling } from './spell';
@@ -150,7 +151,7 @@ export function explainChoice(ch: ChordPlan): string {
     return `Open ${ch.name}: ${describeStrings(played)}, skip the ${skipped.join(' and ')}${opens ? `; ${opens} open string${opens > 1 ? 's' : ''} ring` : ''}.`;
   }
   const roots = ch.notes.filter((n) => n.iv === 0);
-  const b = barreOf(inst, ch.strings);
+  const b = barreFor(inst, ch.strings);
   const fretted = ch.notes.filter((n) => n.f > 0).map((n) => n.f);
   const hand = b ? `barre at fret ${b.f}` : `index at fret ${Math.min(...fretted)}`;
   let root: string;

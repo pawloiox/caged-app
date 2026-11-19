@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { engine, toPlayable } from '../audio/engine';
 import { stopLoop } from '../audio/transport';
-import { COL, NEUTRAL, NEUTRAL_ROOT, textFor } from '../fretboard/build';
+import { COL, NEUTRAL, NEUTRAL_ROOT, barreSpec, textFor } from '../fretboard/build';
 import { LinkList, Tab } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
 import { announce, patchSeen, recordStat, usePrefs, useProgress } from '../store/app';
@@ -235,7 +235,11 @@ function ShapeCheck() {
         {L.hints ? ' The notes marked R are its roots.' : ' No root hints this time: find the roots yourself.'}
         {q!.strings ? ' Only part of the shape is shown.' : ''}
       </p>
-      <Fretboard dots={dots} label="Shape check fretboard" />
+      <Fretboard
+        dots={dots}
+        barre={barreSpec(inst, q!.strings, answered ? COL[inst.shape] : NEUTRAL)}
+        label="Shape check fretboard"
+      />
       <div className="quiz-row" role="group" aria-label="Answers">
         {ORDER.map((o) => (
           <ShapeAnswer

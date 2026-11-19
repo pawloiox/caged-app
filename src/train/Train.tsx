@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { engine, toPlayable } from '../audio/engine';
-import { COL, NEUTRAL, NEUTRAL_ROOT, textFor } from '../fretboard/build';
+import { COL, NEUTRAL, NEUTRAL_ROOT, barreSpec, textFor } from '../fretboard/build';
 import { Pill } from '../fretboard/extras';
 import { Fretboard, type DotSpec } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
@@ -372,6 +372,21 @@ export default function Train() {
       q.type === 'build' ||
       (q.type === 'earhand' ? rootPhase !== 'off' : q.inst && (q.type !== 'ear' || answered)));
   const bd = boardDots();
+  // Barres: shown with the shape (neutral while the colour would give the answer away). In "Build a shape"
+  // the barre would be a hint, so it appears only after checking.
+  const trainBarre = !q
+    ? null
+    : q.type === 'earhand'
+      ? rootPhase === 'done'
+        ? barreSpec(q.ear!.target.inst, q.ear!.target.strings, COL[q.ear!.target.inst.shape])
+        : null
+      : q.type === 'build'
+        ? revealed
+          ? barreSpec(q.inst!, null)
+          : null
+        : q.inst && (q.type !== 'ear' || revealed)
+          ? barreSpec(q.inst, null, revealed || q.type === 'chord' ? COL[q.inst.shape] : NEUTRAL)
+          : null;
   const optionButtons =
     q && q.options && !isClickMode(q.type) && rootPhase === 'off'
       ? q.options.map((o, i) => {
@@ -484,6 +499,7 @@ export default function Train() {
               <Fretboard
                 to={bd.to}
                 dots={bd.dots}
+                barre={trainBarre}
                 band={q.type === 'earhand' ? { lo: q.ear!.zone.lo, hi: q.ear!.zone.hi, label: 'Your zone' } : null}
                 onCell={onCell}
                 label={q.type === 'earhand' ? 'Find the root inside your zone' : 'Quiz fretboard'}

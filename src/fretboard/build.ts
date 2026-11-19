@@ -1,6 +1,7 @@
 /** Turn theory objects into fretboard visuals. Music comes from theory/; this only decides how it looks. */
 import {
   BOTH_NAMES,
+  barreFor,
   IV_INFO,
   chordLabel,
   dotLabel,
@@ -187,3 +188,9 @@ export function noteRole(midi: number, key: number, q: Quality, sp: MinorSpellin
 }
 
 export const fingerLabel = fingerOf;
+
+/** The index-finger barre for a voicing, coloured for the board (neutral in quizzes so it gives nothing away). */
+export const barreSpec = (inst: Instance, strings: readonly number[] | null | undefined, color: string = NEUTRAL) => {
+  const b = barreFor(inst, strings);
+  return b ? { ...b, color } : null;
+};
