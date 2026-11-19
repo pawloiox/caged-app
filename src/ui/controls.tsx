@@ -3,7 +3,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { COL } from '../fretboard/build';
 import { LABEL_OPTS, MAJOR_NAMES, ORDER, chordLabel, type Quality, type Shape } from '../theory';
-import { setPrefs, usePrefs, useProgress } from '../store/app';
+import { setPrefs, usePrefs, useProgress, useUi } from '../store/app';
 
 export function Seg<T extends string | number>({
   value,
@@ -153,6 +153,7 @@ export function Kbd({ children }: { children: ReactNode }) {
 
 export function Head({ n, title, lede }: { n: number; title: string; lede: string }) {
   const done = useProgress((p) => !!p.steps['step-' + n]);
+  const just = useUi((u) => u.justCompleted.includes('step-' + n));
   return (
     <header className="lesson-head">
       <p className="eyebrow">
@@ -160,6 +161,18 @@ export function Head({ n, title, lede }: { n: number; title: string; lede: strin
       </p>
       <h1 tabIndex={-1}>{title}</h1>
       <p className="lede">{lede}</p>
+      {just ? (
+        <div className="callout good">
+          <p>
+            <strong>Step {n} complete · +50 XP.</strong>{' '}
+            {n < 5 ? (
+              <Link to={`/learn/${n + 1}`}>Go on to Step {n + 1} →</Link>
+            ) : (
+              <Link to="/practice">Start your daily routine →</Link>
+            )}
+          </p>
+        </div>
+      ) : null}
     </header>
   );
 }

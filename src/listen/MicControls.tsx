@@ -105,7 +105,10 @@ export function MicToggle({ children }: { children?: ReactNode }) {
         Check me with the mic
       </button>
       <span className="muted">
-        or carry on without it. <Link to="/tuner">Tuner and setup</Link>
+        or carry on without it.{' '}
+        <Link to="/tuner" className="tap-link">
+          Tuner and setup
+        </Link>
       </span>
       <MicPermissionDialog open={open} onOpenChange={setOpen} />
     </span>

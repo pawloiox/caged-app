@@ -123,6 +123,23 @@ describe('persistence', () => {
     expect(legacy.prefs?.muted).toBe(true);
   });
 
+  it('drops malformed fields from an imported file instead of corrupting progress', () => {
+    const p = normalizeProgress({
+      xp: 'lots',
+      steps: { 'step-1': true, 'step-9': true, 'step-2': 'yes' },
+      seen: { s1: 'CAGED', s2: '3', s5: ['z3', 'nope'] },
+      drills: { major7: 80, hacked: 1, minor2: 'fast' },
+      days: ['2026-11-01', 'yesterday'],
+    });
+    expect(p.xp).toBe(0);
+    expect(p.steps).toEqual({ 'step-1': true });
+    expect(p.seen.s1).toBeUndefined();
+    expect(p.seen.s2).toBeUndefined();
+    expect(p.seen.s5).toEqual(['z3']);
+    expect(p.drills).toEqual({ major7: 80 });
+    expect(p.days).toEqual(['2026-11-01']);
+  });
+
   it('normalises garbage safely', () => {
     expect(normalizeProgress(null).xp).toBe(0);
     expect(normalizeProgress({ xp: 'x', stats: { bad: null } }).stats).toEqual({});
@@ -151,5 +168,17 @@ describe('train questions', () => {
         if (q.want) expect(q.want.length).toBeGreaterThan(0);
         if (m === 'earhand') expect(q.ear!.target.roman).toBe(item.split(':')[2]);
       }
+  });
+});
+
+describe('Build a shape', () => {
+  it('never requires the notes no finger can reach (full minor G-shape outer strings)', () => {
+    for (let i = 0; i < 30; i++) {
+      const q = makeQuestion('build', { minor: true, stats: {}, item: 'build:minor:G' });
+      const inst = q.inst!;
+      if (inst.minF === 0) continue;
+      expect(q.optional!.length).toBe(3);
+      for (const k of q.optional!) expect(q.want).not.toContain(k);
+    }
   });
 });

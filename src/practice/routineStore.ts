@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { engine } from '../audio/engine';
 import { routine } from '../theory/routine';
-import { logRoutineDay, toast } from '../store/app';
+import { announce, logRoutineDay, toast } from '../store/app';
 
 /** The 15-minute routine timer. It keeps running while the player opens an exercise. Not musical timing. */
 interface RoutineState {
@@ -39,6 +39,7 @@ function tick() {
       remaining += rs[block]!.min * 60;
     }
     toast(`Next: ${rs[block]!.title}`);
+    announce(`Block done. Next: ${rs[block]!.title}.`);
   }
   useRoutine.setState({ remaining, block });
 }

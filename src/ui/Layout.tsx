@@ -6,7 +6,7 @@ import { listener, useMic } from '../audio/mic/listener';
 import { stopLoop, usePlayer } from '../audio/transport';
 import { pauseRoutine, routineActive, startRoutine, useRoutine } from '../practice/routineStore';
 import { nextStep } from '../store/criteria';
-import { setPrefs, toast, usePrefs, useProgress, useUi } from '../store/app';
+import { announce, setPrefs, toast, usePrefs, useProgress, useUi } from '../store/app';
 import { dueKeys } from '../train/leitner';
 import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
@@ -87,7 +87,8 @@ function useWakeLock(active: boolean) {
         .catch(() => {});
     void get();
     const onVis = () => {
-      if (document.visibilityState === 'visible' && !lock?.released) void get();
+      // The browser releases the lock whenever the page is hidden: take a new one on return.
+      if (document.visibilityState === 'visible' && (!lock || lock.released)) void get();
     };
     document.addEventListener('visibilitychange', onVis);
     return () => {
@@ -219,6 +220,7 @@ export function Layout() {
       if (document.hidden && usePlayer.getState().active) {
         stopLoop();
         toast('Playback stopped while the app was in the background. Press play to start again.');
+        announce('Playback stopped while the app was in the background.');
       }
     };
     document.addEventListener('visibilitychange', onVis);

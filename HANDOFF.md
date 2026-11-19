@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-19): rebuild round 3 is in this repo.** Phases 0–3 are built and tested. Two independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8 or more; round 3 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
+> **Status (2026-11-19): rebuild round 4 is in this repo.** Phases 0–3 are built and tested. Three independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8 or more; round 4 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -31,7 +31,8 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | **v4/v5 (reference)** | 8.5 | 8 | 7.5 | 7 | 7.5 | **8** |
 | Rebuild `round-1.1` (critic 1) | 9 | 8.5 | 7.5 | 7.5 | 8 | 8 |
 | Rebuild `round-2` (critic 2) | 9 | 8.5 | 8 | 8 | 8.5 | 8.5 |
-| Rebuild `round-3` | not yet reviewed (fixes every critic-2 finding) | | | | | |
+| Rebuild `round-3` (critic 3) | 9 | 8.5 | 8 | 8 | 8 | 8.5 |
+| Rebuild `round-4` | not yet reviewed (fixes every critic-3 finding) | | | | | |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -323,8 +324,9 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
 user's request. To run it later:
 
-1. **Snapshot first.** Tag the build under review (the next one is `round-3`, already tagged), so the best round can
-   be shipped rather than the latest.
+1. **Snapshot first.** Tag the build under review (the next one is `round-4`, already tagged), so the best round can
+   be shipped rather than the latest. Run Lighthouse from a temp folder, not the repo: under WSL it writes
+   `C:\Users\…\lighthouse.*` profile folders into the current directory (now in `.gitignore`).
 2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
    this repository, `caged-lab-v5-reference.html` and this document, and ask it to:
    - run `npm install`, `npm run check`, `npm run build`, `npm run e2e` and `npm run preview`;
@@ -375,6 +377,23 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - C minor counted as "another key" for Step 4.
 - Explorer note on why open-position pentatonic boxes bend.
 
-**Not fixable without hardware or assets** (both critics): real-guitar mic accuracy, live drill timing with a real
+**Round 3 (`round-3`): 8.5 overall, every area ≥ 8.** Findings fixed in `round-4`:
+- Lighthouse profile folders had been committed in `round-3`. They were removed from that commit (amended
+  before any push; the tag moved), and `.gitignore` now excludes them.
+- "Step N complete" was overwritten by the answer's own feedback. It is now announced just after it, and the step
+  page shows a lasting "Step N complete, go on to Step N+1" callout (tested).
+- The wake lock was never re-acquired after the app returned from the background.
+- Phone Step 5 drew a 15-fret upright neck for a 4-fret zone. The upright neck now shows the zone ±1 fret (tested).
+- Ear + hand: the "find the root" instruction now sits above the board, so Tab goes straight into it.
+- Text fixes: the C7 form raises the 5th rather than lowering a root; the Explorer lists chord tones that sit
+  outside the pentatonic box; the linking drill names beats 3–4 (pulse on 4).
+- Routine block changes and background-stop messages are announced, not only toasted.
+- Shapes-table row buttons and inline links reach 44 px (and the phone test now checks them).
+- "Build a shape" no longer requires the minor G-shape's unreachable notes.
+- Imported progress is validated field by field (tested).
+- An independent additive-synthesis guitar model now tests note recognition at 44.1 and 48 kHz (≥95%), so the
+  DSP isn't only tested against the app's own synth.
+
+**Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
 

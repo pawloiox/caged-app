@@ -4,7 +4,19 @@ import { engine, toPlayable } from '../audio/engine';
 import { CagedRing, ShapesTable, Tab } from '../fretboard/extras';
 import { MapBench, createMapStore, useMapList } from '../lessons/map';
 import { usePrefs } from '../store/app';
-import { VOICE_OPTS, chordLong, shapeTip, notesOf, stringsFor, type Quality } from '../theory';
+import {
+  IV_INFO,
+  VOICE_OPTS,
+  chordLong,
+  keyName,
+  pentBox,
+  posName,
+  shapeTip,
+  spell,
+  notesOf,
+  stringsFor,
+  type Quality,
+} from '../theory';
 import { Card, PageHead } from '../ui/controls';
 
 const useSX = createMapStore({ key: 9, q: 'minor', idx: 2, voicing: 'full', pent: true });
@@ -22,6 +34,10 @@ export default function Explore() {
   const idx = Math.min(st.idx, list.length - 1);
   const inst = list[idx]!;
   const [params] = useSearchParams();
+  // Chord tones of this voicing that the pentatonic box leaves out (the ♭7 of a 7th chord, or the minor
+  // G-shape's ♭3 on the B string), so the "aim for a chord tone" advice stays true.
+  const boxKeys = new Set(pentBox(inst).map((n) => `${n.s}:${n.f}`));
+  const outside = notesOf(inst, stringsFor(st.voicing, inst)).filter((n) => !boxKeys.has(`${n.s}:${n.f}`));
 
   useEffect(() => {
     const k = params.get('key');
@@ -80,9 +96,21 @@ export default function Explore() {
         <Card title="From chord to solo">
           <p>
             The outlined notes complete the {st.q === 'minor' ? 'minor' : 'major'} pentatonic box for this shape: two
-            notes per string. The chord tones sit inside it, so aim for a coloured note, ideally the 3rd, when the chord
-            changes.
+            notes per string. {outside.length ? 'Most chord tones' : 'The chord tones'} sit inside it, so aim for a
+            coloured note, ideally the 3rd, when the chord changes.
           </p>
+          {outside.length ? (
+            <p className="muted">
+              Outside the box:{' '}
+              {outside
+                .map(
+                  (n) =>
+                    `${spell(keyName(st.key, st.q, sp), n.iv)} (the ${IV_INFO[n.iv]!.name}) on the ${posName(n.s, n.f)}`,
+                )
+                .join('; ')}
+              .{st.q === 'dom7' ? ' The ♭7 is not in the major pentatonic: reach for it as an extra note.' : ''}
+            </p>
+          ) : null}
           {inst.minF <= 1 ? (
             <p className="muted">
               Next to the nut the box bends to use the open strings, so it won't match the five standard box diagrams

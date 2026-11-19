@@ -19,6 +19,10 @@ test('Step 1: the no-labels root test completes the step (and the answer is hidd
   await expect(page.getByText(/^Roots:/)).toHaveCount(0);
   for (const c of ORDER) await passRootTest(page, c);
   await stepDone(page, 1);
+  // The milestone is shown (and announced after the last answer's feedback), with a way on.
+  await expect(page.locator('.callout', { hasText: 'Step 1 complete' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Go on to Step 2 →' })).toBeVisible();
+  await expect(page.locator('[role="status"]')).toContainText('Step 1 complete', { timeout: 5000 });
 });
 
 test('Step 1: a missed test never reveals the missing roots', async ({ page }) => {

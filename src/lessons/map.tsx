@@ -643,7 +643,9 @@ export function LinkingDrill({
         <strong>Linking drill</strong>{' '}
         <span className="muted">
           · four beats per shape, up the neck and back down. Keep a finger on the shared root while you change.
-          {micOn ? ' On beat 3, pick the shared root (the dashed ring): the app waits until it hears it.' : ''}
+          {micOn
+            ? ' On beat 3 or 4, pick the shared root (the dashed ring; it pulses on 4): the app waits until it hears it.'
+            : ''}
         </span>
       </div>
       <MicToggle />

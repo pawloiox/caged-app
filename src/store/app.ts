@@ -18,8 +18,10 @@ import { defaultPrefs, defaultProgress, type Prefs, type Progress } from './type
 interface UiState {
   toast: { id: number; msg: string } | null;
   live: string;
+  /** Steps completed during this visit: the step page shows a lasting "complete, next step" callout. */
+  justCompleted: string[];
 }
-export const useUi = create<UiState>(() => ({ toast: null, live: '' }));
+export const useUi = create<UiState>(() => ({ toast: null, live: '', justCompleted: [] }));
 let toastId = 0;
 let lastSaid = '';
 let lastAt = 0;
@@ -74,8 +76,14 @@ export function updateProgress(fn: (p: Progress) => Progress): void {
     done.forEach((id) => (steps[id] = true));
     useProgress.setState({ ...next, steps, xp: next.xp + 50 * done.length });
     engine.chime();
-    toast(`${done.map((d) => STEP_LABEL[d]).join(' and ')} complete · +50 XP`);
-    announce(`${done.map((d) => STEP_LABEL[d]).join(' and ')} complete.`);
+    useUi.setState((u) => ({ justCompleted: [...u.justCompleted, ...done] }));
+    // The caller usually shows its own feedback in the same tick ("Correct: …"). Let that be read first,
+    // then announce the milestone, so neither message replaces the other.
+    const label = done.map((d) => STEP_LABEL[d]).join(' and ');
+    setTimeout(() => {
+      toast(`${label} complete · +50 XP`);
+      announce(`${label} complete. +50 XP.`);
+    }, 1400);
   } else useProgress.setState(next);
 }
 

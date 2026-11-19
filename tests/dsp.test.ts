@@ -195,3 +195,58 @@ describe('pivot check: a picked note versus a strum', () => {
         ).toBeLessThan(PICK_CLARITY);
   });
 });
+
+/**
+ * Independent fixture (not the app's Karplus-Strong): an additive plucked-string model with inharmonic
+ * partials f_h = h·f0·√(1 + B·h²), a pick-position spectrum, faster decay for higher partials, and a short
+ * noisy attack. Tested at both 44.1 and 48 kHz, so the detector isn't only tuned to the app's own synth.
+ */
+function additivePluck(midi: number, sr: number, seed: number, dur = 0.8): Float32Array {
+  const rng = mulberry32(seed);
+  const f0 = 440 * Math.pow(2, (midi - 69) / 12);
+  const B = 0.00008 + rng() * 0.0001;
+  const beta = 0.1 + rng() * 0.1;
+  const out = new Float32Array(Math.floor(sr * dur));
+  for (let h = 1; h <= 24; h++) {
+    const fh = h * f0 * Math.sqrt(1 + B * h * h);
+    if (fh > sr / 2.2) break;
+    const amp = Math.abs(Math.sin(Math.PI * h * beta)) / h;
+    const decay = 1.2 + 0.35 * h;
+    const ph = rng() * Math.PI * 2;
+    for (let n = 0; n < out.length; n++) {
+      const t = n / sr;
+      out[n]! += amp * Math.exp(-decay * t) * Math.sin(2 * Math.PI * fh * t + ph);
+    }
+  }
+  const atk = Math.floor(sr * 0.006);
+  for (let n = 0; n < atk; n++) out[n]! += (rng() * 2 - 1) * 0.3 * (1 - n / atk);
+  const peak = out.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
+  return out.map((v) => (v / peak) * 0.3);
+}
+
+function detectAt(sig: Float32Array, sr: number): number | undefined {
+  const tracker = new PitchTracker(2048);
+  const stab = new NoteStabilizer(60);
+  for (let end = 2048; end <= sig.length; end += 512) {
+    const frame = sig.subarray(end - 2048, end);
+    const r = rms(frame) > 0.002 ? tracker.read(frame, sr) : null;
+    const m = stab.push(r ? r.midi : null, (end / sr) * 1000);
+    if (m != null) return m;
+  }
+  return undefined;
+}
+
+describe('single-note recognition on an independent (additive) guitar model', () => {
+  for (const sr of [44100, 48000]) {
+    it(`is ≥95% accurate over all 96 positions at ${sr} Hz`, () => {
+      let ok = 0;
+      let n = 0;
+      for (let s = 0; s < 6; s++)
+        for (let f = 0; f <= 15; f++) {
+          n++;
+          if (detectAt(additivePluck(OPEN[s as 0]! + f, sr, s * 31 + f), sr) === OPEN[s as 0]! + f) ok++;
+        }
+      expect(ok / n).toBeGreaterThanOrEqual(0.95);
+    });
+  }
+});

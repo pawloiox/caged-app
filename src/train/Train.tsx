@@ -159,8 +159,10 @@ export default function Train() {
     if (picked != null || !q) return;
     setPicked(v);
     let good: boolean;
-    if (isClickMode(q.type)) good = q.want!.length === sel.size && q.want!.every((k) => sel.has(k));
-    else good = v === q.answer;
+    if (isClickMode(q.type)) {
+      const marked = [...sel].filter((k) => !q.optional?.includes(k));
+      good = q.want!.length === marked.length && q.want!.every((k) => sel.has(k));
+    } else good = v === q.answer;
     if (q.type === 'earhand') {
       // Name first, then the hand: find the root inside the zone.
       setOk(good);
@@ -329,7 +331,7 @@ export default function Train() {
         want.forEach((k) =>
           dots.push(mark(k, sel.has(k) ? 'var(--good)' : 'var(--warn)', sel.has(k) ? '✓' : '!', q.type === 'octaves')),
         );
-        sel.forEach((k) => !want.has(k) && dots.push(mark(k, 'var(--bad)', '✗')));
+        sel.forEach((k) => !want.has(k) && !q.optional?.includes(k) && dots.push(mark(k, 'var(--bad)', '✗')));
       } else sel.forEach((k) => dots.push({ ...mark(k, 'var(--accent)', ''), cls: 'sel' }));
       return { dots, to: q.type === 'octaves' ? 12 : MAX_FRET };
     }
@@ -401,6 +403,13 @@ export default function Train() {
   };
 
   const answered = picked != null && rootPhase !== 'find';
+  // In Ear + hand the feedback carries the next instruction ("find its root"), so it sits above the board:
+  // focus lands on it, and Tab goes straight into the fretboard.
+  const feedbackEl = (
+    <p ref={feedbackRef} tabIndex={-1} className={`feedback ${ok === true ? 'ok' : ok === false ? 'no' : ''}`}>
+      {feedback}
+    </p>
+  );
   const showBoard =
     q &&
     (q.type === 'octaves' ||
@@ -530,6 +539,7 @@ export default function Train() {
               {q.prompt}
             </h2>
             {q.type === 'roots' || rootPhase === 'find' ? <MicToggle /> : null}
+            {q.type === 'earhand' ? feedbackEl : null}
             {showBoard ? (
               <Fretboard
                 to={bd.to}
@@ -552,9 +562,7 @@ export default function Train() {
                 {optionButtons}
               </div>
             ) : null}
-            <p ref={feedbackRef} tabIndex={-1} className={`feedback ${ok === true ? 'ok' : ok === false ? 'no' : ''}`}>
-              {feedback}
-            </p>
+            {q.type !== 'earhand' ? feedbackEl : null}
             <div className="actions">
               {isClickMode(q.type) && picked == null ? (
                 <button type="button" className="btn primary" onClick={() => answer('checked')}>

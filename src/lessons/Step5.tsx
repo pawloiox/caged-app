@@ -38,7 +38,7 @@ import {
   type Voicing,
 } from '../theory';
 import { Card, Check, Head, KeyPicker, Kbd, LabelSeg, Seg } from '../ui/controls';
-import { useHotkeys } from '../ui/hooks';
+import { useHotkeys, useVertical } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
 import { Link } from 'react-router';
 
@@ -99,6 +99,7 @@ function EarCheck({
   const [rootOk, setRootOk] = useState<boolean | null>(null);
   const [tried, setTried] = useState<Array<{ s: number; f: number; ok: boolean }>>([]);
   const headRef = useRef<HTMLHeadingElement>(null);
+  const vertical = useVertical();
   const findRef = useRef<HTMLParagraphElement>(null);
 
   const playIt = () => {
@@ -222,6 +223,7 @@ function EarCheck({
           ) : null}
           <MicToggle />
           <Fretboard
+            {...(vertical ? { from: Math.max(0, zone.lo - 1), to: Math.min(15, zone.hi + 1) } : {})}
             band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}
             dots={dots}
             barre={phase === 'done' ? barreSpec(target.inst, target.strings, COL[target.inst.shape]) : null}
@@ -512,6 +514,13 @@ export default function Step5() {
             desc: `next chord ${nx.name}: ${fingerOf(nx.inst, n.s, nx.strings) === '○' ? 'open string' : 'finger ' + fingerOf(nx.inst, n.s, nx.strings)}`,
           }));
   const outside = chords.some((ch) => ch.lo < zone.lo || ch.hi > zone.hi + 1);
+  // Upright phone neck: draw only the zone (±1 fret, widened to any chord that reaches outside it), so the
+  // zone fills the screen instead of a 15-fret neck you have to scroll.
+  const vertical = useVertical();
+  const neckWindow = {
+    from: Math.max(0, Math.min(zone.lo, ...chords.map((ch) => ch.lo)) - 1),
+    to: Math.min(15, Math.max(zone.hi, ...chords.map((ch) => ch.hi)) + 1),
+  };
 
   const cells = ['1', '&', '2', '&', '3', '&', '4', '&'];
   const on = beat >= 0 ? beat * 2 : -1;
@@ -671,6 +680,7 @@ export default function Step5() {
           badges={badges}
           muted={mutedSpecs(c.inst, c.strings)}
           barre={barreSpec(c.inst, c.strings, COL[c.inst.shape])}
+          {...(vertical ? neckWindow : {})}
           band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}
           soon={soon}
           label={`${c.name} with the ${c.inst.shape}-shape; dashed circles show the next chord, ${nx.name}`}
@@ -797,7 +807,8 @@ export default function Step5() {
         <Card title="The 12-bar blues with 7ths">
           <p>
             Choose “12-bar blues with 7th chords”: every chord becomes a dominant 7th (E7, A7, C7, D7 and G7 forms).
-            Each form is a CAGED shape with one root moved down to the ♭7.
+            Four of the forms move one root down two frets to make the ♭7 (E7, A7, D7, G7). The C7 form instead raises
+            the 5th on the G string by three frets, and leaves out the high e.
           </p>
         </Card>
       </div>

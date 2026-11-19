@@ -820,9 +820,10 @@ table.shapes tr.on td {
 table.shapes button.rowbtn {
   border: 0;
   background: none;
-  padding: 0;
+  padding: 0 6px;
   cursor: pointer;
-  min-height: 28px;
+  min-height: var(--tap);
+  min-width: var(--tap);
 }
 .table-wrap {
   overflow-x: auto;

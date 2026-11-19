@@ -10,7 +10,7 @@ for (const r of ['/learn/1', '/learn/2', '/learn/3', '/learn/5', '/explore', '/p
     const boards = await page.locator('.board-wrap').count();
     if (boards) expect(await page.locator('.board-wrap.vertical').count()).toBe(boards);
     const small = await page.$$eval(
-      'main .btn, main [role=radio], main .shape-btn, .nav-item, .chip, main .chord-card, main .check',
+      'main .btn, main [role=radio], main .shape-btn, .nav-item, .chip, main .chord-card, main .check, main .rowbtn, main .tap-link',
       (els) =>
         els
           .filter((e) => (e as HTMLElement).offsetParent !== null)
@@ -48,4 +48,15 @@ test('390px phone: open-string cells on the upright neck are 44px tall', async (
   await page.goto('/learn/1');
   const box = await page.getByRole('button', { name: /^high e string, open/ }).boundingBox();
   expect(box!.height).toBeGreaterThanOrEqual(44);
+});
+
+test('390px phone: Step 5 draws only the zone on the upright neck', async ({ page }) => {
+  await page.goto('/learn/5');
+  const board = page.locator('#p5-board svg');
+  await expect(board).toBeVisible();
+  // Default zone is frets 3–7: the window covers about frets 2–8, not the whole 15-fret neck.
+  expect(await board.getByRole('button', { name: /fret 15,/ }).count()).toBe(0);
+  expect(await board.getByRole('button', { name: /fret 5,/ }).count()).toBe(6);
+  const vb = (await board.getAttribute('viewBox'))!.split(' ').map(Number);
+  expect(vb[3]!).toBeLessThan(500);
 });

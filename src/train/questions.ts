@@ -1,5 +1,6 @@
 /** Train questions. Every item has a stat key, so the review queue can rebuild a question for any due item. */
 import {
+  fingerOf,
   HOME,
   MAJOR_NAMES,
   ORDER,
@@ -52,6 +53,8 @@ export interface Question {
   explain: string;
   /** Positions to find, as "s:f" (roots, octaves, build). */
   want?: string[];
+  /** Notes no finger can reach (full minor G-shape outer strings): neither required nor wrong. */
+  optional?: string[];
   anchor?: Note;
   pc?: number;
   maxFret?: number;
@@ -177,11 +180,17 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
     const [, q, sh] = item.split(':') as [string, Quality, Shape];
     const inst = randomShapeInstance(q, sh);
     const anchor = rootsOf(inst).find((n) => n.s === HOME[sh]) ?? rootsOf(inst)[0]!;
+    const unreachable = (n: { s: number; f: number }) => n.f > 0 && fingerOf(inst, n.s) === '';
     const want = notesOf(inst)
+      .filter((n) => !unreachable(n))
       .map((n) => `${n.s}:${n.f}`)
       .filter((k) => k !== `${anchor.s}:${anchor.f}`);
+    const optional = notesOf(inst)
+      .filter(unreachable)
+      .map((n) => `${n.s}:${n.f}`);
     return {
       type: 'build',
+      optional,
       inst,
       anchor,
       want,
