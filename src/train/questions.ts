@@ -282,7 +282,7 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
       type: 'chord',
       inst,
       stat: item,
-      prompt: `This is a ${inst.shape}-shape. Which chord is it?`,
+      prompt: `This is ${'AE'.includes(inst.shape) ? 'an' : 'a'} ${inst.shape}-shape. Which chord is it?`,
       options: shuffle([...opts]),
       answer: name,
       explain,

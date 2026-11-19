@@ -122,7 +122,28 @@ test('exactly one live region on every page', async ({ page }) => {
   ]) {
     await page.goto(r);
     await expect(page.locator('h1')).toBeVisible();
-    const n = await page.locator('[role="status"], [aria-live="polite"], [aria-live="assertive"]').count();
+    const n = await page
+      .locator('[role="status"], [role="alert"], [aria-live="polite"], [aria-live="assertive"]')
+      .count();
     expect(n, r).toBe(1);
+  }
+});
+
+test('7th chords offer no linking drill (their forms do not always share a root)', async ({ page }) => {
+  await page.goto('/explore?key=0&q=dom7');
+  await expect(page.getByRole('radio', { name: '7th' })).toBeChecked();
+  await expect(page.getByText('Linking drill')).toHaveCount(0);
+  await page.getByRole('radio', { name: 'Major' }).click();
+  await expect(page.getByText('Linking drill')).toBeVisible();
+});
+
+test('no fret-cell label ends with a stray comma', async ({ page }) => {
+  for (const r of ['/train/build', '/train/octaves', '/learn/1']) {
+    await page.goto(r);
+    await expect(page.locator('svg.fb').first()).toBeVisible();
+    const bad = await page.$$eval('svg.fb .hit', (els) =>
+      els.map((e) => e.getAttribute('aria-label') ?? '').filter((l) => /,\s*$/.test(l)),
+    );
+    expect(bad, r).toEqual([]);
   }
 });

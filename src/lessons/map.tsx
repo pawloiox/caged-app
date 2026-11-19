@@ -245,7 +245,9 @@ export function MapBench({
     return dots;
   };
 
-  const dom7NoLinks = st.q === 'dom7';
+  // The linking drill needs a shared root at every change of shape. Major and minor chains always have one;
+  // dominant-7th forms sometimes trade that root for the ♭7, so the drill isn't offered there.
+  const dom7NoLinks = st.q === 'dom7' || list.some((a, i) => i > 0 && !sharedRoots(list[i - 1]!, a).length);
 
   return (
     <section className="bench" aria-label="Neck map">
@@ -533,7 +535,14 @@ export function LinkingDrill({
     }
   }, running);
 
-  useEffect(() => () => onPivotBeat(false), [onPivotBeat]);
+  // Leaving the drill (another key or quality, another page) stops it: a hidden drill must never keep holding.
+  useEffect(
+    () => () => {
+      onPivotBeat(false);
+      if (usePlayer.getState().id === 'drill') stopLoop();
+    },
+    [onPivotBeat],
+  );
 
   const start = () => {
     const ids = list.map((_, i) => i);
@@ -570,13 +579,15 @@ export function LinkingDrill({
         if (judged && c.w === 2 && c.k < path.length - 1) {
           const nx = list[path[c.k + 1]!]!;
           const sh = sharedRoots(inst, nx);
-          c.pv = {
-            start: time - 0.3,
-            midis: sh.map((n) => n.midi),
-            heard: false,
-            held: false,
-            text: sh.map((n) => posName(n.s, n.f)).join(' or '),
-          };
+          // Never hold on a pivot with nothing to play: only listen when there is a shared root.
+          if (sh.length)
+            c.pv = {
+              start: time - 0.3,
+              midis: sh.map((n) => n.midi),
+              heard: false,
+              held: false,
+              text: sh.map((n) => posName(n.s, n.f)).join(' or '),
+            };
         }
         const p = { idx: path[c.k]!, beat: c.w };
         c.w++;

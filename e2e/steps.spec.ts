@@ -34,6 +34,9 @@ test('Step 1: a missed test never reveals the missing roots', async ({ page }) =
   await expect(page.locator('g.dot text', { hasText: '!' })).toHaveCount(0);
   // Cell names don't give pitches away during the test.
   await expect(page.getByRole('button', { name: /A string, fret 3, C/ })).toHaveCount(0);
+  // Nor does tapping a note after the miss: the live region says only "chord note".
+  await page.getByRole('button', { name: 'A string, fret 3, chord note', exact: true }).click();
+  await expect(page.locator('[role="status"]')).toHaveText('A string, fret 3: chord note.');
 });
 
 test('Step 1 by keyboard only: arrows walk the frets, Enter marks', async ({ page }) => {

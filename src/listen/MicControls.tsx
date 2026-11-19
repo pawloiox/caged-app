@@ -24,7 +24,14 @@ export function MicPermissionDialog({
       onOpenChange(false);
       toast('Listening. Play a note to test it.');
       announce('Listening. Play a note to test it.');
-    }
+    } else
+      announce(
+        s === 'denied'
+          ? 'The browser blocked the microphone. Allow it in the site settings, then try again.'
+          : s === 'unsupported'
+            ? "This browser can't listen. The drills still work without the mic."
+            : "The microphone couldn't start. The drills still work without it.",
+      );
     onStarted?.(s);
   };
   const status = useMic((m) => m.status);
@@ -48,19 +55,17 @@ export function MicPermissionDialog({
               <li>You can always use the drills without the mic.</li>
             </ul>
             {status === 'denied' ? (
-              <p className="callout warn" role="alert">
+              <p className="callout warn">
                 The browser blocked the microphone. Allow it in the site settings (the icon left of the address bar),
                 then try again.
               </p>
             ) : status === 'unsupported' ? (
-              <p className="callout warn" role="alert">
+              <p className="callout warn">
                 This browser can't listen (it needs AudioWorklet and microphone access, over HTTPS). The no-mic versions
                 of every drill still work.
               </p>
             ) : status === 'error' ? (
-              <p className="callout warn" role="alert">
-                The microphone couldn't start: {useMic.getState().error}
-              </p>
+              <p className="callout warn">The microphone couldn't start: {useMic.getState().error}</p>
             ) : null}
           </div>
           <div className="actions">

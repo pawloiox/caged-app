@@ -274,10 +274,17 @@ export default function Step5() {
   // The answered question unmounts its buttons: move focus to the reply, never to <body>.
   const focusAskMsg = () =>
     requestAnimationFrame(() => requestAnimationFrame(() => askMsgRef.current?.focus({ preventScroll: true })));
+  /** Bar-by-bar chord announcements pause briefly after a reply, so the reply is heard, not replaced. */
+  const quietUntil = useRef(0);
   const sayAsk = (m: string) => {
     setAskMsg(m);
-    if (m) announce(m);
+    if (m) {
+      announce(m);
+      quietUntil.current = performance.now() + 3500;
+    }
   };
+  /** A heard note counts only if it can be played at a fret inside the zone. */
+  const inZone = (midi: number) => positionsOfMidi(midi, zone.lo, zone.hi).length > 0;
   const [verdicts, setVerdicts] = useState<Record<number, BarVerdict>>({});
   const [loops, setLoops] = useState(0);
   const [ear, setEar] = useState(false);
@@ -303,23 +310,31 @@ export default function Step5() {
     if (s.style === 'arp' && s.third && e.type === 'note') {
       w.done = true;
       const th = thirdOf(ch);
-      const ok = !!th && mod12(e.midi) === mod12(th.midi);
+      // The voicing's own 3rd (or its octave), at a fret inside the zone: not just any note with that name.
+      const isThird = !!th && (e.midi === th.midi || Math.abs(e.midi - th.midi) === 12);
+      const reachable = inZone(e.midi);
+      const ok = isThird && reachable;
       const name = spell(ch.rootName, mod12(e.midi - ch.pc));
       loopVerdicts.current[w.ci] = {
         ok,
         kind: ok ? 'third' : 'not-third',
-        text: ok ? `3rd ✓` : `${name}, not the 3rd`,
+        text: ok ? `3rd ✓` : isThird ? `3rd, but outside your zone` : `${name}, not the 3rd`,
       };
       setVerdicts({ ...loopVerdicts.current });
     } else if (s.style === 'arp' && !s.third && e.type === 'note') {
       // Plain arpeggio: the first note of the bar must belong to the chord.
       w.done = true;
       const iv = mod12(e.midi - ch.pc);
-      const ok = CHORD_IVS[ch.q].includes(iv);
+      const tone = CHORD_IVS[ch.q].includes(iv);
+      const ok = tone && inZone(e.midi);
       loopVerdicts.current[w.ci] = {
         ok,
         kind: ok ? 'match' : 'wrong',
-        text: ok ? `${spell(ch.rootName, iv)} ✓` : `${spell(ch.rootName, iv)}, not in ${ch.name}`,
+        text: ok
+          ? `${spell(ch.rootName, iv)} ✓`
+          : tone
+            ? `${spell(ch.rootName, iv)}, but outside your zone`
+            : `${spell(ch.rootName, iv)}, not in ${ch.name}`,
       };
       setVerdicts({ ...loopVerdicts.current });
     } else if (s.style === 'strum' && e.type === 'strum') {
@@ -407,8 +422,10 @@ export default function Step5() {
         if (ci !== useS5.getState().cur) {
           set({ cur: ci });
           const ch = planRef.current[ci]!;
-          announce(`${ch.name}, ${ch.inst.minF === 0 ? 'open' : ch.inst.shape + '-shape'}`);
-          usePlayer.setState({ detail: ch.name });
+          if (performance.now() > quietUntil.current)
+            announce(`${ch.name}, ${ch.inst.minF === 0 ? 'open' : ch.inst.shape + '-shape'}`);
+          const nxt = planRef.current[(ci + 1) % planRef.current.length]!;
+          usePlayer.setState({ detail: `now ${ch.name}, next ${nxt.name}` });
         }
         setBeat(w);
         setSoon(w === 3);
@@ -432,6 +449,7 @@ export default function Step5() {
           } else if (valid.current && !useProgress.getState().seen.s5?.includes(z)) {
             setAsk(z);
             announce('Loop complete. Did you play along and stay in the zone?');
+            quietUntil.current = performance.now() + 3500;
           }
           valid.current = true;
         }

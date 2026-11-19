@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DexieRepository, MemoryRepository, normalizeProgress, readLegacyLocalStorage } from '../src/store/repository';
+import { DexieRepository } from '../src/store/dexieRepository';
+import { MemoryRepository, normalizeProgress, readLegacyLocalStorage } from '../src/store/repository';
 import { drillKeysOtherThanC, newlyComplete, STEP_CRITERIA } from '../src/store/criteria';
 import { defaultProgress } from '../src/store/types';
 import { BOX_DAYS, DAY, isDue, pickWeighted, record, weightOf } from '../src/train/leitner';

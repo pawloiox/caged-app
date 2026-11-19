@@ -328,6 +328,10 @@ main {
   gap: 22px;
   max-width: 1180px;
 }
+/* Room for the floating mini-player, so it never covers the last link on the page. */
+main.with-mini {
+  padding-bottom: 150px;
+}
 main:focus {
   outline: none;
 }
@@ -1357,7 +1361,7 @@ table.shapes button.rowbtn {
   stroke-dasharray: 3 2;
 }
 .fb .dot.dim {
-  opacity: 0.4;
+  opacity: 0.55;
 }
 .fb .dot.dim .rootring {
   stroke-width: 1.5;

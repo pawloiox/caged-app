@@ -111,6 +111,11 @@ export default function Explore() {
               .{st.q === 'dom7' ? ' The ♭7 is not in the major pentatonic: reach for it as an extra note.' : ''}
             </p>
           ) : null}
+          {pentBox(inst).length < 12 ? (
+            <p className="muted">
+              The box continues past fret 15, so some strings show only one of their two notes here.
+            </p>
+          ) : null}
           {inst.minF <= 1 ? (
             <p className="muted">
               Next to the nut the box bends to use the open strings, so it won't match the five standard box diagrams

@@ -5,7 +5,6 @@ import { todayStr } from '../theory/routine';
 import { record as leitnerRecord } from '../train/leitner';
 import { newlyComplete } from './criteria';
 import {
-  DexieRepository,
   MemoryRepository,
   normalizePrefs,
   normalizeProgress,
@@ -153,7 +152,11 @@ export const isHydrated = (): boolean => hydrated;
 export async function hydrate(r?: ProgressRepository): Promise<{ imported: boolean }> {
   let imported = false;
   try {
-    repo = r ?? (typeof indexedDB !== 'undefined' ? new DexieRepository() : new MemoryRepository());
+    repo =
+      r ??
+      (typeof indexedDB !== 'undefined'
+        ? new (await import('./dexieRepository')).DexieRepository()
+        : new MemoryRepository());
     let progress = await repo.loadProgress();
     let prefs = await repo.loadPrefs();
     if (!progress || !prefs) {

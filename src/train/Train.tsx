@@ -27,6 +27,16 @@ import { dueKeys, pickWeighted, weightOf } from './leitner';
 import { TRAIN_MODES, isClickMode, makeQuestion, modeOfStat, type Mode, type Question } from './questions';
 
 const MODE_IDS = TRAIN_MODES.map(([m]) => m);
+const MODE_TITLE: Record<Mode, string> = {
+  shape: 'Recognise shapes at a glance',
+  chord: 'Name the chord from its shape',
+  roots: 'Find the roots in a shape',
+  build: 'Build a shape from its root',
+  octaves: 'Find every root on the neck',
+  ear: 'Hear major or minor',
+  earhand: 'Hear the chord, find its root',
+  order: 'Know the shape order',
+};
 /** Items the review queue can serve. Older saves may hold retired items such as prog:251:I (the home chord). */
 const reviewable = (k: string): boolean =>
   !!modeOfStat(k) && !(k.startsWith('prog:') && isTonic(k.split(':')[2] ?? ''));
@@ -327,7 +337,17 @@ export default function Train() {
       const want = new Set(q.want);
       const dots: DotSpec[] =
         q.type === 'build'
-          ? [{ s: q.anchor!.s, f: q.anchor!.f, colors: [NEUTRAL_ROOT], root: true, label: 'R', text: '#14212b' }]
+          ? [
+              {
+                s: q.anchor!.s,
+                f: q.anchor!.f,
+                colors: [NEUTRAL_ROOT],
+                root: true,
+                label: 'R',
+                text: '#14212b',
+                desc: 'the given root',
+              },
+            ]
           : [];
       if (revealed) {
         want.forEach((k) =>
@@ -465,7 +485,7 @@ export default function Train() {
     <>
       <PageHead
         eyebrow={review ? 'Review now' : 'Train your eye, hand and ear'}
-        title={review ? 'Clear what is due' : 'Recognise shapes at a glance'}
+        title={review ? 'Clear what is due' : MODE_TITLE[mode]}
         lede={
           review
             ? 'Only the items that are due, from every drill. It stops when you reach zero. A cleared queue counts toward your review streak.'

@@ -23,6 +23,7 @@ export default function Practice() {
   const progress = useProgress();
   const nav = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
   const storageProblem = useUi((u) => u.storageProblem);
   const [confirmReset, setConfirmReset] = useState(false);
   const rs = routine();
@@ -170,7 +171,7 @@ export default function Practice() {
             </Link>
           </div>
           {confirmReset ? (
-            <div className="callout warn" role="alert">
+            <div className="callout warn">
               <p>Erase all progress on this device? This can't be undone. Export first if you want a copy.</p>
               <div className="actions">
                 <button
@@ -184,13 +185,26 @@ export default function Practice() {
                 >
                   Erase everything
                 </button>
-                <button type="button" className="btn small primary" onClick={() => setConfirmReset(false)}>
+                <button
+                  ref={keepRef}
+                  type="button"
+                  className="btn small primary"
+                  onClick={() => setConfirmReset(false)}
+                >
                   Keep my progress
                 </button>
               </div>
             </div>
           ) : (
-            <button type="button" className="btn ghost small" onClick={() => setConfirmReset(true)}>
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={() => {
+                setConfirmReset(true);
+                // Focus the safe choice, so an accidental Enter doesn't erase anything.
+                requestAnimationFrame(() => keepRef.current?.focus());
+              }}
+            >
               Reset progress…
             </button>
           )}

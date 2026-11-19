@@ -329,7 +329,12 @@ export function Layout() {
             Tab into a fretboard and walk it with the arrow keys; Enter plays.
           </p>
         </nav>
-        <main id="main" ref={mainRef} tabIndex={-1}>
+        <main
+          id="main"
+          ref={mainRef}
+          tabIndex={-1}
+          className={(player.active && !player.inlineBarVisible) || (rActive && !onPractice) ? 'with-mini' : undefined}
+        >
           <Outlet />
         </main>
       </div>

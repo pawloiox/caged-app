@@ -426,7 +426,7 @@ export function Fretboard(props: FretboardProps) {
             data-f={f}
             role="button"
             tabIndex={fc.s === s && fc.f === f ? 0 : -1}
-            aria-label={`${posName(s, f)}, ${name}`}
+            aria-label={name ? `${posName(s, f)}, ${name}` : posName(s, f)}
             onClick={() => cellPress(s, f)}
           />,
         );

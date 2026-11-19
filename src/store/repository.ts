@@ -1,4 +1,3 @@
-import Dexie, { type Table } from 'dexie';
 import { defaultPrefs, defaultProgress, type Prefs, type Progress } from './types';
 import { migrateStat, type Stat } from '../train/leitner';
 
@@ -9,39 +8,6 @@ export interface ProgressRepository {
   loadPrefs(): Promise<Prefs | null>;
   savePrefs(p: Prefs): Promise<void>;
   clear(): Promise<void>;
-}
-
-interface Row {
-  id: string;
-  data: unknown;
-  updated: number;
-}
-
-class CagedDB extends Dexie {
-  kv!: Table<Row, string>;
-  constructor() {
-    super('caged-lab');
-    this.version(1).stores({ kv: '&id' });
-  }
-}
-
-export class DexieRepository implements ProgressRepository {
-  private db = new CagedDB();
-  async loadProgress() {
-    return ((await this.db.kv.get('progress'))?.data as Progress | undefined) ?? null;
-  }
-  async saveProgress(p: Progress) {
-    await this.db.kv.put({ id: 'progress', data: p, updated: Date.now() });
-  }
-  async loadPrefs() {
-    return ((await this.db.kv.get('prefs'))?.data as Prefs | undefined) ?? null;
-  }
-  async savePrefs(p: Prefs) {
-    await this.db.kv.put({ id: 'prefs', data: p, updated: Date.now() });
-  }
-  async clear() {
-    await this.db.kv.clear();
-  }
 }
 
 export class MemoryRepository implements ProgressRepository {

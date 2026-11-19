@@ -192,9 +192,16 @@ export default function Step1() {
     if (test && result == null && inst.frets[s] === f) {
       const key = `${s}:${f}`;
       const next = new Set(sel);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      const marking = !next.has(key);
+      if (marking) next.add(key);
+      else next.delete(key);
       setSel(next);
+      announce(`${posName(s, f)}: ${marking ? 'marked as a root' : 'unmarked'}.`);
+      return;
+    }
+    // During the test (and after a miss, until it is passed) never name the note or its role: that is the answer.
+    if (test && result !== true) {
+      announce(`${posName(s, f)}: ${inst.frets[s] === f ? 'chord note' : 'not in the chord'}.`);
       return;
     }
     const iv = mod12(midiAt(s, f) - inst.keyPc);

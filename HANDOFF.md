@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-19): rebuild round 5 is in this repo.** Phases 0–3 are built and tested. Four independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall (Music 9.5, every area at 8 or more); round 5 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
+> **Status (2026-11-19): rebuild round 6 is in this repo.** Phases 0–3 are built and tested. Five independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8.5 or more (Music 9.5); round 6 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -33,7 +33,8 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | Rebuild `round-2` (critic 2) | 9 | 8.5 | 8 | 8 | 8.5 | 8.5 |
 | Rebuild `round-3` (critic 3) | 9 | 8.5 | 8 | 8 | 8 | 8.5 |
 | Rebuild `round-4` (critic 4) | 9.5 | 8.5 | 8.5 | 8 | 8 | 8.5 |
-| Rebuild `round-5` | not yet reviewed (fixes every critic-4 finding) | | | | | |
+| Rebuild `round-5` (critic 5) | 9.5 | 8.5 | 8.5 | 8.5 | 8.5 | 8.5 |
+| Rebuild `round-6` | not yet reviewed (fixes every critic-5 finding) | | | | | |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -311,8 +312,9 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 2. **Real-device listening drills.** Test the linking-drill hold/resume and the Step 5 bar windows with a real guitar,
    with and without headphones, after calibrating latency on the Tuner page.
 3. **Guitar samples.** No licensed multisample set ships yet. Drop one into `public/samples/guitar/` (format in the ADR).
-4. **Lighthouse.** Round 3, mobile defaults, preview build: performance 94–95, accessibility 100, best practices 100
-   on `/learn/1`, `/learn/5` and `/explore` (CLS 0.001, TBT 40–70 ms). Lighthouse 12+ has no PWA category, so the
+4. **Lighthouse.** Round 6, mobile defaults, preview build: performance 93, accessibility 100, best practices 100,
+   SEO 100 on `/learn/1`, `/learn/5` and `/explore` (CLS 0.001, TBT 30–50 ms). Scores vary with machine load: a
+   critic measured 67–89 on a busy WSL host. Lighthouse 12+ has no PWA category, so the
    "PWA 95+" target can't be scored; the manifest, icons and offline service worker are tested in E2E instead.
 5. **Mic E2E covers single notes only.** `e2e/mic.spec.ts` feeds a synthesised WAV through Chromium's fake
    microphone (Step 1 roots, Tuner). Strum checks and the linking-drill hold aren't driven end to end, because a
@@ -326,7 +328,7 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
 user's request. To run it later:
 
-1. **Snapshot first.** Tag the build under review (the next one is `round-5`, already tagged), so the best round can
+1. **Snapshot first.** Tag the build under review (the next one is `round-6`, already tagged), so the best round can
    be shipped rather than the latest. Run Lighthouse from a temp folder, not the repo: under WSL it writes
    `C:\Users\…\lighthouse.*` profile folders into the current directory (now in `.gitignore`).
 2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
@@ -408,6 +410,20 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
   casing; muted strings named in cell labels; chord cards say when a chord reaches outside the zone; wording
   fixes; `robots.txt`.
 - The 5-minute timing test now runs the app's own beat handler (count-in, beats, UI events), not just Tone.
+
+**Round 5 (`round-5`): 8.5 overall, every area ≥ 8.5 (Music 9.5).** Findings fixed in `round-6`:
+- With the mic on, a linking drill could hold forever on a change with no shared root (7th-chord forms). Pivots
+  without a shared root no longer hold, the drill is only offered when every change has one, and leaving the
+  drill stops it (tested).
+- After a missed Step 1 test, tapping a note announced its role ("the root of C"). The test now announces only
+  "chord note" / "not in the chord" until it is passed (tested).
+- Explore was slower than the steps. Dexie now loads in its own chunk (vendor chunk 283 → 187 kB); Explore's
+  blocking time matches the steps.
+- The Step 5 "Logged" reply was replaced by bar announcements; they now pause briefly after a reply.
+- Mic "land on the 3rd" and arpeggio checks require the voicing's own 3rd (± an octave) at a fret inside the zone.
+- Smaller: no stray comma in hidden-pitch cell labels (tested); no extra `role="alert"` regions (counted by the
+  one-live-region test); "an E-shape"; a heading per Train mode; the mini-player shows now/next and never
+  covers the last link; other-shape dots at higher contrast; the Explorer notes boxes cut off at fret 15.
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
