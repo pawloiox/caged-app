@@ -167,7 +167,16 @@ describe('train questions', () => {
         expect(q.prompt.length).toBeGreaterThan(5);
         if (q.options) expect(q.options).toContain(q.answer);
         if (q.want) expect(q.want.length).toBeGreaterThan(0);
-        if (m === 'earhand') expect(q.ear!.target.roman).toBe(item.split(':')[2]);
+        if (m === 'earhand') {
+          expect(q.ear!.target.roman).toBe(item.split(':')[2]);
+          // The home chord is the reference you hear first: never an answer.
+          expect(
+            q.options!.some((o) => /^(I|i)7?$/.test(o)),
+            item,
+          ).toBe(false);
+          // The prompt names the key ("in G major"), not a chord ("in G7").
+          expect(q.prompt, item).toMatch(/ in [A-G][♯♭]? (major|minor):/);
+        }
       }
   });
 });

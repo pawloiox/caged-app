@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-19): `round-6` meets the bar and is the build to ship.** Phases 0–3 are built and tested. Six independent critic passes have run; critic 6 scored `round-6` **9 overall with no area below 8.5** (scores in section 2, history in [section 13](#13-critic-rounds)). The critic phase stopped there at the user's request. Critic 6's remaining findings (no critical or high) are listed at the end of section 13; fixes for most of them are saved in `git stash` but are **not applied or reviewed**. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
+> **Status (2026-11-19): the critic phase is complete.** Phases 0–3 are built and tested. Six independent critic passes have run; critic 6 scored `round-6` **9 overall with no area below 8.5**, meeting the bar (scores in section 2, history in [section 13](#13-critic-rounds)). At the user's request there is no 7th critic round. `round-6.1` = `round-6` plus fixes for critic 6's findings; it passes every check (61 unit, 52 E2E tests) but has not had its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -35,6 +35,7 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | Rebuild `round-4` (critic 4) | 9.5 | 8.5 | 8.5 | 8 | 8 | 8.5 |
 | Rebuild `round-5` (critic 5) | 9.5 | 8.5 | 8.5 | 8.5 | 8.5 | 8.5 |
 | **Rebuild `round-6` (critic 6)** | 9.5 | 9 | 9 | 8.5 | 9 | **9** |
+| Rebuild `round-6.1` | not reviewed (round-6 + fixes for critic 6's findings; no 7th round by request) | | | | | |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -425,21 +426,22 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
   one-live-region test); "an E-shape"; a heading per Train mode; the mini-player shows now/next and never
   covers the last link; other-shape dots at higher contrast; the Explorer notes boxes cut off at fret 15.
 
-**Round 6 (`round-6`): 9 overall, no area below 8.5. Bar met; the critic phase stopped here.** No critical or high
-findings. Open findings, not fixed in `round-6`:
-- M1. Step 5: when a loop completes, focus stays on Stop; "Yes, I did" is reachable only with Shift+Tab.
-- M2. Step 1 mic test: a non-root chord note heard first (e.g. checking a string) counts as a wrong root mark and
-  is named, so the test can fail although every root was played.
-- M3. Mic dialog: after a failed start, focus falls to `<body>` (the start button is `disabled` while busy).
-- Low: the mini-player and announcements skip bar 1 of a loop; Train Ear + hand names the key as a chord
-  ("in G7"); the home chord is offered as an answer that is never correct; the Step 4 hint says "zone bars
-  above" (they are below); Step 3 level-1 root hints say "marked note" to screen readers; the planner can voice
-  the same chord two ways in one loop (12-bar 7ths in G, frets 7–11); Step 5's no-mic finish is self-report.
+**Round 6 (`round-6`): 9 overall, no area below 8.5. Bar met; the critic phase stopped here.** No critical or
+high findings. Fixed afterwards in `round-6.1` (tested, not critic-reviewed):
+- M1. Step 5: when a loop completes, focus moves to the question, and Tab reaches "Yes, I did" (tested).
+- M2. Step 1 mic test: only roots are marked; any other note heard is "not a root", never marked and never named,
+  so checking a string first can't fail the test (tested with a fake-mic WAV that plays E3 before the Cs).
+- M3. Mic dialog: the start button stays focusable while busy, so a refused start keeps focus in the dialog and
+  the reason is announced (tested with `--deny-permission-prompts`).
+- Low: the mini-player and announcements cover bar 1 of a loop; Train Ear + hand names the key ("in G major"),
+  not a chord (tested); the home chord is no longer offered as an answer (tested); the Step 4 hint points to
+  "the coloured shape bars"; Step 3 level-1 root hints are labelled "root (hint)" (tested).
 
-Fixes for M1–M3 and the first five low items are saved as
-`stash@{0}` ("Fixes for critic-6 findings"). They type-check but are not applied, tested end to end or
-reviewed. To use them: `git stash apply`, then `npm run check && npm run build && npm run e2e`, and run a
-critic pass (section 12) before shipping instead of `round-6`.
+Still open from critic 6 (deliberately not changed):
+- The planner can voice the same chord two ways in one loop (12-bar 7ths in G, frets 7–11: D7 as a G-shape in
+  bar 9 and an E-shape in bar 12). It is legitimate voice leading; a penalty for re-voicing would change the
+  golden planner outputs, so it needs a decision first.
+- Step 5's no-mic finish is self-report, as section 7.1's fallback requires.
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.

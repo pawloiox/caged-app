@@ -1,5 +1,6 @@
 /** Train questions. Every item has a stat key, so the review queue can rebuild a question for any due item. */
 import {
+  keyName,
   fingerOf,
   HOME,
   MAJOR_NAMES,
@@ -17,7 +18,6 @@ import {
   rootsOf,
   earDegrees,
   tonicOf,
-  uniqueDegrees,
   type ChordPlan,
   type Instance,
   type MinorSpelling,
@@ -227,10 +227,10 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
       type: 'earhand',
       stat: k,
       inst: target.inst,
-      options: uniqueDegrees(p).map((d) => d.roman),
+      options: earDegrees(p).map((d) => d.roman),
       answer: target.roman,
       ear: { chords, target, zone, progName: p.name },
-      prompt: `${p.name} in ${tonicOf(chords).name}: after the home chord (${tonicOf(chords).roman}), which chord do you hear?`,
+      prompt: `${p.name} in ${keyName(key, p.minor ? 'minor' : 'major', o.sp)} ${p.minor ? 'minor' : 'major'}: after the home chord (${tonicOf(chords).roman}), which chord do you hear?`,
       explain: `It was ${target.roman}, ${target.name}.`,
     };
   }

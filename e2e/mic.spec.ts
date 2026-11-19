@@ -38,16 +38,18 @@ test.describe('listening mode with a fake microphone', () => {
   test.setTimeout(90_000);
 
   test('Step 1: playing the two roots of open C passes the root test on its own', async ({ baseURL }, info) => {
-    // C3 (A string, fret 3) and C4 (B string, fret 1), looped by Chromium.
+    // E3 (not a root), then C3 (A string, fret 3) and C4 (B string, fret 1), looped by Chromium.
     const wav = join(info.outputDir, 'c-roots.wav');
     mkdirSync(info.outputDir, { recursive: true });
     writeWav(
       wav,
       [
-        { midi: 48, at: 0.4 },
-        { midi: 60, at: 1.6 },
+        // E3 first (D string, fret 2): a chord note, but not a root, as when checking a string.
+        { midi: 52, at: 0.3 },
+        { midi: 48, at: 1.3 },
+        { midi: 60, at: 2.5 },
       ],
-      3,
+      3.8,
     );
     const browser = await chromium.launch({
       args: [
@@ -65,6 +67,8 @@ test.describe('listening mode with a fake microphone', () => {
     await expect(page.getByText('● Listening').first()).toBeVisible({ timeout: 10_000 });
     // No clicks on the board: the app hears both roots and checks the test by itself.
     await expect(page.locator('.feedback.ok')).toContainText('Correct', { timeout: 30_000 });
+    // The non-root note was never marked: no ✗ on the board.
+    await expect(page.locator('g.dot text', { hasText: '✗' })).toHaveCount(0);
     await expect(page.locator('[role="status"]')).not.toBeEmpty();
     await browser.close();
   });
@@ -86,6 +90,20 @@ test.describe('listening mode with a fake microphone', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Turn on listening' }).click();
     await expect(page.locator('.heard .tag.ok').filter({ hasText: /A2/ })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/A string, open/).first()).toBeVisible();
+    await browser.close();
+  });
+
+  test('a refused microphone keeps focus in the dialog and says why', async ({ baseURL }) => {
+    const browser = await chromium.launch({ args: ['--deny-permission-prompts'] });
+    const page = await browser.newPage({ baseURL });
+    await page.goto('/learn/3');
+    await page.getByRole('button', { name: /Check me with the mic/ }).click();
+    const start = page.getByRole('dialog').getByRole('button', { name: /Turn on listening|Asking the browser/ });
+    await start.click();
+    await expect(page.getByRole('dialog').locator('.callout.warn')).toBeVisible({ timeout: 10_000 });
+    // Focus is still inside the dialog, never on <body>.
+    expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true);
+    await expect(page.locator('[role="status"]')).not.toBeEmpty();
     await browser.close();
   });
 });

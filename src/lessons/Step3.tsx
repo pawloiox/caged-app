@@ -220,6 +220,7 @@ function ShapeCheck() {
             root: nn.iv === 0,
             label: nn.iv === 0 ? 'R' : '',
             text: '#14212b',
+            desc: nn.iv === 0 ? 'root (hint)' : 'note of the shape',
           }
         : { s: nn.s, f: nn.f, colors: [NEUTRAL], label: '', text: '#14212b' },
   );

@@ -69,7 +69,7 @@ export function MicPermissionDialog({
             ) : null}
           </div>
           <div className="actions">
-            <button type="button" className="btn primary" onClick={allow} disabled={busy}>
+            <button type="button" className="btn primary" onClick={busy ? undefined : allow} aria-disabled={busy}>
               {busy ? 'Asking the browser…' : 'Turn on listening'}
             </button>
             <Dialog.Close asChild>

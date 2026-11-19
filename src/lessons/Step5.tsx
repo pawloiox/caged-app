@@ -32,7 +32,6 @@ import {
   thirdOf,
   earDegrees,
   tonicOf,
-  uniqueDegrees,
   zoneById,
   type ChordPlan,
   type Voicing,
@@ -86,7 +85,8 @@ function EarCheck({
 }) {
   const zone = zoneById(zoneId);
   const prog = progById(progId);
-  const degrees = uniqueDegrees(prog);
+  // Answers: the chords that can be hidden. The home chord is played first as the reference, never hidden.
+  const degrees = earDegrees(prog);
   const tonic = tonicOf(chords);
   const [target] = useState(() => {
     const hide = earDegrees(prog);
@@ -271,6 +271,9 @@ export default function Step5() {
   const [ask, setAsk] = useState<string | null>(null);
   const [askMsg, setAskMsg] = useState('');
   const askMsgRef = useRef<HTMLParagraphElement>(null);
+  const askQRef = useRef<HTMLParagraphElement>(null);
+  /** False until the first bar of a run has been announced (bar 1 isn't a "change", but needs now/next too). */
+  const announcedFirst = useRef(false);
   // The answered question unmounts its buttons: move focus to the reply, never to <body>.
   const focusAskMsg = () =>
     requestAnimationFrame(() => requestAnimationFrame(() => askMsgRef.current?.focus({ preventScroll: true })));
@@ -362,6 +365,7 @@ export default function Step5() {
   };
 
   const start = () => {
+    announcedFirst.current = false;
     valid.current = true;
     windows.current = [];
     loopVerdicts.current = {};
@@ -419,7 +423,8 @@ export default function Step5() {
         if (e.kind !== 'beat') return;
         setCount(null);
         const { ci, w, loopEnd } = e.p;
-        if (ci !== useS5.getState().cur) {
+        if (ci !== useS5.getState().cur || !announcedFirst.current) {
+          announcedFirst.current = true;
           set({ cur: ci });
           const ch = planRef.current[ci]!;
           if (performance.now() > quietUntil.current)
@@ -450,6 +455,8 @@ export default function Step5() {
             setAsk(z);
             announce('Loop complete. Did you play along and stay in the zone?');
             quietUntil.current = performance.now() + 3500;
+            // Focus the question so Tab reaches "Yes, I did" next (Space still stops the loop).
+            requestAnimationFrame(() => requestAnimationFrame(() => askQRef.current?.focus({ preventScroll: false })));
           }
           valid.current = true;
         }
@@ -723,7 +730,9 @@ export default function Step5() {
         />
         {ask ? (
           <div className="callout">
-            <p>Loop complete in {zoneById(ask).name}. Did you play along on your guitar and stay inside the zone?</p>
+            <p ref={askQRef} tabIndex={-1}>
+              Loop complete in {zoneById(ask).name}. Did you play along on your guitar and stay inside the zone?
+            </p>
             <div className="actions">
               <button
                 type="button"

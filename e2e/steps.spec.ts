@@ -82,6 +82,8 @@ test('Step 3: shape check level 1 and a linking drill complete the step', async 
   await page.goto('/learn/3');
   const sec = page.getByRole('region', { name: 'Shape check' });
   await sec.getByRole('button', { name: /Start level 1/ }).click();
+  // Level 1 shows the roots; screen readers hear them too.
+  await expect(sec.getByRole('button', { name: /root \(hint\)/ }).first()).toBeAttached();
   const list = instances(0, 'major');
   for (let i = 0; i < 10; i++) {
     const pos = await sec.locator('g.dot').evaluateAll((els) =>
@@ -142,7 +144,11 @@ test('Step 5: confirmed loops in two zones; chord cards explain each voicing; ea
   for (const zone of ['Frets 3–7', 'Frets 5–9']) {
     await page.getByRole('radio', { name: zone }).click();
     await page.getByRole('button', { name: /Play the loop/ }).click();
-    await page.getByRole('button', { name: 'Yes, I did' }).click({ timeout: 30_000 });
+    // When the loop completes, focus moves to the question, and Tab reaches "Yes, I did" next.
+    await expect(page.locator(':focus')).toContainText('Did you play along', { timeout: 30_000 });
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Yes, I did' })).toBeFocused();
+    await page.keyboard.press('Enter');
     await expect(page.locator(':focus')).toContainText('Logged');
     await page.getByRole('button', { name: /^Stop/ }).first().click();
   }

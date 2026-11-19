@@ -102,19 +102,24 @@ export default function Step1() {
     sayHeard('');
   }, [chord]);
 
-  // Listening: playing a note of the chord marks it, octave-exact. All roots heard → checked automatically.
+  // Listening: only roots are marked (octave-exact, at their place in this chord). Other notes, e.g. while
+  // checking a string or strumming first, are simply "not a root": never marked, never named. All roots
+  // heard → checked automatically.
   const mic = useMicEvents((e) => {
     if (e.type !== 'note' || !test || result != null) return;
-    const at = notesOf(inst).filter((n) => n.midi === e.midi);
-    const name = BOTH_NAMES[mod12(e.midi)];
+    const at = roots.filter((n) => n.midi === e.midi);
     if (!at.length) {
-      sayHeard(`Heard ${name}: not one of the notes in this ${rn} chord.`);
+      sayHeard(
+        mod12(e.midi - inst.keyPc) === 0
+          ? `Heard ${rn}, but not one of the ${rn}s in this chord shape. Try another octave.`
+          : 'Heard a note that is not a root.',
+      );
       return;
     }
     const n = at.find((x) => !sel.has(k(x))) ?? at[0]!;
     const next = new Set(sel).add(k(n));
     setSel(next);
-    sayHeard(`Heard ${spell(rn, n.iv)} (${posName(n.s, n.f)}).`);
+    sayHeard(`Heard a root: ${posName(n.s, n.f)}.`);
     const allRoots = roots.every((r) => next.has(k(r)));
     if (allRoots) check(next);
   }, test);

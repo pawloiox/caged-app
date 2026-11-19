@@ -176,7 +176,7 @@ export function MapBench({
     const msg =
       val === 'skip'
         ? `The loop for ${chordLong(st.key, st.q, ctx.sp)} starts with the ${ans}-shape at frets ${list[0]!.minF}–${list[0]!.maxF}.`
-        : `Not quite: the ${ans}-shape starts lowest, at frets ${list[0]!.minF}–${list[0]!.maxF}. Compare it with the ${val}-shape on the zone bars above.`;
+        : `Not quite: the ${ans}-shape starts lowest, at frets ${list[0]!.minF}–${list[0]!.maxF}. Compare it with the ${val}-shape on the coloured shape bars.`;
     set({
       revealed: { ...st.revealed, [st.q + st.key]: true },
       predStage: null,
