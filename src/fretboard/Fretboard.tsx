@@ -392,8 +392,8 @@ export function Fretboard(props: FretboardProps) {
       <rect
         key="barre"
         className="barre"
-        {...box(g.A(barre.f) - 8, g.A(barre.f) + 8, b0 - 11, b1 + 11)}
-        rx={8}
+        {...box(g.A(barre.f) - 10.5, g.A(barre.f) + 10.5, b0 - 12, b1 + 12)}
+        rx={10.5}
         style={{ fill: barre.color ?? NEUTRAL_BAR }}
         pointerEvents="none"
         aria-hidden="true"
