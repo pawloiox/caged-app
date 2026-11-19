@@ -20,13 +20,7 @@ const PrintCharts = lazy(() => import('./print/PrintCharts'));
 
 function Page({ C }: { C: ComponentType }) {
   return (
-    <Suspense
-      fallback={
-        <p className="muted" role="status">
-          Loading…
-        </p>
-      }
-    >
+    <Suspense fallback={<p className="muted">Loading…</p>}>
       <C />
     </Suspense>
   );
@@ -67,14 +61,7 @@ function Learn() {
   const i = Number(n);
   const C = STEPS[i - 1];
   return C ? (
-    <Suspense
-      key={i}
-      fallback={
-        <p className="muted" role="status">
-          Loading…
-        </p>
-      }
-    >
+    <Suspense key={i} fallback={<p className="muted">Loading…</p>}>
       <C />
     </Suspense>
   ) : (

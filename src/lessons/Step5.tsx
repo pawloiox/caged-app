@@ -30,6 +30,8 @@ import {
   progById,
   spell,
   thirdOf,
+  earDegrees,
+  tonicOf,
   uniqueDegrees,
   zoneById,
   type ChordPlan,
@@ -85,8 +87,10 @@ function EarCheck({
   const zone = zoneById(zoneId);
   const prog = progById(progId);
   const degrees = uniqueDegrees(prog);
+  const tonic = tonicOf(chords);
   const [target] = useState(() => {
-    const d = degrees[1 + Math.floor(Math.random() * Math.max(1, degrees.length - 1))] ?? degrees[0]!;
+    const hide = earDegrees(prog);
+    const d = hide[Math.floor(Math.random() * hide.length)] ?? degrees[0]!;
     return chords.find((c) => c.roman === d.roman)!;
   });
   const [phase, setPhase] = useState<'name' | 'root' | 'done'>('name');
@@ -98,7 +102,6 @@ function EarCheck({
   const findRef = useRef<HTMLParagraphElement>(null);
 
   const playIt = () => {
-    const tonic = chords[0]!;
     const t = engine.now();
     engine.strum(toPlayable(tonic.notes), { when: t + 0.05, vel: 0.6 });
     engine.strum(toPlayable(target.notes), { when: t + 1.3, vel: 0.8 });
@@ -194,8 +197,8 @@ function EarCheck({
       {phase === 'name' ? (
         <>
           <p>
-            You'll hear the home chord ({chords[0]!.roman}), then a hidden chord from this progression. Which one is it?{' '}
-            <span className="muted">Space plays it again.</span>
+            You'll hear the home chord ({tonic.roman}, {tonic.name}), then a hidden chord from this progression. Which
+            one is it? <span className="muted">Space plays it again.</span>
           </p>
           <div className="answers" role="group" aria-label="Roman numerals">
             {degrees.map((d, i) => (
@@ -225,11 +228,7 @@ function EarCheck({
             onCell={(s, f) => tryRoot(s, f)}
             label={`Find the root of ${target.name} inside frets ${zone.lo} to ${zone.hi}`}
           />
-          {rootMsg ? (
-            <p className={`feedback ${rootOk ? 'ok' : rootOk === false ? 'no' : ''}`} role="status">
-              {rootMsg}
-            </p>
-          ) : null}
+          {rootMsg ? <p className={`feedback ${rootOk ? 'ok' : rootOk === false ? 'no' : ''}`}>{rootMsg}</p> : null}
           {phase === 'done' ? (
             <div className="actions">
               <p>
@@ -269,6 +268,10 @@ export default function Step5() {
   const [soon, setSoon] = useState(false);
   const [ask, setAsk] = useState<string | null>(null);
   const [askMsg, setAskMsg] = useState('');
+  const sayAsk = (m: string) => {
+    setAskMsg(m);
+    if (m) announce(m);
+  };
   const [verdicts, setVerdicts] = useState<Record<number, BarVerdict>>({});
   const [loops, setLoops] = useState(0);
   const [ear, setEar] = useState(false);
@@ -343,11 +346,11 @@ export default function Step5() {
     loopVerdicts.current = {};
     setVerdicts({});
     setAsk(null);
-    setAskMsg('');
+    sayAsk('');
     const judged = judging;
     void startLoop<Beat>({
       id: 'loop',
-      label: `${prog.name} in ${chords[0]!.name}`,
+      label: `${prog.name} in ${tonicOf(chords).name}`,
       bpm: s.bpm,
       beat: (t, n, spb) => {
         const plan = planRef.current;
@@ -415,11 +418,10 @@ export default function Step5() {
             const len = planRef.current.length;
             const ok = v.filter((x) => x.ok).length;
             if (valid.current && ok / len >= 0.75) {
-              setAskMsg(`Loop heard in ${zoneById(z).name}: ${ok} of ${len} bars clean.`);
+              sayAsk(`Loop heard in ${zoneById(z).name}: ${ok} of ${len} bars clean.`);
               if (!useProgress.getState().seen.s5?.includes(z)) markZone(z);
-              announce(`Loop confirmed: ${ok} of ${len} bars clean.`);
             } else {
-              setAskMsg(`${ok} of ${len} bars clean this time. Keep looping: aim for three in four.`);
+              sayAsk(`${ok} of ${len} bars clean this time. Keep looping: aim for three in four.`);
             }
           } else if (valid.current && !useProgress.getState().seen.s5?.includes(z)) {
             setAsk(z);
@@ -437,6 +439,21 @@ export default function Step5() {
   };
 
   const toggle = () => (playing ? stopLoop() : start());
+
+  // While the loop plays, the floating mini-player appears only when this bar is scrolled out of view.
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([e]) => usePlayer.setState({ inlineBarVisible: !!e?.isIntersecting }), {
+      threshold: 0.6,
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      usePlayer.setState({ inlineBarVisible: false });
+    };
+  }, []);
 
   const step = (d: number) => {
     if (playing) return;
@@ -670,7 +687,7 @@ export default function Step5() {
           ]}
         />
         {ask ? (
-          <div className="callout" role="status">
+          <div className="callout">
             <p>Loop complete in {zoneById(ask).name}. Did you play along on your guitar and stay inside the zone?</p>
             <div className="actions">
               <button
@@ -679,7 +696,7 @@ export default function Step5() {
                 onClick={() => {
                   markZone(ask);
                   setAsk(null);
-                  setAskMsg('Logged. Try another zone, or raise the tempo.');
+                  sayAsk('Logged. Try another zone, or raise the tempo.');
                 }}
               >
                 Yes, I did
@@ -689,7 +706,7 @@ export default function Step5() {
                 className="btn small"
                 onClick={() => {
                   setAsk(null);
-                  setAskMsg(
+                  sayAsk(
                     'Keep looping. Slow the tempo down, use 4-string shapes, and watch the dashed circles for where the next chord goes.',
                   );
                 }}
@@ -699,9 +716,7 @@ export default function Step5() {
             </div>
           </div>
         ) : askMsg ? (
-          <p className="muted" role="status">
-            {askMsg}
-          </p>
+          <p className="muted">{askMsg}</p>
         ) : null}
         {loops > 0 && !playing && !ear ? (
           <div className="callout">
@@ -716,7 +731,7 @@ export default function Step5() {
             </div>
           </div>
         ) : null}
-        <div className="p5-bar">
+        <div className="p5-bar" ref={barRef}>
           <button type="button" className="btn primary" onClick={toggle}>
             {playing ? 'Stop' : 'Play the loop'}
             <Kbd>Space</Kbd>

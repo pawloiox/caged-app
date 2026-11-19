@@ -6,7 +6,9 @@ export const CHECK_PASS = 8;
 export const PRED_NEED = 3;
 export const S2_NEED = 3;
 
-export const drillKeysOtherThanC = (p: Progress): number => Object.keys(p.drills).filter((k) => k !== 'major0').length;
+/** Drill keys look like "major7" or "minor0". Any C (major, minor or 7th) is still C, so it doesn't count. */
+export const drillKeysOtherThanC = (p: Progress): number =>
+  Object.keys(p.drills).filter((k) => !/^(major|minor|dom7)0$/.test(k)).length;
 
 export const STEP_CRITERIA: Record<string, (p: Progress) => boolean> = {
   'step-1': (p) => (p.seen.s1 ?? []).length >= 5,

@@ -79,7 +79,7 @@ export default function Step2() {
     addXP(10);
     patchSeen({ s2: solvedTotal + 1 });
     toast('Found it · +10 XP');
-    announce(`Correct: that's ${chordLong(target, q)} with the ${shape}-shape.`);
+    announce(`Correct: that's ${chordLong(target, q, prefs.minorSpelling)} with the ${shape}-shape.`);
   };
 
   // A challenge counts once the shape rests on the target for ~650 ms (or is strummed there),
@@ -125,6 +125,9 @@ export default function Step2() {
         break;
       }
     setSolved('revealed');
+    announce(
+      `Here it is: ${chordLong(target, q, prefs.minorSpelling)}. This one doesn't count; try the next on your own.`,
+    );
   };
 
   useHotkeys({
@@ -185,7 +188,7 @@ export default function Step2() {
           </Check>
           <LabelSeg />
         </div>
-        <div className="readout" aria-live="polite">
+        <div className="readout">
           <span className="chord-big">{chordLabel(inst.keyPc, q, prefs.minorSpelling)}</span>
           <span>
             <Pill s={shape} /> {shape}-shape, {where}
@@ -204,14 +207,14 @@ export default function Step2() {
             value={Math.max(g.nMin, Math.min(g.nMax, n))}
             onChange={(e) => move(Number(e.target.value))}
             style={prefs.lefty && !dir.vertical ? { direction: 'rtl' } : undefined}
-            aria-valuetext={`fret ${n}, ${chordLabel(inst.keyPc, q)}`}
+            aria-valuetext={`fret ${n}, ${chordLabel(inst.keyPc, q, prefs.minorSpelling)}`}
           />
         </div>
         <Fretboard
           dots={singleDots(inst, ctx, { third })}
           muted={mutedSpecs(inst)}
           barre={barreSpec(inst, null, COL[shape])}
-          label={`${chordLong(inst.keyPc, q)} with the ${shape}-shape`}
+          label={`${chordLong(inst.keyPc, q, prefs.minorSpelling)} with the ${shape}-shape`}
         />
         <Legend keys={['root', 'tone', 'barre', 'mute', ...(third ? ['third'] : [])]} />
         <div className="actions">
@@ -230,7 +233,7 @@ export default function Step2() {
         </div>
         {target != null ? (
           onTarget ? (
-            <div className={`callout${solved === 'revealed' ? '' : ' good'}`} role="status">
+            <div className={`callout${solved === 'revealed' ? '' : ' good'}`}>
               <p>
                 <strong>
                   {solved === 'revealed' ? 'Here it is:' : "That's it:"} {chordLong(target, q, prefs.minorSpelling)}.

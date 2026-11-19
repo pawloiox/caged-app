@@ -58,9 +58,19 @@ export function singleDots(
     text: textFor(inst.shape),
     dim: !!opts.rootsOnly && n.iv !== 0,
     third: !!opts.third && (n.iv === 3 || n.iv === 4),
-    desc: noteDesc(inst, n.s, n.iv, opts.strings, ctx.sp),
+    desc:
+      noteDesc(inst, n.s, n.iv, opts.strings, ctx.sp) +
+      (isOptional(inst, n.s, n.f, opts.strings) ? ' (optional: usually left out)' : ''),
+    cls: isOptional(inst, n.s, n.f, opts.strings) ? 'opt' : undefined,
   }));
 }
+
+/**
+ * A fretted note no finger can reach in this voicing (only the full minor G-shape's outer strings):
+ * drawn hollow as "optional, usually left out" rather than as a note to play.
+ */
+export const isOptional = (inst: Instance, s: number, f: number, strings?: readonly number[] | null): boolean =>
+  f > 0 && fingerOf(inst, s, strings) === '';
 
 /** "the 3rd of C, finger 2" — what a dot means, for screen readers. */
 export function noteDesc(
@@ -126,6 +136,7 @@ export function mapVisuals(st: MapState, list: readonly Instance[], ctx: LabelCt
       text: one ? textFor(one) : '#fff',
       dim: (act != null && !inAct) || (st.rootsOnly && p.iv !== 0),
       ring: inAct && links.has(`${p.s}:${p.f}`),
+      cls: inAct && isOptional(owner, p.s, p.f, stringsFor(st.voicing, owner)) ? 'opt' : undefined,
     };
   });
   if (act != null) {
@@ -175,8 +186,14 @@ export function mapVisuals(st: MapState, list: readonly Instance[], ctx: LabelCt
   const rn = keyName(st.key, st.q, ctx.sp);
   const cellLabel = (s: number, f: number) => {
     const p = pos.get(`${s}:${f}`);
+    // Roots the voicing leaves out are still drawn as solid "R" anchors: say so.
+    const anchor = dots.find((d) => d.cls === 'anchor' && d.s === s && d.f === f);
+    if (!p && anchor)
+      return `${rn}, the root of ${chordLabel(st.key, st.q, ctx.sp)}: not played in this voicing, your anchor`;
     if (!p) return BOTH_NAMES[pcAt(s, f)]!;
-    return `${spell(rn, p.iv)}, the ${roleOf(p.iv)} of ${chordLabel(st.key, st.q, ctx.sp)}, in the ${p.shapes.map((i) => list[i]!.shape).join(' and ')}-shape`;
+    const opt =
+      act != null && p.shapes.includes(act) && isOptional(list[act]!, s, f, stringsFor(st.voicing, list[act]!));
+    return `${spell(rn, p.iv)}, the ${roleOf(p.iv)} of ${chordLabel(st.key, st.q, ctx.sp)}, in the ${p.shapes.map((i) => list[i]!.shape).join(' and ')}-shape${opt ? ' (optional: usually left out)' : ''}`;
   };
   const muted = act != null ? mutedSpecs(list[act]!, stringsFor(st.voicing, list[act]!), true) : [];
   return { dots, ghosts, zones, muted, cellLabel, links };

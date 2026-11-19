@@ -106,3 +106,23 @@ test('Practice and progress chips lay out as rows, not stacked bars', async ({ p
   const zones = await page.getByRole('list', { name: 'Zones confirmed' }).boundingBox();
   expect(zones!.height).toBeLessThan(100);
 });
+
+test('exactly one live region on every page', async ({ page }) => {
+  for (const r of [
+    '/learn/1',
+    '/learn/2',
+    '/learn/3',
+    '/learn/4',
+    '/learn/5',
+    '/explore',
+    '/practice',
+    '/train/shape',
+    '/train/review',
+    '/tuner',
+  ]) {
+    await page.goto(r);
+    await expect(page.locator('h1')).toBeVisible();
+    const n = await page.locator('[role="status"], [aria-live="polite"], [aria-live="assertive"]').count();
+    expect(n, r).toBe(1);
+  }
+});

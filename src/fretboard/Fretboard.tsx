@@ -145,7 +145,8 @@ export function Fretboard(props: FretboardProps) {
     }
     const fh = 46;
     const ss = 50;
-    const zoneW = hasZones ? 42 : 0;
+    // Upright neck: zone bars are thin and decorative; MapBench shows 44 px jump buttons instead.
+    const zoneW = hasZones ? 22 : 0;
     const leftPad = zoneW + 40;
     const rightPad = band ? 34 : 18;
     const openTop = 20;
@@ -168,7 +169,7 @@ export function Fretboard(props: FretboardProps) {
       B,
       bLo: leftPad,
       bHi: leftPad + 5 * ss,
-      zoneB: (i: number): [number, number] => [4 + (i % 2) * 19, 19 + (i % 2) * 19],
+      zoneB: (i: number): [number, number] => [3 + (i % 2) * 9, 10 + (i % 2) * 9],
       zonePad: 3,
       slabel: (s: number) => [B(s), 14] as [number, number],
       fnum: (f: number) => [leftPad - 26, nutY + (f - first + 0.5) * fh + 4] as [number, number],
@@ -300,6 +301,19 @@ export function Fretboard(props: FretboardProps) {
     const [b0, b1] = g.zoneB(i);
     const r = box(a0, a1, b0, b1);
     const [tx, ty] = pt((a0 + a1) / 2, (b0 + b1) / 2);
+    if (g.vertical) {
+      out.push(
+        <rect
+          key={`z${z.id}`}
+          className={`zone-strip${z.active ? ' active' : ''}`}
+          {...r}
+          rx={3.5}
+          style={{ fill: z.color }}
+          aria-hidden="true"
+        />,
+      );
+      return;
+    }
     out.push(
       <g
         key={`z${z.id}`}
@@ -313,7 +327,7 @@ export function Fretboard(props: FretboardProps) {
       >
         <rect {...r} rx={7.5} style={{ fill: z.color }} />
         <text x={tx} y={ty + 3.8} style={{ fill: z.label === 'A' ? DARK : '#fff' }}>
-          {g.vertical ? z.label : `${z.label}-shape`}
+          {`${z.label}-shape`}
         </text>
       </g>,
     );

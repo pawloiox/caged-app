@@ -83,6 +83,12 @@ export default function Explore() {
             notes per string. The chord tones sit inside it, so aim for a coloured note, ideally the 3rd, when the chord
             changes.
           </p>
+          {inst.minF <= 1 ? (
+            <p className="muted">
+              Next to the nut the box bends to use the open strings, so it won't match the five standard box diagrams
+              exactly. Twelve frets up, the same shape gives the standard box.
+            </p>
+          ) : null}
         </Card>
       </div>
     </>

@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { listener, useMic, type MicStatus } from '../audio/mic/listener';
-import { setPrefs, toast, usePrefs } from '../store/app';
+import { announce, setPrefs, toast, usePrefs } from '../store/app';
 
 /** One permission prompt with a clear explanation. Never blocks progress: every drill has a no-mic path. */
 export function MicPermissionDialog({
@@ -23,6 +23,7 @@ export function MicPermissionDialog({
       setPrefs({ micWanted: true });
       onOpenChange(false);
       toast('Listening. Play a note to test it.');
+      announce('Listening. Play a note to test it.');
     }
     onStarted?.(s);
   };
@@ -85,7 +86,7 @@ export function MicToggle({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   if (status === 'on')
     return (
-      <span className="heard" role="status">
+      <span className="heard">
         <span className="tag ok">● Listening</span>
         {headphones ? (
           <span className="muted">Headphones on: the app plays along.</span>

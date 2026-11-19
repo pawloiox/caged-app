@@ -35,6 +35,10 @@ export default function Step1() {
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<boolean | null>(null);
   const [heard, setHeard] = useState('');
+  const sayHeard = (m: string) => {
+    setHeard(m);
+    if (m) announce(m);
+  };
   const feedbackRef = useRef<HTMLParagraphElement>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
 
@@ -83,7 +87,7 @@ export default function Step1() {
     const nx = ORDER.find((c) => !done.has(c));
     setSel(new Set());
     setResult(null);
-    setHeard('');
+    sayHeard('');
     if (nx) setChord(nx);
     else setTest(false);
     requestAnimationFrame(() => actionRef.current?.focus({ preventScroll: true }));
@@ -92,7 +96,7 @@ export default function Step1() {
   useEffect(() => {
     setSel(new Set());
     setResult(null);
-    setHeard('');
+    sayHeard('');
   }, [chord]);
 
   // Listening: playing a note of the chord marks it, octave-exact. All roots heard → checked automatically.
@@ -101,13 +105,13 @@ export default function Step1() {
     const at = notesOf(inst).filter((n) => n.midi === e.midi);
     const name = BOTH_NAMES[mod12(e.midi)];
     if (!at.length) {
-      setHeard(`Heard ${name}: not one of the notes in this ${rn} chord.`);
+      sayHeard(`Heard ${name}: not one of the notes in this ${rn} chord.`);
       return;
     }
     const n = at.find((x) => !sel.has(k(x))) ?? at[0]!;
     const next = new Set(sel).add(k(n));
     setSel(next);
-    setHeard(`Heard ${spell(rn, n.iv)} (${posName(n.s, n.f)}).`);
+    sayHeard(`Heard ${spell(rn, n.iv)} (${posName(n.s, n.f)}).`);
     const allRoots = roots.every((r) => next.has(k(r)));
     if (allRoots) check(next);
   }, test);
@@ -299,7 +303,7 @@ export default function Step1() {
                   onClick={() => {
                     setSel(new Set());
                     setResult(null);
-                    setHeard('');
+                    sayHeard('');
                   }}
                 >
                   Try again<Kbd>Enter</Kbd>

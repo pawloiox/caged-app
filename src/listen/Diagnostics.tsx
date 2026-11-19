@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { engine } from '../audio/engine';
 import { timingSelfTest } from '../audio/transport';
 import { PageHead } from '../ui/controls';
+import { announce } from '../store/app';
 
 export default function Diagnostics() {
   const [res, setRes] = useState<string>('');
@@ -24,15 +25,15 @@ export default function Diagnostics() {
               setBusy(true);
               const r = await timingSelfTest(140, 300);
               setBusy(false);
-              setRes(`${r.beats} beats in 5:00 at 140 BPM. Worst deviation: ${r.maxErrorMs.toFixed(3)} ms.`);
+              const m = `${r.beats} beats in 5:00 at 140 BPM. Worst deviation: ${r.maxErrorMs.toFixed(3)} ms.`;
+              setRes(m);
+              announce(m);
             }}
           >
             {busy ? 'Rendering…' : 'Run the 5-minute test'}
           </button>
         </div>
-        <p role="status" data-testid="timing-result">
-          {res}
-        </p>
+        <p data-testid="timing-result">{res}</p>
         <p className="muted">Engine: {engine.sampled ? 'sampled guitar' : 'physical-model guitar (Karplus-Strong)'}.</p>
       </section>
     </>

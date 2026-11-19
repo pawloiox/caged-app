@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-18): rebuild round 1 is in this repo.** Phases 0–3 are built and tested; the independent critic pass was **deferred at the user's request**. See [section 11](#11-build-status-round-1) for what is done, what is not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the critic pass later.
+> **Status (2026-11-19): rebuild round 3 is in this repo.** Phases 0–3 are built and tested. Two independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8 or more; round 3 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -29,6 +29,9 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | v2 | 8 | 7 | 7 | 6 | 7 | 7 |
 | v3 | 8 | 7 | 7 | 7 | 7 | 7 |
 | **v4/v5 (reference)** | 8.5 | 8 | 7.5 | 7 | 7.5 | **8** |
+| Rebuild `round-1.1` (critic 1) | 9 | 8.5 | 7.5 | 7.5 | 8 | 8 |
+| Rebuild `round-2` (critic 2) | 9 | 8.5 | 8 | 8 | 8.5 | 8.5 |
+| Rebuild `round-3` | not yet reviewed (fixes every critic-2 finding) | | | | | |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -306,8 +309,9 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 2. **Real-device listening drills.** Test the linking-drill hold/resume and the Step 5 bar windows with a real guitar,
    with and without headphones, after calibrating latency on the Tuner page.
 3. **Guitar samples.** No licensed multisample set ships yet. Drop one into `public/samples/guitar/` (format in the ADR).
-4. **Lighthouse.** Not run yet (target: 95+ on PWA, accessibility and best practices). The main JS chunk is 666 kB
-   (215 kB gzipped); code-splitting the routes would help the performance score.
+4. **Lighthouse.** Round 3, mobile defaults, preview build: performance 94–95, accessibility 100, best practices 100
+   on `/learn/1`, `/learn/5` and `/explore` (CLS 0.001, TBT 40–70 ms). Lighthouse 12+ has no PWA category, so the
+   "PWA 95+" target can't be scored; the manifest, icons and offline service worker are tested in E2E instead.
 5. **Mic flows have no automated E2E test.** A fake media stream (Chromium's `--use-file-for-fake-audio-capture`)
    could feed recorded fixtures into the drills.
 6. **Dev-tool audit warnings.** `npm audit` reports advisories in build tooling (picomatch/tinyglobby under Vite);
@@ -319,8 +323,8 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
 user's request. To run it later:
 
-1. **Snapshot first.** Tag the build under review, so the best round can be shipped rather than the latest:
-   `git tag round-1 && npm run build`.
+1. **Snapshot first.** Tag the build under review (the next one is `round-3`, already tagged), so the best round can
+   be shipped rather than the latest.
 2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
    this repository, `caged-lab-v5-reference.html` and this document, and ask it to:
    - run `npm install`, `npm run check`, `npm run build`, `npm run e2e` and `npm run preview`;
@@ -335,4 +339,42 @@ user's request. To run it later:
 4. **Fix the findings**, re-run `npm run check` and `npm run e2e`, then tag `round-2`. Repeat until every area scores 8
    or more and overall is 9 or more (section 2).
 5. **Record each round's scores** in the table in section 2.
+
+## 13. Critic rounds
+
+Each round: a fresh agent with no build context reviewed the tagged build with the section 2 rubric. The builder then
+fixed every finding, added a test for it where possible, re-ran `npm run check` and `npm run e2e`, and tagged the
+next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
+
+**Round 1 (`round-1.1`): 8 overall.** Findings fixed in `round-2`:
+- Broken card-list CSS (streak calendar 4,500 px tall, chip rows stacked).
+- Focus dropped to `<body>` after starting the Step 1 test and in Ear + hand.
+- Step 5 plain-arpeggio loops could never be confirmed with the mic.
+- The mini-player covered Step 5's strum pattern on phones.
+- A missed Step 1 test revealed the answer.
+- Repeated feedback went silent for screen readers.
+- Bare fret-cell labels.
+- No finger badge when a shared note changes finger.
+- The pivot check accepted a strum.
+- Strum chroma included the previous chord.
+- A 667 kB main chunk.
+- A wrong tip for open C.
+- Small targets, h1→h3 jumps, no error screen, Leitner promoting early, public source maps, smaller nits.
+
+**Round 2 (`round-2`): 8.5 overall, every area ≥ 8.** Findings fixed in `round-3`:
+- ii–V–I treated ii as the home chord in ear checks and labels. The tonic is now the I, and is tested.
+- The phone layout shifted on load (CLS 0.31): the grid stretched the nav while a page chunk loaded.
+- Step 5 lost its Stop control when scrolled; the mini-player now appears when the page's bar is off screen.
+- Several extra live regions double-announced. Exactly one remains, tested on every page.
+- Sub-44 px targets: upright-neck zone bars became 44 px jump buttons; Tuner and link targets fixed.
+- Focus could hide under the sticky header (`scroll-padding`).
+- Anchor roots were unlabelled.
+- The minor G-shape's unreachable outer notes are now drawn and printed as optional (hollow).
+- Mic hits are announced.
+- Minor spelling in Step 2 labels.
+- C minor counted as "another key" for Step 4.
+- Explorer note on why open-position pentatonic boxes bend.
+
+**Not fixable without hardware or assets** (both critics): real-guitar mic accuracy, live drill timing with a real
+instrument, sampled guitar sound, and screen-reader output on a real device.
 

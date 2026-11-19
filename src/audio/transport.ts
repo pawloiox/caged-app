@@ -44,9 +44,18 @@ interface PlayerState {
   label: string;
   detail: string;
   bpm: number;
+  /** A page's own transport bar is on screen, so the floating mini-player would only duplicate it. */
+  inlineBarVisible: boolean;
 }
 
-export const usePlayer = create<PlayerState>(() => ({ active: false, id: null, label: '', detail: '', bpm: 0 }));
+export const usePlayer = create<PlayerState>(() => ({
+  active: false,
+  id: null,
+  label: '',
+  detail: '',
+  bpm: 0,
+  inlineBarVisible: false,
+}));
 
 let current: { id: string; onStop?: () => void } | null = null;
 

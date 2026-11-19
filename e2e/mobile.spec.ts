@@ -22,12 +22,26 @@ for (const r of ['/learn/1', '/learn/2', '/learn/3', '/learn/5', '/explore', '/p
   });
 }
 
-test('390px phone: Step 5 keeps one transport bar while playing (no mini-player on top)', async ({ page }) => {
+test('390px phone: Step 5 always has a Stop control in view, and never two', async ({ page }) => {
   await page.goto('/learn/5');
   await page.getByRole('button', { name: /Play the loop/ }).click();
-  await expect(page.getByRole('button', { name: /^Stop/ }).first()).toBeVisible();
+  // The page's own bar is on screen: no floating mini-player on top of it.
   await expect(page.getByRole('region', { name: 'Now playing' })).toHaveCount(0);
-  await page.getByRole('button', { name: /^Stop/ }).first().click();
+  // Scroll the bar away: the mini-player takes over.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(page.getByRole('region', { name: 'Now playing' })).toBeVisible();
+  await page.getByRole('region', { name: 'Now playing' }).getByRole('button', { name: /Stop/ }).click();
+});
+
+test('390px phone: shapes are reached with 44px jump buttons, not thin zone bars', async ({ page }) => {
+  await page.goto('/learn/3');
+  const jump = page.getByRole('group', { name: 'Jump to a shape' }).getByRole('button');
+  await expect(jump.first()).toBeVisible();
+  expect(await jump.count()).toBeGreaterThanOrEqual(5);
+  await expect(jump.first()).toHaveAccessibleName(/^C\s+shape, frets\s*0–3$/);
+  await jump.nth(3).click();
+  await expect(jump.nth(3)).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.locator('svg.fb g.zone[role="button"]').count()).toBe(0);
 });
 
 test('390px phone: open-string cells on the upright neck are 44px tall', async ({ page }) => {

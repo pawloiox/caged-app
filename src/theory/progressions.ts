@@ -107,6 +107,13 @@ export function buildProgression(
   });
 }
 
+/** The home chord's numeral: I, i or I7. In ii–V–I the home chord is the LAST chord, not the first. */
+export const isTonic = (roman: string): boolean => /^(I|i)7?$/.test(roman);
+export const tonicOf = <T extends { roman: string }>(chords: readonly T[]): T =>
+  chords.find((c) => isTonic(c.roman)) ?? chords[0]!;
+/** Degrees an ear check can hide: every chord except the home chord the learner hears first. */
+export const earDegrees = (p: Progression): Degree[] => uniqueDegrees(p).filter((d) => !isTonic(d.roman));
+
 /** Unique degrees in a progression (the 12-bar repeats them). */
 export const uniqueDegrees = (p: Progression): Degree[] => {
   const seen = new Set<string>();

@@ -331,8 +331,8 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
-      {/* Step 5 has its own sticky transport bar; a second Stop pill would cover its strum pattern. */}
-      {player.active && !(player.id === 'loop' && loc.pathname === '/learn/5') ? (
+      {/* Hidden only while a page's own transport bar (Step 5) is on screen, so Stop is always in view. */}
+      {player.active && !player.inlineBarVisible ? (
         <div className="mini no-print" role="region" aria-label="Now playing">
           <span className="lbl">
             ▶ {player.label}

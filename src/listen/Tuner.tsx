@@ -4,7 +4,7 @@ import { engine } from '../audio/engine';
 import { calibrateLatency } from '../audio/mic/calibration';
 import { listener, useMic } from '../audio/mic/listener';
 import { Fretboard } from '../fretboard/Fretboard';
-import { setPrefs, toast, usePrefs } from '../store/app';
+import { announce, setPrefs, toast, usePrefs } from '../store/app';
 import { BOTH_NAMES, OPEN, STRING_NAME, midiToFreq, posName, positionsOfMidi } from '../theory';
 import { Card, Check, PageHead } from '../ui/controls';
 import { MicLevel, MicPermissionDialog } from './MicControls';
@@ -33,21 +33,16 @@ export default function Tuner() {
   const calibrate = async () => {
     setCal({ running: true, i: 0, msg: '' });
     const lat = await calibrateLatency((i) => setCal((c) => ({ ...c, i })));
-    if (lat == null)
-      setCal({
-        running: false,
-        i: 0,
-        msg: "Couldn't hear enough strums. Turn the guitar up, strum a muted chord right on each click, and try again.",
-      });
-    else {
+    const msg =
+      lat == null
+        ? "Couldn't hear enough strums. Turn the guitar up, strum a muted chord right on each click, and try again."
+        : `Latency measured: ${Math.round(lat * 1000)} ms. Drills will allow for it.`;
+    if (lat != null) {
       setPrefs({ micLatency: lat });
-      setCal({
-        running: false,
-        i: 0,
-        msg: `Latency measured: ${Math.round(lat * 1000)} ms. Drills will allow for it.`,
-      });
       toast('Latency saved.');
     }
+    setCal({ running: false, i: 0, msg });
+    announce(msg);
   };
 
   return (
@@ -157,16 +152,12 @@ export default function Tuner() {
             Saved latency: {prefs.micLatency != null ? `${Math.round(prefs.micLatency * 1000)} ms` : 'not measured yet'}
           </span>
         </div>
-        {cal.msg ? (
-          <p role="status" className="muted">
-            {cal.msg}
-          </p>
-        ) : null}
+        {cal.msg ? <p className="muted">{cal.msg}</p> : null}
       </section>
       <section className="bench" aria-label="Note finder">
         <h2>What did I just play?</h2>
         <p className="muted">Play any single note: it shows every place on the neck where that exact note lives.</p>
-        <p className="heard" aria-live="polite">
+        <p className="heard">
           {mic.lastNote != null ? (
             <>
               <span className="tag ok">{NOTE(mic.lastNote)}</span> {where.map((p) => posName(p.s, p.f)).join(' · ')}

@@ -40,6 +40,9 @@ function ChordChart({
     <figure className="chart">
       <figcaption>
         <strong>{title}</strong> <span className="muted">{sub}</span>
+        {notes.some((n) => n.f > 0 && fingerOf(inst, n.s, strings) === '') ? (
+          <span className="muted"> · hollow = optional, usually left out</span>
+        ) : null}
       </figcaption>
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -84,7 +87,15 @@ function ChordChart({
           .filter((n) => n.f > 0)
           .map((n) => (
             <g key={n.s}>
-              <circle cx={x(n.s)} cy={y(n.f)} r={7.5} fill={n.iv === 0 ? 'var(--accent)' : 'var(--ink)'} />
+              {/* Notes no finger can reach (full minor G-shape outer strings) print hollow: optional. */}
+              <circle
+                cx={x(n.s)}
+                cy={y(n.f)}
+                r={7.5}
+                fill={fingerOf(inst, n.s, strings) === '' ? 'none' : n.iv === 0 ? 'var(--accent)' : 'var(--ink)'}
+                stroke="var(--ink)"
+                strokeDasharray={fingerOf(inst, n.s, strings) === '' ? '2.5 2' : undefined}
+              />
               <text x={x(n.s)} y={y(n.f) + 3.5} fontSize="9.5" textAnchor="middle" fill="var(--bg)">
                 {fingerOf(inst, n.s, strings)}
               </text>

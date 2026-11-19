@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   CHORD_IVS,
+  earDegrees,
+  progById,
+  tonicOf,
   barreFor,
   shapeTip,
   ORDER,
@@ -463,5 +466,22 @@ describe('shape tips', () => {
     expect(tip).toContain('A string fret 3 (finger 3)');
     expect(tip).not.toContain('finger 4');
     expect(shapeTip(instances(0, 'major').find((i) => i.shape === 'E')!)).toMatch(/^Full: fingers 1-3-4-2-1-1/);
+  });
+});
+
+describe('home chord', () => {
+  it('is the I (or i, I7) of every progression, so ii–V–I resolves to I, not ii', () => {
+    for (const p of PROGS) {
+      const t = tonicOf(buildProgression(5, p.id, 'z5', 'full'));
+      expect(t.roman, p.id).toMatch(/^(I|i)7?$/);
+    }
+    const iiVI = buildProgression(5, '251', 'z5', 'full');
+    expect(tonicOf(iiVI).name).toBe('F');
+    expect(earDegrees(progById('251')).map((d) => d.roman)).toEqual(['ii', 'V']);
+    for (const p of PROGS)
+      expect(
+        earDegrees(p).some((d) => /^(I|i)7?$/.test(d.roman)),
+        p.id,
+      ).toBe(false);
   });
 });

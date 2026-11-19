@@ -14,6 +14,8 @@ import {
   notesOf,
   posName,
   rootsOf,
+  earDegrees,
+  tonicOf,
   uniqueDegrees,
   type ChordPlan,
   type Instance,
@@ -89,11 +91,7 @@ export function itemsFor(mode: Mode, minor: boolean): string[] {
     case 'ear':
       return ['ear:major', 'ear:minor'];
     case 'earhand':
-      return PROGS.filter((p) => p.id !== 'blues').flatMap((p) =>
-        uniqueDegrees(p)
-          .slice(1)
-          .map((d) => `prog:${p.id}:${d.roman}`),
-      );
+      return PROGS.filter((p) => p.id !== 'blues').flatMap((p) => earDegrees(p).map((d) => `prog:${p.id}:${d.roman}`));
     case 'order':
       return [];
   }
@@ -223,7 +221,7 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
       options: uniqueDegrees(p).map((d) => d.roman),
       answer: target.roman,
       ear: { chords, target, zone, progName: p.name },
-      prompt: `${p.name} in ${chords[0]!.name}: after the home chord, which chord do you hear?`,
+      prompt: `${p.name} in ${tonicOf(chords).name}: after the home chord (${tonicOf(chords).roman}), which chord do you hear?`,
       explain: `It was ${target.roman}, ${target.name}.`,
     };
   }

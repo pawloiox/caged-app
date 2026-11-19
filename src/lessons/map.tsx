@@ -3,7 +3,7 @@ import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { PICK_CLARITY } from '../audio/mic/dsp';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
-import { COL, NEUTRAL_ROOT, barreSpec, mapVisuals, noteRole, type MapState } from '../fretboard/build';
+import { COL, NEUTRAL_ROOT, barreSpec, isOptional, mapVisuals, noteRole, type MapState } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
@@ -349,8 +349,28 @@ export function MapBench({
       ) : (
         <>
           {st.predMsg ? (
-            <div className={`callout${st.predOk ? ' good' : ''}`} ref={msgRef} tabIndex={-1} role="status">
+            <div className={`callout${st.predOk ? ' good' : ''}`} ref={msgRef} tabIndex={-1}>
               <p>{st.predMsg}</p>
+            </div>
+          ) : null}
+          {dir.vertical ? (
+            <div className="shape-btns" role="group" aria-label="Jump to a shape">
+              {list.map((inst, i) => (
+                <button
+                  key={`${inst.shape}${inst.minF}`}
+                  type="button"
+                  className="btn small shape-jump"
+                  aria-pressed={st.focus && i === idx}
+                  onClick={() => go(i)}
+                >
+                  {/* Name comes from the content: "C-shape, frets 0–3", with the visible text inside it. */}
+                  <span className={`shape-pill ${inst.shape}`} style={{ ['--sc' as string]: COL[inst.shape] }}>
+                    {inst.shape}
+                  </span>
+                  <span className="sr-only"> shape, frets</span>
+                  {inst.minF}–{inst.maxF}
+                </button>
+              ))}
             </div>
           ) : null}
           <Fretboard
@@ -372,6 +392,9 @@ export function MapBench({
               st.focus ? 'link' : 'split',
               st.focus ? 'dim' : 'tone',
               ...(barre ? ['barre'] : []),
+              ...(st.focus && notesOf(inst, strOf(inst)).some((n) => isOptional(inst, n.s, n.f, strOf(inst)))
+                ? ['opt']
+                : []),
               ...(st.focus && st.voicing !== 'full' ? ['anchor'] : []),
               ...(st.focus ? ['mute'] : []),
               ...(st.pent && st.focus && pent ? ['pent'] : []),
@@ -469,6 +492,11 @@ export function LinkingDrill({
   const [count, setCount] = useState<number | null>(null);
   const [ask, setAsk] = useState(false);
   const [msg, setMsg] = useState('');
+  /** Visible message and the one live region, together. */
+  const say = (m: string) => {
+    setMsg(m);
+    if (m) announce(m);
+  };
   const [hold, setHold] = useState('');
   const [score, setScore] = useState<{ clean: number; total: number } | null>(null);
   const running = usePlayer((p) => p.id === 'drill');
@@ -481,6 +509,7 @@ export function LinkingDrill({
       midis: number[];
       heard: boolean;
       held: boolean;
+      held_announced?: boolean;
       text: string;
     },
   });
@@ -507,7 +536,7 @@ export function LinkingDrill({
     cur.current = { k: 0, w: 0, results: [], pv: null };
     lastIdx.current = -1;
     setAsk(false);
-    setMsg('');
+    say('');
     setScore(null);
     setHold('');
     onIdx(0);
@@ -569,19 +598,26 @@ export function LinkingDrill({
               logDrill(drillKey, bpm);
               toast(`Clean drill heard at ${bpm} BPM · +20 XP`);
               const up = LADDER.find((b) => b > bpm);
-              setMsg(
+              say(
                 `${clean} of ${total} pivots clean. ${up ? `Next time, try ${up} BPM.` : 'Top of the ladder: try another key.'}`,
               );
             } else
-              setMsg(
+              say(
                 `${clean} of ${total} pivots clean. Aim for 9 in 10: slow down a step, or switch to Easy shapes, and keep a finger on the shared root.`,
               );
-          } else setAsk(true);
+          } else {
+            setAsk(true);
+            announce(`Drill finished. Were all your changes clean at ${bpm} BPM?`);
+          }
           return;
         }
         setCount(null);
         setBeat(e.p.beat);
         onPivotBeat(e.p.beat === 3);
+        if (e.p.hold && c.pv && !c.pv.held_announced) {
+          c.pv.held_announced = true;
+          announce(`Holding: play the shared root, ${c.pv.text}, to move on.`);
+        }
         if (e.p.hold) setHold(c.pv?.text ?? '');
         if (e.p.idx !== lastIdx.current) {
           lastIdx.current = e.p.idx;
@@ -641,14 +677,14 @@ export function LinkingDrill({
         </div>
       </div>
       {hold ? (
-        <div className="callout warn" role="status">
+        <div className="callout warn">
           <p>
             <strong>Holding:</strong> play the shared root ({hold}) to move on.
           </p>
         </div>
       ) : null}
       {ask ? (
-        <div className="callout" role="status">
+        <div className="callout">
           <p>Were all your changes clean at {bpm} BPM?</p>
           <div className="actions">
             <button
@@ -658,7 +694,7 @@ export function LinkingDrill({
                 logDrill(drillKey, bpm);
                 const up = LADDER.find((b) => b > bpm);
                 setAsk(false);
-                setMsg(
+                say(
                   up ? `Logged. Next time, try ${up} BPM.` : 'Logged at the top of the ladder. Try it in another key.',
                 );
                 toast('Clean drill logged · +20 XP');
@@ -671,7 +707,7 @@ export function LinkingDrill({
               className="btn small"
               onClick={() => {
                 setAsk(false);
-                setMsg(
+                say(
                   'No problem. Drop one step on the tempo ladder or switch to Easy shapes, and watch the shared root rather than your whole hand.',
                 );
               }}
@@ -682,17 +718,13 @@ export function LinkingDrill({
         </div>
       ) : null}
       {score ? (
-        <p className="heard" role="status">
+        <p className="heard">
           <span className={`tag ${score.total && score.clean / score.total >= 0.9 ? 'ok' : 'warn'}`}>
             {score.clean}/{score.total} pivots heard on time
           </span>
         </p>
       ) : null}
-      {msg ? (
-        <p className="muted" role="status">
-          {msg}
-        </p>
-      ) : null}
+      {msg ? <p className="muted">{msg}</p> : null}
       <p className="muted">
         Best clean tempo in {chordLabel(keyPc, q, sp)}: <strong>{best ? `${best} BPM` : 'none yet'}</strong>
         {heardScores

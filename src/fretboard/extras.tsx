@@ -67,6 +67,19 @@ const LEG: Record<string, [ReactNode, string]> = {
     </>,
     'Common tone: keep this finger down',
   ],
+  opt: [
+    <circle
+      cx="11"
+      cy="11"
+      r="7.5"
+      fill="var(--muted)"
+      fillOpacity=".25"
+      stroke="var(--ink)"
+      strokeWidth="1.4"
+      strokeDasharray="3 2"
+    />,
+    'Optional: usually left out',
+  ],
   next: [
     <circle cx="11" cy="11" r="7.5" fill="none" stroke="var(--muted)" strokeWidth="2.4" strokeDasharray="3 2" />,
     'Next chord (finger numbers)',

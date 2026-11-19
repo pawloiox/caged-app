@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DexieRepository, MemoryRepository, normalizeProgress, readLegacyLocalStorage } from '../src/store/repository';
-import { newlyComplete, STEP_CRITERIA } from '../src/store/criteria';
+import { drillKeysOtherThanC, newlyComplete, STEP_CRITERIA } from '../src/store/criteria';
 import { defaultProgress } from '../src/store/types';
 import { BOX_DAYS, DAY, isDue, pickWeighted, record, weightOf } from '../src/train/leitner';
 
@@ -71,6 +71,16 @@ describe('step criteria', () => {
     expect(STEP_CRITERIA['step-5']!(p)).toBe(false);
     p.seen.s5 = ['z3', 'open'];
     expect(STEP_CRITERIA['step-5']!(p)).toBe(true);
+  });
+});
+
+describe('Step 4 drill key', () => {
+  it('C in any quality is still C', () => {
+    const p = defaultProgress();
+    p.drills = { major0: 60, minor0: 60, dom70: 60 };
+    expect(drillKeysOtherThanC(p)).toBe(0);
+    p.drills.major10 = 60;
+    expect(drillKeysOtherThanC(p)).toBe(1);
   });
 });
 

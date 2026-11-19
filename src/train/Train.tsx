@@ -8,6 +8,8 @@ import { MicToggle } from '../listen/MicControls';
 import { useMicEvents } from '../lessons/useMicNotes';
 import { addXP, announce, logReviewDay, recordStat, updateProgress, usePrefs, useProgress } from '../store/app';
 import {
+  isTonic,
+  tonicOf,
   BOTH_NAMES,
   MAX_FRET,
   ORDER,
@@ -25,6 +27,9 @@ import { dueKeys, pickWeighted, weightOf } from './leitner';
 import { TRAIN_MODES, isClickMode, makeQuestion, modeOfStat, type Mode, type Question } from './questions';
 
 const MODE_IDS = TRAIN_MODES.map(([m]) => m);
+/** Items the review queue can serve. Older saves may hold retired items such as prog:251:I (the home chord). */
+const reviewable = (k: string): boolean =>
+  !!modeOfStat(k) && !(k.startsWith('prog:') && isTonic(k.split(':')[2] ?? ''));
 
 function Mastery() {
   const stats = useProgress((p) => p.stats);
@@ -66,7 +71,7 @@ export default function Train() {
   const prefs = usePrefs();
   const stats = useProgress((p) => p.stats);
   const best = useProgress((p) => p.best);
-  const due = useMemo(() => dueKeys(stats), [stats]);
+  const due = useMemo(() => dueKeys(stats).filter(reviewable), [stats]);
   const [minor, setMinor] = useState(false);
   const [hint, setHint] = useState(true);
   const [q, setQ] = useState<Question | null>(null);
@@ -88,7 +93,7 @@ export default function Train() {
     if (!qq?.inst) return;
     if (qq.type === 'earhand' && qq.ear) {
       const t = engine.now();
-      engine.strum(toPlayable(qq.ear.chords[0]!.notes), { when: t + 0.05, vel: 0.6 });
+      engine.strum(toPlayable(tonicOf(qq.ear.chords).notes), { when: t + 0.05, vel: 0.6 });
       engine.strum(toPlayable(qq.ear.target.notes), { when: t + 1.3, vel: 0.8 });
     } else engine.strum(toPlayable(notesOf(qq.inst)));
   };
@@ -96,10 +101,15 @@ export default function Train() {
   const newQ = (focus = true) => {
     let nq: Question;
     if (review) {
-      const keys = dueKeys(useProgress.getState().stats).filter((k) => modeOfStat(k));
+      const keys = dueKeys(useProgress.getState().stats).filter(reviewable);
       if (!keys.length) {
         setQ(null);
         if (reviewed > 0) logReviewDay();
+        announce(
+          reviewed
+            ? `All caught up: ${reviewed} reviewed. That counts for today's review streak.`
+            : 'All caught up. Nothing is due right now.',
+        );
         return;
       }
       const item = pickWeighted(keys, (k) => weightOf(useProgress.getState().stats[k]));
@@ -493,7 +503,7 @@ export default function Train() {
                 Best streak <b>{best}</b>
               </span>
               <span>
-                <Link to="/train/review">
+                <Link to="/train/review" className="tap-link">
                   Due for review <b>{due.length}</b>
                 </Link>
               </span>
@@ -501,7 +511,7 @@ export default function Train() {
           </div>
         ) : null}
         {!q ? (
-          <div className="callout good" role="status">
+          <div className="callout good">
             <p>
               <strong>All caught up.</strong>{' '}
               {reviewed
