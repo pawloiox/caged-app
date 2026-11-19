@@ -1,6 +1,6 @@
 # CAGED Lab: handoff to Claude Code
 
-> **Status (2026-11-19): rebuild round 6 is in this repo.** Phases 0–3 are built and tested. Five independent critic passes have run (scores in section 2; findings and fixes in [section 13](#13-critic-rounds)). The latest critic score is 8.5 overall with every area at 8.5 or more (Music 9.5); round 6 fixes all of its findings and still needs its own critic pass. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
+> **Status (2026-11-19): `round-6` meets the bar and is the build to ship.** Phases 0–3 are built and tested. Six independent critic passes have run; critic 6 scored `round-6` **9 overall with no area below 8.5** (scores in section 2, history in [section 13](#13-critic-rounds)). The critic phase stopped there at the user's request. Critic 6's remaining findings (no critical or high) are listed at the end of section 13; fixes for most of them are saved in `git stash` but are **not applied or reviewed**. See [section 11](#11-build-status-round-1) for what is done and not verified, and [section 12](#12-deferred-critic-pass-how-to-run-it) for how to run the next critic pass.
 
 You are taking over **CAGED Lab**, an interactive app that teaches guitarists the CAGED system. It currently exists as a single self-contained HTML file (`caged-lab-v5-reference.html`, next to this document). It was built inside a sandboxed hosted page, so it had no microphone, no build step, no packages and no backend. Those limits are gone. Your job is to rebuild it as a production-grade app on the best stack for the job, **keeping everything that was verified** and adding what the sandbox made impossible. The most important new capability is **listening to the learner's guitar**.
 
@@ -34,7 +34,7 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 | Rebuild `round-3` (critic 3) | 9 | 8.5 | 8 | 8 | 8 | 8.5 |
 | Rebuild `round-4` (critic 4) | 9.5 | 8.5 | 8.5 | 8 | 8 | 8.5 |
 | Rebuild `round-5` (critic 5) | 9.5 | 8.5 | 8.5 | 8.5 | 8.5 | 8.5 |
-| Rebuild `round-6` | not yet reviewed (fixes every critic-5 finding) | | | | | |
+| **Rebuild `round-6` (critic 6)** | 9.5 | 9 | 9 | 8.5 | 9 | **9** |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -328,7 +328,7 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
 The working agreement in section 10 calls for an independent critic pass after each phase. Round 1 skipped it at the
 user's request. To run it later:
 
-1. **Snapshot first.** Tag the build under review (the next one is `round-6`, already tagged), so the best round can
+1. **Snapshot first.** Tag the build under review (`round-6` was the last one reviewed), so the best round can
    be shipped rather than the latest. Run Lighthouse from a temp folder, not the repo: under WSL it writes
    `C:\Users\…\lighthouse.*` profile folders into the current directory (now in `.gitignore`).
 2. **Start a fresh agent with no build context** (a new Claude Code session, or a general-purpose subagent). Give it
@@ -424,6 +424,22 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - Smaller: no stray comma in hidden-pitch cell labels (tested); no extra `role="alert"` regions (counted by the
   one-live-region test); "an E-shape"; a heading per Train mode; the mini-player shows now/next and never
   covers the last link; other-shape dots at higher contrast; the Explorer notes boxes cut off at fret 15.
+
+**Round 6 (`round-6`): 9 overall, no area below 8.5. Bar met; the critic phase stopped here.** No critical or high
+findings. Open findings, not fixed in `round-6`:
+- M1. Step 5: when a loop completes, focus stays on Stop; "Yes, I did" is reachable only with Shift+Tab.
+- M2. Step 1 mic test: a non-root chord note heard first (e.g. checking a string) counts as a wrong root mark and
+  is named, so the test can fail although every root was played.
+- M3. Mic dialog: after a failed start, focus falls to `<body>` (the start button is `disabled` while busy).
+- Low: the mini-player and announcements skip bar 1 of a loop; Train Ear + hand names the key as a chord
+  ("in G7"); the home chord is offered as an answer that is never correct; the Step 4 hint says "zone bars
+  above" (they are below); Step 3 level-1 root hints say "marked note" to screen readers; the planner can voice
+  the same chord two ways in one loop (12-bar 7ths in G, frets 7–11); Step 5's no-mic finish is self-report.
+
+Fixes for M1–M3 and the first five low items are saved as
+`stash@{0}` ("Fixes for critic-6 findings"). They type-check but are not applied, tested end to end or
+reviewed. To use them: `git stash apply`, then `npm run check && npm run build && npm run e2e`, and run a
+critic pass (section 12) before shipping instead of `round-6`.
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
