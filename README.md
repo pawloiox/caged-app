@@ -1,2 +1,2 @@
 # caged-app
-A learning platform for learning the CAGED system on guitar with more incoming.
+A learning platform for the CAGED system on guitar with more incoming.
