@@ -351,12 +351,12 @@ kbd {
 .controls .knob-btn.sound {
   position: absolute;
   left: 171px;
-  top: 19px;
+  top: 22px;
 }
 .controls .knob-btn.view {
   position: absolute;
   left: 223px;
-  top: 15px;
+  top: 18px;
 }
 /* Sound's label sits on the rim side; View's on the inner side, so the two knobs form a diagonal. */
 .controls .knob-btn.sound .knob-label {
@@ -369,22 +369,24 @@ kbd {
 .knob-face {
   position: relative;
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  /* A dark top-hat knob: knurled skirt round a domed cap. */
-  background: repeating-conic-gradient(#0d0a09 0 5deg, #2a2624 5deg 10deg);
+  /* A small dark knob: a knurled gunmetal skirt (the teeth catch the light) round a black top. */
+  background:
+    radial-gradient(circle, #141211 0 52%, transparent 54%),
+    repeating-conic-gradient(#4a4644 0 6deg, #121010 6deg 12deg);
   box-shadow:
-    0 3px 4px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(0, 0, 0, 0.7);
+    0 2px 3px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(0, 0, 0, 0.75);
 }
 /* A chrome insert in the cap. */
 .knob-face::before {
   content: '';
   position: absolute;
-  inset: 10px;
+  inset: 7.5px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #a9aeb0, #5d6265 55%, #2f3436);
+  background: radial-gradient(circle at 38% 32%, #c3c7c8, #6d7275 55%, #33383a);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 .knob-pointer {
@@ -396,10 +398,10 @@ kbd {
   content: '';
   position: absolute;
   left: 50%;
-  top: 2px;
-  width: 2px;
-  height: 6px;
-  margin-left: -1px;
+  top: 1.5px;
+  width: 1.5px;
+  height: 5px;
+  margin-left: -0.75px;
   border-radius: 1px;
   background: #e9e1d3;
 }

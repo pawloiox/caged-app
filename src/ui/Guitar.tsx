@@ -103,32 +103,57 @@ function MetalDefs({ id }: { id: string }) {
 function CharcoalDefs({ id, grain }: { id: string; grain: string | null }) {
   return (
     <>
-      <radialGradient id={`${id}-stain`} cx="0.5" cy="0.55" r="0.78">
-        <stop offset="0" stopColor="#7c5f4b" />
-        <stop offset="0.55" stopColor="#664a39" />
-        <stop offset="0.88" stopColor="#4f3a2d" />
-        <stop offset="1" stopColor="#32241b" />
-      </radialGradient>
+      {/* Sampled from the reference: a cool grey-brown, palest on the carved treble side and darkest across the
+          lower bass bout. */}
+      <linearGradient id={`${id}-stain`} x1="0" y1="0" x2="0.12" y2="1">
+        <stop offset="0" stopColor="#765b52" />
+        <stop offset="0.35" stopColor="#664a42" />
+        <stop offset="0.7" stopColor="#563c35" />
+        <stop offset="1" stopColor="#45302a" />
+      </linearGradient>
       {grain ? (
         // Stretched across the grain, so the streaks are wider and less regular than on the fretboard.
         <pattern id={`${id}-grain`} patternUnits="userSpaceOnUse" width={GRAIN_W} height={GRAIN_H * 1.6}>
           <image href={grain} width={GRAIN_W} height={GRAIN_H * 1.6} preserveAspectRatio="none" />
         </pattern>
       ) : null}
-      <filter id={`${id}-soft`} x="-10%" y="-10%" width="120%" height="120%">
+      <filter id={`${id}-soft`} colorInterpolationFilters="sRGB" x="-10%" y="-10%" width="120%" height="120%">
         <feGaussianBlur stdDeviation="4" />
       </filter>
-      {/* Greys the rosewood grain, so it reads as stained open-pore wood. */}
+      {/* Greys the rosewood grain almost to neutral, so it reads as fine open pores under a grey stain. */}
       <filter id={`${id}-grey`}>
-        <feColorMatrix type="saturate" values="0.75" />
-        <feGaussianBlur stdDeviation="0.5" />
+        <feColorMatrix type="saturate" values="0.2" />
+        <feGaussianBlur stdDeviation="0.6" />
       </filter>
-      {/* Coarse open-pore streaks along the body's length: noise stretched along x, turned into a brown alpha. */}
+      {/* The figure: long, wavy, irregular dark streaks along the body's length. Noise stretched along x, bent by a
+          slow second noise, and turned into a dark grey-brown alpha only where it dips. */}
       <filter id={`${id}-streak`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
-        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.35" numOctaves={3} seed={7} />
-        <feColorMatrix type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.07  0 0 0 -1.4 1.1" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.006 0.11" numOctaves={4} seed={11} result="n" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.03" numOctaves={2} seed={3} result="w" />
+        <feDisplacementMap in="n" in2="w" scale={9} xChannelSelector="R" yChannelSelector="G" result="d" />
+        <feColorMatrix in="d" type="matrix" values="0 0 0 0 0.17  0 0 0 0 0.11  0 0 0 0 0.075  -3 0 0 0 1.62" />
       </filter>
-      <filter id={`${id}-bout`} filterUnits="userSpaceOnUse" x={180} y={110} width={240} height={170}>
+      {/* The pale side of the same figure: thinner light streaks where the noise peaks. */}
+      <filter id={`${id}-pale`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
+        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.2" numOctaves={3} seed={29} result="n" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.04" numOctaves={2} seed={5} result="w" />
+        <feDisplacementMap in="n" in2="w" scale={6} xChannelSelector="R" yChannelSelector="G" result="d" />
+        <feColorMatrix in="d" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.49  0 0 0 0 0.42  3 0 0 0 -1.62" />
+      </filter>
+      {/* Fine pores: dense hairlines along the grain. */}
+      <filter id={`${id}-pore`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
+        <feTurbulence type="fractalNoise" baseFrequency="0.03 0.9" numOctaves={2} seed={17} />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.08  0 0 0 0 0.06  -4 0 0 0 2.1" />
+      </filter>
+      <filter
+        id={`${id}-bout`}
+        colorInterpolationFilters="sRGB"
+        filterUnits="userSpaceOnUse"
+        x={180}
+        y={110}
+        width={240}
+        height={170}
+      >
         <feGaussianBlur stdDeviation="14" />
       </filter>
       <linearGradient id={`${id}-satin`} x1="0" y1="0" x2="0.3" y2="1">
@@ -320,7 +345,7 @@ function Humbucker({ x, id }: { x: number; id: string }) {
   const h = NECK_H + 16;
   return (
     <g>
-      <rect x={x - 5} y={top - 4} width={34} height={h + 8} rx={5} fill="#0e0d0d" stroke="#4a4643" strokeWidth={1} />
+      <rect x={x - 5} y={top - 4} width={34} height={h + 8} rx={5} fill="#0d0c0c" stroke="#24211f" strokeWidth={1} />
       <line x1={x - 2} x2={x + 26} y1={top - 3.2} y2={top - 3.2} stroke="rgba(255,255,255,0.12)" strokeWidth={0.6} />
       {[
         [x - 2, top - 1],
@@ -328,7 +353,7 @@ function Humbucker({ x, id }: { x: number; id: string }) {
         [x - 2, top + h + 1],
         [x + 26, top + h + 1],
       ].map(([cx, cy]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.3} fill="#8d9396" />
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.1} fill="#55595b" />
       ))}
       <rect x={x} y={top + 2} width={24} height={h - 4} rx={3} fill="#060606" />
       <line x1={x + 12} x2={x + 12} y1={top + 4} y2={top + h - 4} stroke="#1c1a19" strokeWidth={0.8} />
@@ -336,7 +361,7 @@ function Humbucker({ x, id }: { x: number; id: string }) {
         <g key={i}>
           <circle cx={x + 6} cy={stringY(i)} r={2.3} fill={`url(#${id}-post)`} />
           <circle cx={x + 6} cy={stringY(i)} r={0.6} fill="#3d4245" />
-          <circle cx={x + 18} cy={stringY(i)} r={2.3} fill={`url(#${id}-post)`} opacity={0.75} />
+          <circle cx={x + 18} cy={stringY(i)} r={1.9} fill={`url(#${id}-post)`} opacity={0.85} />
         </g>
       ))}
     </g>
@@ -357,16 +382,51 @@ export function GuitarBody() {
         <clipPath id={`${id}-clip`}>
           <path d={BODY_PATH} />
         </clipPath>
-        <filter id={`${id}-band`} filterUnits="userSpaceOnUse" x={-20} y={-20} width={BODY_W + 40} height={ROW_H + 40}>
+        <filter
+          id={`${id}-band`}
+          colorInterpolationFilters="sRGB"
+          filterUnits="userSpaceOnUse"
+          x={-20}
+          y={-20}
+          width={BODY_W + 40}
+          height={ROW_H + 40}
+        >
           <feGaussianBlur stdDeviation="4" />
         </filter>
-        <filter id={`${id}-carve`} filterUnits="userSpaceOnUse" x={0} y={0} width={160} height={ROW_H}>
+        <filter
+          id={`${id}-carve`}
+          colorInterpolationFilters="sRGB"
+          filterUnits="userSpaceOnUse"
+          x={0}
+          y={0}
+          width={160}
+          height={ROW_H}
+        >
           <feGaussianBlur stdDeviation="4" />
         </filter>
-        <filter id={`${id}-edge`} filterUnits="userSpaceOnUse" x={0} y={0} width={160} height={ROW_H}>
+        <filter
+          id={`${id}-edge`}
+          colorInterpolationFilters="sRGB"
+          filterUnits="userSpaceOnUse"
+          x={0}
+          y={0}
+          width={160}
+          height={ROW_H}
+        >
           <feGaussianBlur stdDeviation="1.5" />
         </filter>
-        <filter id={`${id}-glow`} x="-20%" y="-50%" width="140%" height="200%">
+        <filter
+          id={`${id}-rim`}
+          colorInterpolationFilters="sRGB"
+          filterUnits="userSpaceOnUse"
+          x={-10}
+          y={-10}
+          width={BODY_W + 20}
+          height={ROW_H + 20}
+        >
+          <feGaussianBlur stdDeviation="1.4" />
+        </filter>
+        <filter id={`${id}-glow`} colorInterpolationFilters="sRGB" x="-20%" y="-50%" width="140%" height="200%">
           <feGaussianBlur stdDeviation="8" />
         </filter>
         <linearGradient id={`${id}-saddle`} x1="0" y1="0" x2="0" y2="1">
@@ -382,10 +442,6 @@ export function GuitarBody() {
           <stop offset="0.5" stopColor="#a8a49c" />
           <stop offset="1" stopColor="#6e6a62" />
         </linearGradient>
-        <radialGradient id={`${id}-brass`} cx="0.38" cy="0.32" r="0.75">
-          <stop offset="0" stopColor="#c9b27a" />
-          <stop offset="1" stopColor="#6b5630" />
-        </radialGradient>
         <linearGradient id={`${id}-rosewood`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#2f1d13" />
           <stop offset="0.55" stopColor="#24160e" />
@@ -402,25 +458,24 @@ export function GuitarBody() {
             height={ROW_H}
             fill={`url(#${id}-grain)`}
             filter={`url(#${id}-grey)`}
-            opacity={0.35}
+            opacity={0.2}
             style={{ mixBlendMode: 'multiply' }}
           />
         ) : null}
-        <rect
-          width={BODY_W}
-          height={ROW_H}
-          filter={`url(#${id}-streak)`}
-          opacity={0.5}
-          style={{ mixBlendMode: 'multiply' }}
-        />
-        {/* The top darkens toward the lower bass bout and the butt. */}
-        <ellipse cx={300} cy={190} rx={70} ry={40} fill="rgba(30,20,14,0.18)" filter={`url(#${id}-bout)`} />
-        {/* Broad, irregular darker streaks along the grain, beside the pickups and the bridge. */}
+        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-pore)`} opacity={0.45} />
+        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-streak)`} opacity={0.8} />
+        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-pale)`} opacity={0.16} />
+        {/* The worn, paler treble horn and upper bout, where the carve catches the light. */}
         <g filter={`url(#${id}-band)`}>
-          <rect x={0} y={150} width={BODY_W} height={14} fill="rgba(38,26,18,0.22)" />
-          <rect x={0} y={54} width={BODY_W} height={8} fill="rgba(38,26,18,0.22)" />
-          <rect x={0} y={188} width={BODY_W} height={12} fill="rgba(38,26,18,0.15)" />
-          <path d="M90 120 C160 116 240 126 350 122" fill="none" stroke="rgba(38,26,18,0.12)" strokeWidth={8} />
+          <ellipse cx={100} cy={42} rx={44} ry={13} fill="rgba(215,190,178,0.2)" />
+          <ellipse cx={262} cy={34} rx={66} ry={20} fill="rgba(215,190,178,0.1)" />
+        </g>
+        {/* The top darkens toward the lower bass bout and the butt. */}
+        <ellipse cx={300} cy={190} rx={70} ry={40} fill="rgba(24,16,12,0.22)" filter={`url(#${id}-bout)`} />
+        {/* Broad darker streaks along the grain: one behind the bridge to the butt, one across the lower bout. */}
+        <g filter={`url(#${id}-band)`}>
+          <path d="M228 114 C262 110 300 119 350 113" fill="none" stroke="rgba(40,25,16,0.28)" strokeWidth={14} />
+          <path d="M60 156 C140 150 230 162 345 152" fill="none" stroke="rgba(40,25,16,0.2)" strokeWidth={10} />
         </g>
         <rect width={BODY_W} height={ROW_H} fill={`url(#${id}-satin)`} />
         {/* The carved top rolls down into both cutaways: a soft lit ridge just inside each edge, then the edge
@@ -441,12 +496,20 @@ export function GuitarBody() {
           filter={`url(#${id}-glow)`}
         />
         {/* The rounded edge falls off into shadow. */}
-        <path d={BODY_PATH} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth={20} filter={`url(#${id}-soft)`} />
+        <path d={BODY_PATH} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth={20} filter={`url(#${id}-soft)`} />
+        <path d={BODY_PATH} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth={5} filter={`url(#${id}-rim)`} />
       </g>
       <path d={BODY_PATH} fill="none" stroke="rgba(10,8,6,0.8)" strokeWidth={1} />
       {/* Strap buttons: the tip of the bass horn and the end of the body. */}
-      <circle cx={5} cy={179} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
-      <circle cx={346} cy={112} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
+      {[
+        [5, 179],
+        [346, 112],
+      ].map(([cx, cy]) => (
+        <g key={cx}>
+          <circle cx={cx} cy={cy} r={3.2} fill="#2b2826" />
+          <circle cx={cx} cy={cy} r={2.4} fill={`url(#${id}-post)`} opacity={0.85} />
+        </g>
+      ))}
       {/* The fretboard runs on over the body almost to the neck pickup, with its last frets. */}
       {/* The fretboard stands proud of the top, so it casts a soft shadow onto the body. */}
       <rect
@@ -511,11 +574,14 @@ export function GuitarBody() {
       <g filter="drop-shadow(0 1.5px 1px rgba(0,0,0,0.6))">
         <circle cx={221} cy={72} r={3.5} fill={`url(#${id}-post)`} stroke="#4e5457" strokeWidth={0.5} />
         <path d="M221 72 C202 68 160 66 116 66" fill="none" stroke="#d9dcdd" strokeWidth={2.5} strokeLinecap="round" />
-        <ellipse cx={116} cy={66} rx={4} ry={2.6} fill="#f2f2f2" stroke="#8f969a" strokeWidth={0.5} />
+        <rect x={111} y={64} width={11} height={4} rx={2} fill="#151312" />
+        <line x1={112.5} x2={120.5} y1={65} y2={65} stroke="rgba(255,255,255,0.25)" strokeWidth={0.6} />
       </g>
       {/* Mini switch. */}
-      <circle cx={276} cy={68} r={6} fill="#141110" />
-      <circle cx={276} cy={68} r={4.5} fill={`url(#${id}-brass)`} />
+      <circle cx={276} cy={68} r={5.2} fill="#1a1716" />
+      <circle cx={276} cy={68} r={4.2} fill={`url(#${id}-post)`} opacity={0.55} />
+      <circle cx={275.4} cy={67.4} r={2.4} fill="#121010" stroke="#000" strokeWidth={0.4} />
+      <circle cx={274.8} cy={66.8} r={0.8} fill="rgba(255,255,255,0.35)" />
     </svg>
   );
 }
