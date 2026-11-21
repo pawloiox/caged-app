@@ -45,9 +45,8 @@ export default function Practice() {
   return (
     <>
       <PageHead
-        eyebrow="Daily routine · 15 minutes"
         title="Today's practice"
-        lede="Four short blocks, every day. The timer keeps running while you open an exercise, and a chime tells you when to move on."
+        lede="Fifteen minutes in four short blocks, every day. The timer keeps running while you open an exercise, and a chime tells you when to move on."
       />
       <div className="routine">
         <section className="timer-card" aria-label="Timer">
@@ -73,7 +72,7 @@ export default function Practice() {
             </button>
           </div>
           <Link className="btn" to={b.to}>
-            Open this exercise →
+            Open this exercise
           </Link>
           {r.skipped ? <p className="muted">You skipped a block, so today won't count toward your streak.</p> : null}
         </section>

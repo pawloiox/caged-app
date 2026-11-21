@@ -228,7 +228,7 @@ function ShapeCheck() {
   return (
     <section className="bench" aria-label="Shape check" ref={secRef} onKeyDown={onKey}>
       <h2 tabIndex={-1}>
-        Shape check, level {level} · question {Math.min(n + (picked ? 0 : 1), CHECK_LEN)} of {CHECK_LEN} · {correct}{' '}
+        Shape check, level {level}: question {Math.min(n + (picked ? 0 : 1), CHECK_LEN)} of {CHECK_LEN}, {correct}{' '}
         correct
       </h2>
       <p>
@@ -286,7 +286,7 @@ export default function Step3() {
             <strong>Roots:</strong>{' '}
             {rootsOf(inst)
               .map((r) => posName(r.s, r.f))
-              .join(' · ')}
+              .join('; ')}
           </p>
           <p className="tipbox muted">{shapeTip(inst)}</p>
         </Card>

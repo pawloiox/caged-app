@@ -25,7 +25,7 @@ export async function stepDone(page: Page, n: number) {
   await expect(
     page.getByRole('link', {
       name: new RegExp(
-        `${['Open chords and roots', 'Make shapes movable', 'C up the whole neck', 'Any chord, any key', 'Make it musical'][n - 1]} \\(completed\\)`,
+        `${['Open chords', 'Movable shapes', 'C up the neck', 'Any key', 'Make it musical'][n - 1]} \\(completed\\)`,
       ),
     }),
   ).toBeVisible({ timeout: 10_000 });

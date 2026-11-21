@@ -264,7 +264,7 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
     inst,
   )
     .map((r) => posName(r.s, r.f))
-    .join(' · ')}.`;
+    .join('; ')}.`;
   if (mode === 'shape')
     return {
       type: 'shape',

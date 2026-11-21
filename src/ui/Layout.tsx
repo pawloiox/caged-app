@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { engine } from '../audio/engine';
 import { listener, useMic } from '../audio/mic/listener';
@@ -11,65 +11,19 @@ import { dueKeys } from '../train/leitner';
 import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
 
-const ICONS: Record<string, ReactNode> = {
-  explore: (
-    <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
-      <circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="6.5" cy="6.5" r="1.8" fill="currentColor" />
-    </svg>
-  ),
-  practice: (
-    <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
-      <circle cx="6.5" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M6.5 4.3V7l2 1.3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  ),
-  train: (
-    <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
-      <path
-        d="M2 7l3 3 6-7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
-  tuner: (
-    <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
-      <rect x="4.5" y="1" width="4" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M2.5 6.5a4 4 0 0 0 8 0M6.5 10.5V12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  ),
-};
-
-const NAV = [
-  {
-    group: 'Learn',
-    items: [
-      { to: '/learn/1', n: 1, t: 'Open chords and roots' },
-      { to: '/learn/2', n: 2, t: 'Make shapes movable' },
-      { to: '/learn/3', n: 3, t: 'C up the whole neck' },
-      { to: '/learn/4', n: 4, t: 'Any chord, any key' },
-      { to: '/learn/5', n: 5, t: 'Make it musical' },
-    ],
-  },
-  {
-    group: 'Play',
-    items: [
-      { to: '/explore', icon: 'explore', t: 'Fretboard explorer' },
-      { to: '/practice', icon: 'practice', t: 'Daily routine' },
-      { to: '/train', icon: 'train', t: 'Train eye, hand and ear' },
-      { to: '/tuner', icon: 'tuner', t: 'Tuner and listening' },
-    ],
-  },
+/** Steps are fret positions on the neck; the tools sit past the 12th-fret inlay. */
+const STEPS = [
+  { to: '/learn/1', n: 1, t: 'Open chords' },
+  { to: '/learn/2', n: 2, t: 'Movable shapes' },
+  { to: '/learn/3', n: 3, t: 'C up the neck' },
+  { to: '/learn/4', n: 4, t: 'Any key' },
+  { to: '/learn/5', n: 5, t: 'Make it musical' },
+] as const;
+const TOOLS = [
+  { to: '/explore', t: 'Explorer' },
+  { to: '/practice', t: 'Routine' },
+  { to: '/train', t: 'Train' },
+  { to: '/tuner', t: 'Tuner' },
 ] as const;
 
 function useWakeLock(active: boolean) {
@@ -143,7 +97,7 @@ function ViewMenu() {
               ['sharp', 'D♯ minor'],
             ]}
             onChange={(v) => setPrefs({ minorSpelling: v })}
-            label="Minor key spelling: E♭ minor or D♯ minor"
+            label="Minor key spelling"
           />
           <h2 className="card-title">Sound</h2>
           <label className="field">
@@ -173,6 +127,11 @@ function ViewMenu() {
           <Check checked={p.headphones} onChange={(v) => setPrefs({ headphones: v })}>
             I'm using headphones
           </Check>
+          <h2 className="card-title">Keys</h2>
+          <p className="muted menu-note">
+            Space plays and stops. Arrow keys move along the neck. Letters answer quizzes. Tab into a fretboard and walk
+            it with the arrow keys; Enter plays the note.
+          </p>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -182,6 +141,13 @@ function ViewMenu() {
 export function Layout() {
   const loc = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const neckRef = useRef<HTMLElement>(null);
+  // On a narrow screen the neck scrolls sideways: keep the current position in view.
+  useEffect(() => {
+    const cur = neckRef.current?.querySelector<HTMLElement>('.fret[aria-current="page"]');
+    const neck = neckRef.current;
+    if (cur && neck) neck.scrollLeft = cur.offsetLeft - (neck.clientWidth - cur.offsetWidth) / 2;
+  }, [loc.pathname]);
   const first = useRef(true);
   const progress = useProgress();
   const muted = usePrefs((p) => p.muted);
@@ -254,7 +220,7 @@ export function Layout() {
         <div className="chips">
           {rActive && !onPractice ? (
             <Link className="chip accent" to="/practice">
-              Routine {routineSt.block + 1}/4 · {fmtTime(routineSt.remaining)}
+              Routine {routineSt.block + 1} of 4, {fmtTime(routineSt.remaining)} left
               {routineSt.running ? '' : ' paused'}
             </Link>
           ) : null}
@@ -299,36 +265,33 @@ export function Layout() {
           <ViewMenu />
         </div>
       </header>
-      <div className="app">
-        <nav className="side" aria-label="Lessons and tools">
-          {NAV.map((g) => (
-            <div className="nav-group" key={g.group}>
-              <p className="nav-h">{g.group}</p>
-              {g.items.map((it) => {
-                const done = 'n' in it && progress.steps['step-' + it.n];
-                return (
-                  <NavLink key={it.to} to={it.to} className="nav-item">
-                    {'n' in it ? (
-                      <span className={`num${done ? ' done' : ''}`} aria-hidden="true">
-                        {done ? '✓' : it.n}
-                      </span>
-                    ) : (
-                      <span className="num icon">{ICONS[it.icon]}</span>
-                    )}
-                    <span>
-                      {it.t}
-                      {done ? <span className="sr-only"> (completed)</span> : null}
-                    </span>
-                  </NavLink>
-                );
-              })}
-            </div>
+      <nav className="neck" aria-label="Lessons and tools" ref={neckRef}>
+        <div className="neck-board">
+          <span className="nut" aria-hidden="true" />
+          {STEPS.map((it) => {
+            const done = !!progress.steps['step-' + it.n];
+            return (
+              <NavLink key={it.to} to={it.to} className="fret">
+                <span className={`inlay${done ? ' done' : ''}`} aria-hidden="true">
+                  {it.n}
+                </span>
+                <span>
+                  <span className="sr-only">Step {it.n}: </span>
+                  {it.t}
+                  {done ? <span className="sr-only"> (completed)</span> : null}
+                </span>
+              </NavLink>
+            );
+          })}
+          <span className="twelfth" aria-hidden="true" />
+          {TOOLS.map((it) => (
+            <NavLink key={it.to} to={it.to} className="fret tool">
+              {it.t}
+            </NavLink>
           ))}
-          <p className="side-foot">
-            Standard tuning E A D G B E. Space plays and stops, arrow keys move along the neck, letters answer quizzes.
-            Tab into a fretboard and walk it with the arrow keys; Enter plays.
-          </p>
-        </nav>
+        </div>
+      </nav>
+      <div className="app">
         <main
           id="main"
           ref={mainRef}
@@ -343,7 +306,7 @@ export function Layout() {
         <div className="mini no-print" role="region" aria-label="Now playing">
           <span className="lbl">
             ▶ {player.label}
-            {player.detail ? ` · ${player.detail}` : ''}
+            {player.detail ? ` (${player.detail})` : ''}
           </span>
           <button type="button" className="btn small" onClick={() => stopLoop()}>
             Stop<kbd>Space</kbd>
@@ -352,7 +315,7 @@ export function Layout() {
       ) : rActive && !onPractice && !player.active ? (
         <div className="mini no-print" role="region" aria-label="Routine timer">
           <span className="lbl">
-            Routine {routineSt.block + 1}/4 · {fmtTime(routineSt.remaining)}
+            Routine {routineSt.block + 1} of 4, {fmtTime(routineSt.remaining)} left
           </span>
           <button
             type="button"

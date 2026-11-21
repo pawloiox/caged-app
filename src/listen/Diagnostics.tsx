@@ -10,7 +10,6 @@ export default function Diagnostics() {
   return (
     <>
       <PageHead
-        eyebrow="Diagnostics"
         title="Audio timing self-test"
         lede="Renders five minutes of a 140 BPM click track offline on the same Transport the drills use, and reports how far any beat lands from its ideal time."
       />

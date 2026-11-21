@@ -235,7 +235,7 @@ function EarCheck({
             <div className="actions">
               <p>
                 {nameOk && rootOk
-                  ? 'Ear and hand both right · +10 XP. It comes back less often now.'
+                  ? 'Ear and hand both right, +10 XP. It comes back less often now.'
                   : 'Shown above: the chord as you played it. It will come back for review soon.'}
               </p>
               <button type="button" className="btn primary" onClick={onClose}>
@@ -360,7 +360,7 @@ export default function Step5() {
     patchSeen({ s5: [...new Set([...zonesDone, z])] });
     if (first) {
       addXP(10);
-      toast('Zone logged · +10 XP');
+      toast('Zone logged, +10 XP');
     }
   };
 
@@ -592,7 +592,6 @@ export default function Step5() {
               ))}
             </select>
           </label>
-          <span className="muted">Key:</span>
           <KeyPicker value={s.key} q={prog.minor ? 'minor' : 'major'} onChange={(k) => set({ key: k })} />
         </div>
         <div className="toolbar">
@@ -690,7 +689,7 @@ export default function Step5() {
                 <span className="meta">
                   <Pill s={ch.inst.shape} /> {ch.inst.minF === 0 ? 'open' : `${ch.inst.shape}-shape`}, frets {ch.lo}–
                   {ch.hi}
-                  {outBy(ch) ? ` · ${outBy(ch)} fret${outBy(ch) > 1 ? 's' : ''} outside your zone` : ''}
+                  {outBy(ch) ? `; ${outBy(ch)} fret${outBy(ch) > 1 ? 's' : ''} outside your zone` : ''}
                 </span>
                 <span className="why">{explainChoice(ch)}</span>
                 {v ? (
@@ -785,7 +784,7 @@ export default function Step5() {
             <Kbd>Space</Kbd>
           </button>
           <span className="p5-now" aria-live="off">
-            Now <strong>{c.name}</strong> <Pill s={c.inst.shape} /> · next {nx.name}
+            Now <strong>{c.name}</strong> <Pill s={c.inst.shape} />, next {nx.name}
           </span>
           <div className="beats">
             <span className="countin" aria-hidden="true">
@@ -852,7 +851,7 @@ export default function Step5() {
       </div>
       <div className="next">
         <Link className="btn" to="/practice">
-          Next: start your daily routine →
+          Next: start your daily routine
         </Link>
       </div>
     </>

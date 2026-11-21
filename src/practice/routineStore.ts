@@ -75,7 +75,7 @@ function finish() {
   const skipped = useRoutine.getState().skipped;
   resetRoutine();
   if (skipped) notify("Routine finished. Days with skipped blocks don't count toward your streak.");
-  else notify(logRoutineDay() ? 'Routine done for today · +30 XP' : 'Routine done again. Nice work.');
+  else notify(logRoutineDay() ? 'Routine done for today, +30 XP' : 'Routine done again. Nice work.');
 }
 
 export const routineActive = (s: RoutineState): boolean =>

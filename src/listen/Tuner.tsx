@@ -48,7 +48,6 @@ export default function Tuner() {
   return (
     <>
       <PageHead
-        eyebrow="Listening mode"
         title="Tuner and setup"
         lede="Turn on the mic once, tune up, and measure your latency. Then drills can hear what you play: single notes, pivots on the shared root, and whole strums."
       />
@@ -86,7 +85,7 @@ export default function Tuner() {
           <p className="muted">
             {r
               ? tuning
-                ? `${STRING_NAME[OPEN.indexOf(target as 40)]} string · ${r.hz.toFixed(1)} Hz`
+                ? `${STRING_NAME[OPEN.indexOf(target as 40)]} string, ${r.hz.toFixed(1)} Hz`
                 : `${r.hz.toFixed(1)} Hz`
               : mic.status === 'on'
                 ? 'Play a single open string.'
@@ -160,7 +159,7 @@ export default function Tuner() {
         <p className="heard">
           {mic.lastNote != null ? (
             <>
-              <span className="tag ok">{NOTE(mic.lastNote)}</span> {where.map((p) => posName(p.s, p.f)).join(' · ')}
+              <span className="tag ok">{NOTE(mic.lastNote)}</span> {where.map((p) => posName(p.s, p.f)).join('; ')}
             </>
           ) : (
             'Nothing yet.'

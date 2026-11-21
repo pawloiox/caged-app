@@ -443,6 +443,11 @@ Still open from critic 6 (deliberately not changed):
   golden planner outputs, so it needs a decision first.
 - Step 5's no-mic finish is self-report, as section 7.1's fallback requires.
 
+**Visual identity (after `round-6.1`, not critic-reviewed).** A design pass replaced the generic look with one
+built from the subject: colour reserved for the five shapes, Archivo condensed for chord names and titles, a
+rosewood neck as the navigation, and method-book margin notes instead of a card grid. See `docs/design.md`. All
+checks pass (61 unit, 52 E2E tests, including axe in light and dark).
+
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
 

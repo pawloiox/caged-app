@@ -83,7 +83,7 @@ test('v5 localStorage progress is imported', async ({ page }) => {
   });
   await page.goto('/learn/2');
   await expect(page.getByText('123', { exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Open chords and roots \(completed\)/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Open chords \(completed\)/ })).toBeVisible();
 });
 
 test('headings never skip a level', async ({ page }) => {

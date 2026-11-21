@@ -62,7 +62,7 @@ export default function Step1() {
       if (firstTime) {
         patchSeen({ s1: [...new Set([...done, chord])] });
         addXP(10);
-        toast(`${chord}: roots found · +10 XP`);
+        toast(`${chord}: roots found, +10 XP`);
       }
     }
     announce(feedbackFor(ok, selNow));
@@ -367,7 +367,7 @@ export default function Step1() {
             <p className="muted">Roots hidden during the test.</p>
           ) : (
             <p>
-              <strong>Roots:</strong> {roots.map((r) => posName(r.s, r.f)).join(' · ')}
+              <strong>Roots:</strong> {roots.map((r) => posName(r.s, r.f)).join('; ')}
             </p>
           )}
         </Card>

@@ -1,9 +1,4 @@
-// Latin subsets only (the display face is declared in styles.css): smaller CSS and precache.
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-500.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
-import '@fontsource/ibm-plex-mono/latin-600.css';
+// Archivo (Latin, variable width and weight) is declared in styles.css, so it is self-hosted and precached.
 import './ui/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

@@ -558,7 +558,7 @@ export function LinkingDrill({
     const c = cur.current;
     void startLoop<DrillBeat>({
       id: 'drill',
-      label: `Linking drill · ${chordLabel(keyPc, q, sp)} · ${bpm} BPM`,
+      label: `Linking drill in ${chordLabel(keyPc, q, sp)} at ${bpm} BPM`,
       bpm,
       beat: (time) => {
         if (c.k >= path.length) return 'end';
@@ -613,7 +613,7 @@ export function LinkingDrill({
             logPivots(drillKey, bpm, clean, total);
             if (total && clean / total >= 0.9) {
               logDrill(drillKey, bpm);
-              toast(`Clean drill heard at ${bpm} BPM · +20 XP`);
+              toast(`Clean drill heard at ${bpm} BPM, +20 XP`);
               const up = LADDER.find((b) => b > bpm);
               say(
                 `${clean} of ${total} pivots clean. ${up ? `Next time, try ${up} BPM.` : 'Top of the ladder: try another key.'}`,
@@ -659,9 +659,9 @@ export function LinkingDrill({
   return (
     <div className="drill" id="drill">
       <div>
-        <strong>Linking drill</strong>{' '}
+        <h2 className="card-title">Linking drill</h2>
         <span className="muted">
-          · four beats per shape, up the neck and back down. Keep a finger on the shared root while you change.
+          Four beats per shape, up the neck and back down. Keep a finger on the shared root while you change.
           {micOn
             ? ' On beat 3 or 4, pick the shared root (the dashed ring; it pulses on 4): the app waits until it hears it.'
             : ''}
@@ -720,7 +720,7 @@ export function LinkingDrill({
                 say(
                   up ? `Logged. Next time, try ${up} BPM.` : 'Logged at the top of the ladder. Try it in another key.',
                 );
-                toast('Clean drill logged · +20 XP');
+                toast('Clean drill logged, +20 XP');
                 focusSoon(msgRef);
               }}
             >
@@ -757,7 +757,7 @@ export function LinkingDrill({
       <p className="muted">
         Best clean tempo in {chordLabel(keyPc, q, sp)}: <strong>{best ? `${best} BPM` : 'none yet'}</strong>
         {heardScores
-          ? ` · heard pivots: ${Object.entries(heardScores)
+          ? `. Heard pivots: ${Object.entries(heardScores)
               .map(([b, s]) => `${b} BPM ${s.clean}/${s.total}`)
               .join(', ')}`
           : ''}

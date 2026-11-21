@@ -41,7 +41,7 @@ function ChordChart({
       <figcaption>
         <strong>{title}</strong> <span className="muted">{sub}</span>
         {notes.some((n) => n.f > 0 && fingerOf(inst, n.s, strings) === '') ? (
-          <span className="muted"> · hollow = optional, usually left out</span>
+          <span className="muted">. Hollow dots are optional and usually left out.</span>
         ) : null}
       </figcaption>
       <svg
@@ -88,11 +88,14 @@ function ChordChart({
           .map((n) => (
             <g key={n.s}>
               {/* Notes no finger can reach (full minor G-shape outer strings) print hollow: optional. */}
+              {n.iv === 0 ? (
+                <circle cx={x(n.s)} cy={y(n.f)} r={10} fill="none" stroke="var(--ink)" strokeWidth={1.4} />
+              ) : null}
               <circle
                 cx={x(n.s)}
                 cy={y(n.f)}
                 r={7.5}
-                fill={fingerOf(inst, n.s, strings) === '' ? 'none' : n.iv === 0 ? 'var(--accent)' : 'var(--ink)'}
+                fill={fingerOf(inst, n.s, strings) === '' ? 'none' : 'var(--ink)'}
                 stroke="var(--ink)"
                 strokeDasharray={fingerOf(inst, n.s, strings) === '' ? '2.5 2' : undefined}
               />
@@ -123,9 +126,8 @@ export default function PrintCharts() {
   return (
     <div className="print-sheet">
       <PageHead
-        eyebrow="Chord charts"
         title={`${MAJOR_NAMES[key]} major: all five shapes`}
-        lede="Root dots are filled in the accent colour; numbers are fingers. Print it or save it as a PDF from the print dialog."
+        lede="Ringed dots are roots and numbers are fingers. Print the page or save it as a PDF from the print dialog."
       />
       <div className="actions no-print">
         <Seg

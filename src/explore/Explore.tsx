@@ -55,7 +55,6 @@ export default function Explore() {
   return (
     <>
       <PageHead
-        eyebrow="Fretboard explorer"
         title="Every chord, every shape"
         lede="All 12 major, minor and dominant-7th chords in their five shapes, with the pentatonic box around each shape for soloing. Tap any fret to hear it and see what it is."
       />

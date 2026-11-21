@@ -65,7 +65,7 @@ function Mastery() {
             <div className="mbar" role="img" aria-label={`${s}-shape: ${n ? pct + '% correct' : 'not practised yet'}`}>
               <span style={{ width: `${pct}%`, background: COL[s] }} />
             </div>
-            <span aria-hidden="true">{n ? `${pct}% · ${n}` : 'new'}</span>
+            <span aria-hidden="true">{n ? `${pct}% of ${n}` : 'new'}</span>
           </div>
         );
       })}
@@ -484,7 +484,6 @@ export default function Train() {
   return (
     <>
       <PageHead
-        eyebrow={review ? 'Review now' : 'Train your eye, hand and ear'}
         title={review ? 'Clear what is due' : MODE_TITLE[mode]}
         lede={
           review

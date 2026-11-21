@@ -88,7 +88,7 @@ export function updateProgress(fn: (p: Progress) => Progress): void {
     // then announce the milestone, so neither message replaces the other.
     const label = done.map((d) => STEP_LABEL[d]).join(' and ');
     setTimeout(() => {
-      toast(`${label} complete · +50 XP`);
+      toast(`${label} complete, +50 XP`);
       announce(`${label} complete. +50 XP.`);
     }, 1400);
   } else useProgress.setState(next);

@@ -3,7 +3,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { COL } from '../fretboard/build';
 import { LABEL_OPTS, MAJOR_NAMES, ORDER, chordLabel, type Quality, type Shape } from '../theory';
-import { setPrefs, usePrefs, useProgress, useUi } from '../store/app';
+import { setPrefs, usePrefs, useUi } from '../store/app';
 
 export function Seg<T extends string | number>({
   value,
@@ -18,24 +18,31 @@ export function Seg<T extends string | number>({
   label: string;
   className?: string;
 }) {
+  // Underlined choices don't show where one group ends and the next begins, so each group carries its name.
+  // The name is visible text only; the radio group itself is labelled for assistive tech.
   return (
-    <RadioGroup.Root
-      className={`seg ${className}`}
-      value={String(value)}
-      onValueChange={(v) => {
-        const opt = options.find(([o]) => String(o) === v);
-        if (opt) onChange(opt[0]);
-      }}
-      aria-label={label}
-      orientation="horizontal"
-      loop
-    >
-      {options.map(([v, t]) => (
-        <RadioGroup.Item key={String(v)} value={String(v)}>
-          {t}
-        </RadioGroup.Item>
-      ))}
-    </RadioGroup.Root>
+    <div className="seg-group">
+      <span className="seg-label" aria-hidden="true">
+        {label}
+      </span>
+      <RadioGroup.Root
+        className={`seg ${className}`}
+        value={String(value)}
+        onValueChange={(v) => {
+          const opt = options.find(([o]) => String(o) === v);
+          if (opt) onChange(opt[0]);
+        }}
+        aria-label={label}
+        orientation="horizontal"
+        loop
+      >
+        {options.map(([v, t]) => (
+          <RadioGroup.Item key={String(v)} value={String(v)}>
+            {t}
+          </RadioGroup.Item>
+        ))}
+      </RadioGroup.Root>
+    </div>
   );
 }
 
@@ -152,23 +159,19 @@ export function Kbd({ children }: { children: ReactNode }) {
 }
 
 export function Head({ n, title, lede }: { n: number; title: string; lede: string }) {
-  const done = useProgress((p) => !!p.steps['step-' + n]);
   const just = useUi((u) => u.justCompleted.includes('step-' + n));
   return (
     <header className="lesson-head">
-      <p className="eyebrow">
-        Step {n} of 5{done ? ' · completed' : ''}
-      </p>
       <h1 tabIndex={-1}>{title}</h1>
       <p className="lede">{lede}</p>
       {just ? (
         <div className="callout good">
           <p>
-            <strong>Step {n} complete · +50 XP.</strong>{' '}
+            <strong>Step {n} complete, +50 XP.</strong>{' '}
             {n < 5 ? (
-              <Link to={`/learn/${n + 1}`}>Go on to Step {n + 1} →</Link>
+              <Link to={`/learn/${n + 1}`}>Go on to Step {n + 1}</Link>
             ) : (
-              <Link to="/practice">Start your daily routine →</Link>
+              <Link to="/practice">Start your daily routine</Link>
             )}
           </p>
         </div>
@@ -177,10 +180,9 @@ export function Head({ n, title, lede }: { n: number; title: string; lede: strin
   );
 }
 
-export function PageHead({ eyebrow, title, lede }: { eyebrow: string; title: string; lede: ReactNode }) {
+export function PageHead({ title, lede }: { title: string; lede: ReactNode }) {
   return (
     <header className="lesson-head">
-      <p className="eyebrow">{eyebrow}</p>
       <h1 tabIndex={-1}>{title}</h1>
       <p className="lede">{lede}</p>
     </header>
@@ -191,7 +193,7 @@ export function NextLink({ to, children }: { to: string; children: ReactNode }) 
   return (
     <div className="next">
       <Link className="btn" to={to}>
-        Next: {children} →
+        Next: {children}
       </Link>
     </div>
   );

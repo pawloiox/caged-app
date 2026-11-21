@@ -37,7 +37,6 @@ function RouteError() {
   return (
     <main id="main" style={{ padding: 24, maxWidth: 640 }}>
       <PageHead
-        eyebrow="Something went wrong"
         title="This page hit a problem"
         lede="Your progress is saved on this device. Reloading usually fixes it."
       />
@@ -77,7 +76,7 @@ function Home() {
 function NotFound() {
   return (
     <>
-      <PageHead eyebrow="Not found" title="That page isn't here" lede="The link may be old." />
+      <PageHead title="That page isn't here" lede="The link may be old." />
       <p>
         <Link className="btn" to="/">
           Go to your next step

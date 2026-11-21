@@ -1,31 +1,45 @@
 @import 'tailwindcss';
 
 @font-face {
-  font-family: 'Bricolage Grotesque Variable';
+  font-family: 'Archivo Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 200 800;
-  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2')
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2')
     format('woff2-variations');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
     U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ===== Design tokens (ported from the v5 reference) ===== */
+/* ===== CAGED Lab identity =====
+   Colour means a shape: the five CAGED colours are the only colour in the interface. Everything else is
+   the instrument's own materials: pearl (inlays), case ink, graphite, nickel (fret wire) and rosewood (the board).
+   One family, Archivo, used at two widths: condensed and heavy for chord names and titles (the chord-chart
+   symbol), normal width for reading. */
 :root {
-  --bg: #eef1f2;
-  --surface: #ffffff;
-  --surface-2: #f5f7f7;
-  --ink: #14212b;
-  --muted: #55636f;
-  --line: #d4dce0;
-  --accent: #0d6876;
-  --accent-ink: #ffffff;
-  --accent-soft: #d9eef0;
-  --good: #1c8549;
-  --bad: #c0392b;
-  --warn: #a86b12;
+  --pearl: #f2f4f3;
+  --case-ink: #1f2a33;
+  --graphite: #5b6770;
+  --nickel: #a7b0b5;
+  --rosewood: #3a2317;
+  --rosewood-lit: #5a3826;
+
+  --bg: var(--pearl);
+  --surface: #fbfcfc;
+  --surface-2: #e7ebec;
+  --ink: var(--case-ink);
+  --muted: var(--graphite);
+  --line: #c9d0d3;
+  --rule: var(--nickel);
+  /* "accent" is ink: actions are dark, never a hue that could be mistaken for a shape. */
+  --accent: var(--case-ink);
+  --accent-ink: var(--pearl);
+  --accent-soft: #e3e8ea;
+  --good: #1c7a43;
+  --bad: #b8372a;
+  --warn: #946010;
   --c-shape: #cc432d;
   --a-shape: #f2a922;
   --g-shape: #23864c;
@@ -34,10 +48,12 @@
   --wood-1: #4a2c1c;
   --wood-2: #3a2216;
   --wood-3: #2c1910;
-  --font-display: 'Bricolage Grotesque Variable', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
-  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
-  --radius: 12px;
+  --font-display: 'Archivo Variable', 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* No monospace: numbers use Archivo's tabular figures. */
+  --font-mono: var(--font-body);
+  --condensed: 68%;
+  --radius: 8px;
   --tap: 36px;
   color-scheme: light;
 }
@@ -51,34 +67,40 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0f1519;
-    --surface: #172027;
-    --surface-2: #1d2830;
-    --ink: #e3eaee;
-    --muted: #94a4af;
-    --line: #2b3842;
-    --accent: #4db7c5;
-    --accent-ink: #05262b;
-    --accent-soft: #153a40;
-    --good: #4cc47f;
-    --bad: #ef6b5a;
-    --warn: #e5a94a;
+    --bg: #21160f;
+    --surface: #2a1c13;
+    --surface-2: #342318;
+    --ink: #eef1f0;
+    --muted: #c3b6ab;
+    --line: #4d382a;
+    --rule: #7a6555;
+    --accent: #eef1f0;
+    --accent-ink: #21160f;
+    --accent-soft: #3a281c;
+    --good: #5fcf8d;
+    --bad: #f07a69;
+    --warn: #e8b05a;
+    --rosewood: #120b07;
+    --rosewood-lit: #3d281b;
     color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #0f1519;
-  --surface: #172027;
-  --surface-2: #1d2830;
-  --ink: #e3eaee;
-  --muted: #94a4af;
-  --line: #2b3842;
-  --accent: #4db7c5;
-  --accent-ink: #05262b;
-  --accent-soft: #153a40;
-  --good: #4cc47f;
-  --bad: #ef6b5a;
-  --warn: #e5a94a;
+  --bg: #21160f;
+  --surface: #2a1c13;
+  --surface-2: #342318;
+  --ink: #eef1f0;
+  --muted: #c3b6ab;
+  --line: #4d382a;
+  --rule: #7a6555;
+  --accent: #eef1f0;
+  --accent-ink: #21160f;
+  --accent-soft: #3a281c;
+  --good: #5fcf8d;
+  --bad: #f07a69;
+  --warn: #e8b05a;
+  --rosewood: #120b07;
+  --rosewood-lit: #3d281b;
   color-scheme: dark;
 }
 
@@ -95,13 +117,19 @@ body {
 body {
   background: var(--bg);
   color: var(--ink);
-  font: 15px/1.55 var(--font-body);
+  font: 16px/1.55 var(--font-body);
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 a {
-  color: var(--accent);
+  color: var(--ink);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: var(--rule);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration-color: currentColor;
 }
 h1,
 h2,
@@ -109,34 +137,41 @@ h3 {
   font-family: var(--font-display);
   text-wrap: balance;
   margin: 0;
-  line-height: 1.15;
+  line-height: 1.05;
 }
+/* Titles read like the chord symbol on a chord chart: condensed, heavy, large enough to see from the guitar. */
 h1 {
-  font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2.3rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.1rem, 1.5rem + 2.4vw, 3.4rem);
+  font-weight: 820;
+  font-stretch: var(--condensed);
+  letter-spacing: -0.005em;
+  word-spacing: 0.06em;
 }
 h1:focus {
   outline: none;
 }
 h2 {
-  font-size: 1.3rem;
-  font-weight: 650;
+  font-size: 1.45rem;
+  font-weight: 760;
+  font-stretch: 80%;
 }
 h3,
 .card-title {
-  font-size: 1.02rem;
-  font-weight: 650;
+  font-size: 1.12rem;
+  font-weight: 720;
+  font-stretch: 86%;
 }
 p {
   margin: 0;
 }
 kbd {
-  font: 600 10.5px var(--font-mono);
+  font: 600 11px var(--font-body);
   border: 1px solid currentColor;
+  border-bottom-width: 2px;
   border-radius: 4px;
-  padding: 0 4px;
+  padding: 0 5px;
   margin-left: 8px;
+  opacity: 0.85;
 }
 @media (hover: none) {
   kbd {
@@ -144,7 +179,7 @@ kbd {
   }
 }
 :focus-visible {
-  outline: 2.5px solid var(--accent);
+  outline: 2.5px solid var(--ink);
   outline-offset: 2px;
 }
 .sr-only {
@@ -174,9 +209,8 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 20px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
+  padding: 6px clamp(12px, 3vw, 28px);
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 .brand {
@@ -185,12 +219,13 @@ kbd {
   gap: 10px;
   text-decoration: none;
   color: var(--ink);
-  font: 800 1.15rem var(--font-display);
+  font: 800 1.3rem var(--font-display);
+  font-stretch: var(--condensed);
   min-height: var(--tap);
 }
 .chips {
   display: flex;
-  gap: 8px;
+  gap: 4px 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
@@ -199,32 +234,37 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 11px;
+  padding: 4px 10px;
   min-height: var(--tap);
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--muted);
   text-decoration: none;
 }
 .chip b {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--ink);
 }
 button.chip,
 a.chip {
   cursor: pointer;
+  color: var(--ink);
+}
+button.chip {
+  border-color: var(--line);
 }
 button.chip:hover,
 a.chip:hover {
-  border-color: var(--accent);
+  border-color: var(--ink);
 }
 .chip.accent {
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
 }
 .chip.live {
   border-color: var(--good);
@@ -239,94 +279,156 @@ a.chip:hover {
 .menu {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: var(--radius);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 250px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  min-width: 260px;
+  box-shadow: 0 12px 32px rgba(31, 42, 51, 0.18);
   z-index: 60;
   color: var(--ink);
 }
-.menu h3 {
-  font-size: 0.9rem;
-}
 
-.app {
-  display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
-  min-height: calc(100vh - 55px);
+/* ===== The neck: navigation as a guitar neck =====
+   Steps 1–5 are fret positions with inlay dots (a pearl inlay = step done), the 12th-fret double inlay
+   separates the lessons from the tools beyond them. The board is always rosewood, in both themes. */
+.neck {
+  position: relative;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: linear-gradient(180deg, #4a2c1c, #3a2216 55%, #2c1910);
+  border-bottom: 3px solid #1d110a;
 }
-.side {
-  border-right: 1px solid var(--line);
-  padding: 22px 14px;
+.neck::-webkit-scrollbar {
+  display: none;
+}
+.neck-board {
   display: flex;
-  flex-direction: column;
-  gap: 22px;
+  align-items: stretch;
+  min-width: max-content;
+  /* Six strings, low E thickest at the bottom, drawn behind the frets. */
+  background-image:
+    linear-gradient(rgba(226, 221, 209, 0.16), rgba(226, 221, 209, 0.16)),
+    linear-gradient(rgba(226, 221, 209, 0.18), rgba(226, 221, 209, 0.18)),
+    linear-gradient(rgba(226, 221, 209, 0.2), rgba(226, 221, 209, 0.2)),
+    linear-gradient(rgba(226, 221, 209, 0.22), rgba(226, 221, 209, 0.22)),
+    linear-gradient(rgba(226, 221, 209, 0.24), rgba(226, 221, 209, 0.24)),
+    linear-gradient(rgba(226, 221, 209, 0.26), rgba(226, 221, 209, 0.26));
+  background-size:
+    100% 1px,
+    100% 1px,
+    100% 1.5px,
+    100% 1.5px,
+    100% 2px,
+    100% 2.5px;
+  background-position:
+    0 12%,
+    0 28%,
+    0 44%,
+    0 60%,
+    0 76%,
+    0 92%;
+  background-repeat: no-repeat;
 }
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.neck .nut {
+  flex: none;
+  width: 9px;
+  background: #efe7d4;
+  box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.18);
 }
-.nav-h {
-  font: 600 11px var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 10px 6px;
-}
-.nav-item {
+.fret {
+  flex: 1 0 auto;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  min-height: var(--tap);
-  border-radius: 9px;
+  padding: 12px clamp(12px, 1.3vw, 22px);
+  min-height: 64px;
+  color: #f1ebe1;
   text-decoration: none;
-  color: var(--ink);
-  font-weight: 500;
+  font: 600 15px/1.2 var(--font-body);
+  white-space: nowrap;
+  border-right: 3px solid #c9c2b3;
 }
-.nav-item:hover {
-  background: var(--surface);
+.fret:hover {
+  background: rgba(255, 244, 228, 0.07);
 }
-.nav-item[aria-current='page'] {
-  background: var(--surface);
-  box-shadow: inset 3px 0 0 var(--accent);
+.fret[aria-current='page'] {
+  background: rgba(255, 244, 228, 0.13);
 }
-.num {
+.fret[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px 2px 0 0;
+  background: #f1ebe1;
+}
+.fret:focus-visible {
+  outline: 2.5px solid #ffd27a;
+  outline-offset: -4px;
+}
+.inlay {
   flex: none;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1.5px solid var(--line);
-  font: 600 12px var(--font-mono);
-  color: var(--muted);
+  border: 2px solid rgba(241, 235, 225, 0.75);
+  font: 750 14px var(--font-body);
+  color: #f1ebe1;
 }
-.num.done {
-  background: var(--good);
-  border-color: var(--good);
-  color: #fff;
+.inlay.done {
+  border-color: transparent;
+  color: #3a2216;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #e8eef0 45%, #c9d4d8 80%, #dfe6e2);
 }
-.num.icon {
-  border-radius: 7px;
+.fret.tool {
+  font-weight: 500;
+  color: #e3dacd;
 }
-.side-foot {
-  margin-top: auto;
-  font-size: 12.5px;
-  color: var(--muted);
-  padding: 0 10px;
+.fret.tool[aria-current='page'] {
+  color: #f1ebe1;
+  font-weight: 650;
+}
+.twelfth {
+  flex: none;
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border-right: 3px solid #c9c2b3;
+}
+.twelfth::before,
+.twelfth::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #e8eef0 45%, #c9d4d8);
+}
+
+.app {
+  display: block;
+}
+.menu-note {
+  font-size: 14px;
+  max-width: 32ch;
 }
 main {
-  padding: 28px clamp(16px, 3vw, 40px) 96px;
+  padding: 36px clamp(16px, 4vw, 48px) 96px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  max-width: 1180px;
+  gap: 28px;
+  max-width: 1160px;
+  margin: 0 auto;
 }
 /* Room for the floating mini-player, so it never covers the last link on the page. */
 main.with-mini {
@@ -340,37 +442,35 @@ main:focus {
 .lesson-head {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-width: 70ch;
+  gap: 12px;
+  max-width: 68ch;
 }
 .eyebrow {
-  font: 600 12px var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
 }
 .lede {
   color: var(--muted);
-  font-size: 1.03rem;
-  max-width: 65ch;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 62ch;
 }
 .bench {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
+  border-top: 3px solid var(--ink);
+  padding: 22px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
 }
 .bench > h2 {
-  font-size: 1.15rem;
+  font-size: 1.6rem;
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 12px 32px;
   align-items: center;
 }
 .actions {
@@ -381,9 +481,9 @@ main:focus {
 }
 .board-wrap {
   overflow-x: auto;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface-2);
-  padding: 8px 6px;
+  padding: 10px 6px;
   scroll-behavior: smooth;
 }
 .board-wrap.vertical {
@@ -432,14 +532,14 @@ main:focus {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   min-height: var(--tap);
-  border-radius: 9px;
-  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
   background: var(--surface);
   cursor: pointer;
   font: inherit;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   color: var(--ink);
 }
@@ -447,8 +547,8 @@ main:focus {
   border-color: var(--accent);
 }
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ink);
+  border-color: var(--ink);
   color: var(--accent-ink);
 }
 .btn.primary:hover {
@@ -471,35 +571,42 @@ main:focus {
   opacity: 0.5;
   cursor: default;
 }
+.seg-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 12px;
+}
+.seg-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
 .seg {
   display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 2px;
-  background: var(--surface-2);
   flex-wrap: wrap;
+  gap: 0 14px;
 }
 .seg button {
   border: 0;
   background: transparent;
-  padding: 6px 11px;
-  min-height: calc(var(--tap) - 6px);
-  border-radius: 8px;
+  padding: 6px 1px;
+  min-height: calc(var(--tap) - 4px);
+  border-radius: 0;
   cursor: pointer;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--muted);
 }
 .seg button[data-state='checked'] {
-  background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+  font-weight: 720;
+  box-shadow: inset 0 -3px 0 var(--ink);
 }
 .seg.keys button {
-  min-width: max(40px, var(--tap));
-  font-family: var(--font-mono);
-  font-size: 13px;
+  min-width: max(28px, var(--tap));
+  font-size: 15px;
 }
 .shape-btns {
   display: flex;
@@ -626,14 +733,12 @@ output {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px 44px;
 }
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px 18px;
+  border-top: 1px solid var(--rule);
+  padding: 14px 0 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -749,7 +854,8 @@ table.tab .fg {
   flex-wrap: wrap;
 }
 .chord-big {
-  font: 800 2.3rem/1 var(--font-display);
+  font: 840 3.2rem/0.95 var(--font-display);
+  font-stretch: var(--condensed);
 }
 .slider-row {
   display: flex;
@@ -760,10 +866,10 @@ table.tab .fg {
   width: 100%;
 }
 .callout {
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--ink);
   background: var(--accent-soft);
-  padding: 10px 14px;
-  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -780,12 +886,11 @@ table.tab .fg {
   outline: none;
 }
 .drill {
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-top: 1px solid var(--rule);
+  padding: 16px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .tipbox {
   font-size: 14px;
@@ -862,7 +967,8 @@ table.shapes button.rowbtn {
   color: var(--ink);
 }
 .chord-card strong {
-  font: 800 1.5rem/1.1 var(--font-display);
+  font: 840 1.9rem/1 var(--font-display);
+  font-stretch: var(--condensed);
 }
 .chord-card .roman {
   font: 600 12px var(--font-mono);
@@ -932,11 +1038,9 @@ table.shapes button.rowbtn {
   position: static;
   bottom: 0;
   z-index: 6;
-  background: var(--surface);
+  background: var(--bg);
   border-top: 1px solid var(--line);
-  margin: 0 -16px -16px;
-  padding: 10px 16px;
-  border-radius: 0 0 16px 16px;
+  padding: 10px 0;
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -960,10 +1064,8 @@ table.shapes button.rowbtn {
   align-items: start;
 }
 .timer-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
+  border-top: 3px solid var(--ink);
+  padding: 20px 0 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -971,9 +1073,9 @@ table.shapes button.rowbtn {
   top: 76px;
 }
 .big-time {
-  font: 800 3.6rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  font: 840 4.6rem/0.95 var(--font-display);
+  font-stretch: var(--condensed);
+  letter-spacing: -0.01em;
 }
 .bar {
   height: 8px;
@@ -1000,14 +1102,12 @@ table.shapes button.rowbtn {
   display: grid;
   grid-template-columns: 64px 1fr;
   gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-top: 1px solid var(--rule);
+  padding: 14px 0;
 }
 .blocks li.on {
-  border-color: var(--accent);
-  box-shadow: inset 3px 0 0 var(--accent);
+  border-top: 3px solid var(--ink);
+  padding-top: 12px;
 }
 .blocks li.done {
   opacity: 0.6;
@@ -1040,7 +1140,8 @@ table.shapes button.rowbtn {
   border-color: var(--good);
 }
 .stat {
-  font: 800 2rem/1 var(--font-display);
+  font: 840 2.6rem/1 var(--font-display);
+  font-stretch: var(--condensed);
 }
 
 /* Train */
@@ -1533,32 +1634,6 @@ table.shapes button.rowbtn {
 }
 
 @media (max-width: 860px) {
-  .app {
-    grid-template-columns: 1fr;
-    /* Without this, the grid's min-height stretches the nav strip while a page chunk loads (layout shift). */
-    grid-template-rows: auto 1fr;
-  }
-  .side {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 8px 12px;
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 14px;
-  }
-  .nav-group {
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
-  }
-  .nav-h,
-  .side-foot {
-    display: none;
-  }
-  .nav-item {
-    white-space: nowrap;
-    padding: 6px 10px;
-  }
   .routine {
     grid-template-columns: 1fr;
   }
@@ -1571,6 +1646,10 @@ table.shapes button.rowbtn {
   .chip.opt {
     display: none;
   }
+  .fret {
+    min-height: 56px;
+    font-size: 14px;
+  }
 }
 @media (max-width: 480px) {
   .brand span {
@@ -1578,12 +1657,6 @@ table.shapes button.rowbtn {
   }
   main {
     padding-top: 20px;
-  }
-  .bench {
-    padding: 12px;
-  }
-  .p5-bar {
-    margin: 0 -12px -12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

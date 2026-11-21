@@ -78,7 +78,7 @@ export default function Step2() {
     setSolved('yes');
     addXP(10);
     patchSeen({ s2: solvedTotal + 1 });
-    toast('Found it · +10 XP');
+    toast('Found it, +10 XP');
     announce(`Correct: that's ${chordLong(target, q, prefs.minorSpelling)} with the ${shape}-shape.`);
   };
 
