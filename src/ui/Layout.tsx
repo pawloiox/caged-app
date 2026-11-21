@@ -12,6 +12,10 @@ import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
 import { loadGrain } from '../fretboard/materials';
 import { isDue } from '../train/leitner';
+import { GuitarBody, Headstock, KnobFace } from './Guitar';
+
+/** Frets close up toward the body: each fret's share of spare width shrinks like real fret spacing. */
+const taper = (k: number) => +Math.pow(2, -k / 12).toFixed(3);
 
 /** Steps are fret positions on the neck; the tools sit past the 12th-fret inlay. */
 const STEPS = [
@@ -59,8 +63,9 @@ function ViewMenu() {
   const p = usePrefs();
   return (
     <Popover.Root>
-      <Popover.Trigger className="chip" aria-label="View and sound settings">
-        View
+      <Popover.Trigger className="knob-btn view" aria-label="View and sound settings">
+        <KnobFace angle={0} />
+        <span className="knob-label">View</span>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content className="menu" sideOffset={6} align="end" collisionPadding={12}>
@@ -219,93 +224,96 @@ export function Layout() {
       <a className="skip btn" href="#main">
         Skip to content
       </a>
-      <header className="topbar">
-        <Link className="brand" to="/" aria-label="CAGED Lab home">
-          <svg width="58" height="18" viewBox="0 0 58 18" aria-hidden="true">
-            <circle cx="9" cy="9" r="7" fill="var(--c-shape)" />
-            <circle cx="19" cy="9" r="7" fill="var(--a-shape)" />
-            <circle cx="29" cy="9" r="7" fill="var(--g-shape)" />
-            <circle cx="39" cy="9" r="7" fill="var(--e-shape)" />
-            <circle cx="49" cy="9" r="7" fill="var(--d-shape)" />
-          </svg>
-          <span>CAGED Lab</span>
+      <header className="guitar">
+        <Link className="headstock" to="/" aria-label="CAGED Lab home">
+          <Headstock />
+          <span className="brand-plain" aria-hidden="true">
+            <svg width="58" height="18" viewBox="0 0 58 18">
+              <circle cx="9" cy="9" r="7" fill="var(--c-shape)" />
+              <circle cx="19" cy="9" r="7" fill="var(--a-shape)" />
+              <circle cx="29" cy="9" r="7" fill="var(--g-shape)" />
+              <circle cx="39" cy="9" r="7" fill="var(--e-shape)" />
+              <circle cx="49" cy="9" r="7" fill="var(--d-shape)" />
+            </svg>
+            <span>CAGED Lab</span>
+          </span>
         </Link>
-        <div className="chips">
-          {rActive && !onPractice ? (
-            <Link className="chip accent" to="/practice">
-              Routine {routineSt.block + 1} of 4, {fmtTime(routineSt.remaining)} left
-              {routineSt.running ? '' : ' paused'}
-            </Link>
-          ) : null}
-          <Link className="chip accent opt" to={ns ? `/learn/${ns}` : '/train'}>
-            {ns ? `Next up: Step ${ns}` : 'Next up: keep training'}
-          </Link>
-          {due ? (
-            <Link className="chip opt" to="/train/review">
-              Review <b>{due}</b>
-            </Link>
-          ) : null}
-          <span className="chip opt">
-            Streak{' '}
-            <b>
-              {st} {st === 1 ? 'day' : 'days'}
-            </b>
-          </span>
-          <span className="chip">
-            <b>{progress.xp}</b> XP
-          </span>
-          {mic === 'on' ? (
+        <nav className="neck" aria-label="Lessons and tools" ref={neckRef}>
+          <div className="neck-board">
+            {STEPS.map((it, k) => {
+              const done = !!progress.steps['step-' + it.n];
+              // A finished step whose re-test is due: the pearl dulls until the skill is checked again.
+              const checkDue = done && isDue(progress.stats['step:' + it.n]);
+              const next = ns === it.n;
+              return (
+                <NavLink key={it.to} to={it.to} className="fret" style={{ flexGrow: taper(k) }}>
+                  <span className={`inlay${done ? ' done' : ''}${checkDue ? ' due' : ''}`} aria-hidden="true">
+                    {it.n}
+                  </span>
+                  <span className="fret-label">
+                    <span className="sr-only">Step {it.n}: </span>
+                    {it.t}
+                    {done ? (
+                      <span className="sr-only">{checkDue ? ' (completed, check due)' : ' (completed)'}</span>
+                    ) : null}
+                  </span>
+                  {next ? <span className="fret-sub">Next up</span> : null}
+                </NavLink>
+              );
+            })}
+            <span className="twelfth" aria-hidden="true" />
+            {TOOLS.map((it, k) => {
+              const sub =
+                it.to === '/train' && due
+                  ? `${due} due`
+                  : it.to === '/practice'
+                    ? rActive
+                      ? `${fmtTime(routineSt.remaining)} left${routineSt.running ? '' : ', paused'}`
+                      : st
+                        ? `${st}-day streak`
+                        : ''
+                    : '';
+              return (
+                <NavLink key={it.to} to={it.to} className="fret tool" style={{ flexGrow: taper(k + 6) }}>
+                  <span className="fret-label">{it.t}</span>
+                  {sub ? <span className="fret-sub">{sub}</span> : null}
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+        <div className="gbody">
+          <GuitarBody />
+          <div className="controls">
+            <span className="xp">
+              <b>{progress.xp}</b> XP
+            </span>
+            {mic === 'on' ? (
+              <button
+                type="button"
+                className="mic-led"
+                onClick={() => listener.stop()}
+                aria-label="Listening. Press to stop the microphone."
+              >
+                <span className="dot" aria-hidden="true" /> Mic
+              </button>
+            ) : null}
             <button
               type="button"
-              className="chip live"
-              onClick={() => listener.stop()}
-              aria-label="Listening. Press to stop the microphone."
+              className="knob-btn sound"
+              aria-pressed={!muted}
+              onClick={() => {
+                engine.ensure();
+                setPrefs({ muted: !muted });
+              }}
             >
-              <span className="dot" aria-hidden="true" /> Mic
+              <KnobFace angle={muted ? -135 : 135} />
+              <span className="knob-label">{muted ? 'Sound off' : 'Sound on'}</span>
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="chip"
-            aria-pressed={!muted}
-            onClick={() => {
-              engine.ensure();
-              setPrefs({ muted: !muted });
-            }}
-          >
-            {muted ? 'Sound off' : 'Sound on'}
-          </button>
-          <ViewMenu />
+            <ViewMenu />
+          </div>
         </div>
       </header>
-      <nav className="neck" aria-label="Lessons and tools" ref={neckRef}>
-        <div className="neck-board">
-          <span className="nut" aria-hidden="true" />
-          {STEPS.map((it) => {
-            const done = !!progress.steps['step-' + it.n];
-            // A finished step whose re-test is due: the pearl dulls until the skill is checked again.
-            const due = done && isDue(progress.stats['step:' + it.n]);
-            return (
-              <NavLink key={it.to} to={it.to} className="fret">
-                <span className={`inlay${done ? ' done' : ''}${due ? ' due' : ''}`} aria-hidden="true">
-                  {it.n}
-                </span>
-                <span>
-                  <span className="sr-only">Step {it.n}: </span>
-                  {it.t}
-                  {done ? <span className="sr-only">{due ? ' (completed, check due)' : ' (completed)'}</span> : null}
-                </span>
-              </NavLink>
-            );
-          })}
-          <span className="twelfth" aria-hidden="true" />
-          {TOOLS.map((it) => (
-            <NavLink key={it.to} to={it.to} className="fret tool">
-              {it.t}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
       <div className="app">
         <main
           id="main"

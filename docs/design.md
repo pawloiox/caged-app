@@ -12,9 +12,21 @@ often a phone. The interface has one job: show the neck and what to play next, r
    where wood actually is: the fretboard and the neck navigation.
 3. **Type at arm's length.** Chord names and page titles are the largest things on screen, set condensed and
    heavy like the chord symbol on a chord chart.
-4. **One bold element: the neck.** The navigation is a rosewood neck. Steps 1–5 are fret positions with inlay
-   dots (a pearl inlay means the step is done), and a 12th-fret double inlay separates the lessons from the tools
-   beyond them. Everything else stays quiet.
+4. **One bold element: the guitar.** The navigation is a guitar lying across the top of the page
+   (`src/ui/Guitar.tsx`, `Layout.tsx`):
+   - The headstock is the home link: a 3 + 3 headstock with a scooped tip, nickel tuners and the logo.
+   - The neck holds the steps and tools. Steps 1–5 are fret positions with inlay dots (a pearl inlay means the
+     step is done), and a 12th-fret double inlay separates the lessons from the tools beyond them. Status sits on
+     the frets themselves: "Next up" under the next step, "3 due" under Train, and the routine timer or streak
+     under Routine. Frets close up toward the body.
+   - The body is stained wood with cream binding, two humbuckers, a bridge and a stop tailpiece. Its two knobs
+     are the controls: Sound (the pointer turns between 0 and 10) and View. XP and the live-mic light sit beside
+     them.
+   - The strings run unbroken from the tuners to the tailpiece: everything is drawn on one 152 px row with the
+     68 px neck centred.
+   - Between 861 and about 1200 px the neck scrolls sideways between headstock and body. At 860 px and below
+     the brand and knobs share a top row and the neck runs full width below.
+   - Everything else stays quiet.
 5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step
    inlays are mother-of-pearl: a cool nacre base, soft pastel iridescent bands that slowly slide across (as when
    the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the

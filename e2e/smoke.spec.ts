@@ -181,3 +181,33 @@ test('printing is on white paper without the navigation, whatever the theme', as
     'rgb(255, 255, 255)',
   );
 });
+
+test('the navigation is a guitar: headstock home, steps and tools on the frets, knobs on the body', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/learn/3');
+  const banner = page.getByRole('banner');
+  // Headstock, neck and body sit on one line, the neck between the other two.
+  const head = await banner.locator('.headstock-art').boundingBox();
+  const neck = await page.locator('nav.neck').boundingBox();
+  const body = await banner.locator('.body-art').boundingBox();
+  expect(head!.x + head!.width).toBeLessThanOrEqual(neck!.x + 1);
+  expect(body!.x).toBeLessThan(neck!.x + neck!.width);
+  expect(Math.abs(head!.y + head!.height / 2 - (neck!.y + neck!.height / 2))).toBeLessThan(2);
+  expect(Math.abs(body!.y + body!.height / 2 - (neck!.y + neck!.height / 2))).toBeLessThan(2);
+  // Every fret is visible on a wide screen (nothing hidden under the body).
+  const tuner = await page.locator('nav.neck').getByRole('link', { name: 'Tuner' }).boundingBox();
+  expect(tuner!.x + tuner!.width).toBeLessThanOrEqual(body!.x + 60);
+  await expect(page.locator('nav.neck').getByRole('link', { name: /Open chords/ })).toContainText('Next up');
+  // The Sound knob turns, and the View knob opens the settings.
+  const sound = banner.getByRole('button', { name: /Sound (on|off)/ });
+  const before = await sound.getAttribute('aria-pressed');
+  await sound.click();
+  await expect(sound).toHaveAttribute('aria-pressed', before === 'true' ? 'false' : 'true');
+  await banner.getByRole('button', { name: 'View and sound settings' }).click();
+  await expect(page.getByRole('radiogroup', { name: 'Theme' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await banner.getByRole('link', { name: 'CAGED Lab home' }).click();
+  await expect(page).toHaveURL(/\/(learn\/1)?$/);
+});

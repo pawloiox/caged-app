@@ -515,3 +515,11 @@ All of them are validated field by field on load and import; older saves load un
 
 **Not verified.** The fluency targets are first guesses. Tune them once there are real answer times. The mic path
 of "Play from memory" is tested in unit logic only, not with the fake-microphone WAV.
+
+## 15. The guitar navigation (after section 14; not critic-reviewed)
+
+The top bar and the neck strip became one guitar lying across the page (see `docs/design.md`, principle 4).
+The header chips moved onto the guitar: Next up, review count and streak are sub-labels on their frets; XP,
+Sound, View and the mic light are on the body. The header is no longer sticky. Tests: one E2E test checks the
+alignment of headstock, neck and body, the fret status, both knobs and the home link; the phone test now
+includes the knobs in its 44 px target check. Totals: 89 unit and 62 E2E tests, all passing.

@@ -233,82 +233,172 @@ kbd {
   top: 8px;
 }
 
-/* ===== Shell ===== */
-.topbar {
-  position: sticky;
-  top: 0;
+/* ===== Shell: the navigation is a guitar lying across the top =====
+   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 152 px row; the
+   neck is 68 px tall and centred, so the strings drawn in the headstock and body SVGs (ui/Guitar.tsx) line up
+   with the strings across the neck. The guitar keeps its own materials in both themes. */
+.guitar {
+  position: relative;
   z-index: 30;
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 284px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px clamp(12px, 3vw, 28px);
-  background: color-mix(in srgb, var(--bg) 84%, transparent);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--line);
+  height: 152px;
+  box-sizing: content-box;
+  padding: 10px clamp(10px, 2vw, 28px) 4px;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.headstock {
+  display: block;
+  line-height: 0;
+  border-radius: 14px;
   text-decoration: none;
   color: var(--ink);
-  font: 800 1.3rem var(--font-display);
+}
+.headstock:focus-visible {
+  outline: 2.5px solid #ffd27a;
+  outline-offset: 2px;
+}
+.headstock-art {
+  display: block;
+  overflow: visible;
+}
+.headstock-name {
+  font: 820 17px var(--font-display);
+  font-stretch: var(--condensed);
+  fill: #f1ebe1;
+  letter-spacing: 0.01em;
+}
+.brand-plain {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font: 800 1.3rem/1 var(--font-display);
   font-stretch: var(--condensed);
   min-height: var(--tap);
 }
-.chips {
-  display: flex;
-  gap: 4px 6px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
+.gbody {
+  position: relative;
+  width: 340px;
+  height: 152px;
+  /* The body reaches back over the end of the neck: the neck pocket. */
+  margin-left: -56px;
+  z-index: 2;
 }
-.chip {
+.body-art {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.controls {
+  position: absolute;
+  inset: 0;
+  color: #f1ebe1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+.controls .xp {
+  position: absolute;
+  left: 214px;
+  top: 20px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.controls .xp b {
+  font: 800 1.15rem var(--font-display);
+  font-stretch: var(--condensed);
+}
+.mic-led {
+  position: absolute;
+  left: 280px;
+  top: 112px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  min-height: var(--tap);
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  font-size: 14px;
-  white-space: nowrap;
-  color: var(--muted);
-  text-decoration: none;
-}
-.chip b {
-  font-weight: 700;
-  color: var(--ink);
-}
-button.chip,
-a.chip {
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid rgba(241, 235, 225, 0.5);
+  border-radius: 999px;
+  background: rgba(10, 6, 4, 0.55);
+  color: #f1ebe1;
+  font: 650 12px var(--font-body);
   cursor: pointer;
-  color: var(--ink);
 }
-button.chip {
-  border-color: var(--line);
-}
-button.chip:hover,
-a.chip:hover {
-  border-color: var(--ink);
-}
-.chip.accent {
-  font-weight: 650;
-  text-decoration: underline;
-  text-decoration-color: var(--rule);
-  text-underline-offset: 3px;
-}
-.chip.live {
-  border-color: var(--good);
-  color: var(--good);
-}
-.chip .dot {
+.mic-led .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: currentColor;
+  background: #6fe39a;
+  box-shadow: 0 0 6px #6fe39a;
+}
+/* Knobs: the two controls on the body. Sound turns the pointer between "0" and "10". */
+.knob-btn {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: 58px;
+  padding: 3px 0;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  color: #f1ebe1;
+  font: 650 11.5px/1.1 var(--font-body);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.controls .knob-btn.sound {
+  position: absolute;
+  left: 206px;
+  top: 66px;
+}
+.controls .knob-btn.view {
+  position: absolute;
+  left: 266px;
+  top: 40px;
+}
+.knob-btn:focus-visible {
+  outline: 2.5px solid #ffd27a;
+  outline-offset: 0;
+}
+.knob-face {
+  position: relative;
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  /* Knurled edge round a domed cap. */
+  background: repeating-conic-gradient(#0d0a09 0 5deg, #39322f 5deg 10deg);
+  box-shadow:
+    0 3px 4px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.7);
+}
+.knob-face::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #6b6360, #2a2523 55%, #141110);
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.6);
+}
+.knob-pointer {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.knob-pointer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 5px;
+  width: 2.5px;
+  height: 10px;
+  margin-left: -1.25px;
+  border-radius: 1px;
+  background: #f1ebe1;
+}
+.knob-btn:hover .knob-face,
+.knob-btn[data-state='open'] .knob-face {
+  box-shadow:
+    0 3px 4px rgba(0, 0, 0, 0.6),
+    0 0 0 2px rgba(241, 235, 225, 0.7);
 }
 .menu {
   background: var(--surface);
@@ -336,15 +426,51 @@ a.chip:hover {
   }
 }
 
-/* ===== The neck: navigation as a guitar neck =====
-   Steps 1–5 are fret positions with inlay dots (a pearl inlay = step done), the 12th-fret double inlay
-   separates the lessons from the tools beyond them. The board is always rosewood, in both themes. */
+/* ===== The neck =====
+   Steps 1–5 are fret positions with inlay dots (a pearl inlay = step done); the 12th-fret double inlay separates
+   the lessons from the tools beyond it. Rosewood with cream binding, nickel frets, strings behind the labels. */
 .neck {
   position: relative;
+  height: 68px;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
-  background: linear-gradient(180deg, #4a2c1c, #3a2216 55%, #2c1910);
-  border-bottom: 3px solid #1d110a;
+  /* Six strings at the same heights as in the headstock and body drawings, then the wood. */
+  background-image:
+    linear-gradient(rgba(236, 236, 232, 0.5), rgba(236, 236, 232, 0.5)),
+    linear-gradient(rgba(236, 236, 232, 0.5), rgba(236, 236, 232, 0.5)),
+    linear-gradient(rgba(236, 236, 232, 0.5), rgba(236, 236, 232, 0.5)),
+    linear-gradient(rgba(214, 186, 140, 0.55), rgba(214, 186, 140, 0.55)),
+    linear-gradient(rgba(214, 186, 140, 0.55), rgba(214, 186, 140, 0.55)),
+    linear-gradient(rgba(214, 186, 140, 0.55), rgba(214, 186, 140, 0.55)),
+    linear-gradient(rgba(28, 14, 7, 0.45), rgba(28, 14, 7, 0.45)), var(--page-grain, none),
+    linear-gradient(180deg, #4a2c1c, #3a2216 55%, #2c1910);
+  background-size:
+    100% 1px,
+    100% 1px,
+    100% 1.5px,
+    100% 1.5px,
+    100% 2px,
+    100% 2.5px,
+    100% 100%,
+    600px 120px,
+    100% 100%;
+  background-position:
+    0 8px,
+    0 19px,
+    0 29.5px,
+    0 40px,
+    0 51px,
+    0 61.5px,
+    0 0,
+    0 0,
+    0 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+  /* Cream binding along both edges. */
+  box-shadow:
+    inset 0 2px 0 #e9dfc8,
+    inset 0 -2px 0 #e9dfc8,
+    0 4px 6px rgba(0, 0, 0, 0.35);
 }
 .neck::-webkit-scrollbar {
   display: none;
@@ -352,64 +478,46 @@ a.chip:hover {
 .neck-board {
   display: flex;
   align-items: stretch;
+  height: 100%;
   min-width: max-content;
-  /* Six strings, low E thickest at the bottom, drawn behind the frets. */
-  background-image:
-    linear-gradient(rgba(226, 221, 209, 0.16), rgba(226, 221, 209, 0.16)),
-    linear-gradient(rgba(226, 221, 209, 0.18), rgba(226, 221, 209, 0.18)),
-    linear-gradient(rgba(226, 221, 209, 0.2), rgba(226, 221, 209, 0.2)),
-    linear-gradient(rgba(226, 221, 209, 0.22), rgba(226, 221, 209, 0.22)),
-    linear-gradient(rgba(226, 221, 209, 0.24), rgba(226, 221, 209, 0.24)),
-    linear-gradient(rgba(226, 221, 209, 0.26), rgba(226, 221, 209, 0.26));
-  background-size:
-    100% 1px,
-    100% 1px,
-    100% 1.5px,
-    100% 1.5px,
-    100% 2px,
-    100% 2.5px;
-  background-position:
-    0 12%,
-    0 28%,
-    0 44%,
-    0 60%,
-    0 76%,
-    0 92%;
-  background-repeat: no-repeat;
-}
-.neck .nut {
-  flex: none;
-  width: 9px;
-  background: #efe7d4;
-  box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.18);
+  /* The end of the neck runs under the body. */
+  padding-right: 60px;
 }
 .fret {
   flex: 1 0 auto;
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 12px clamp(12px, 1.3vw, 22px);
-  min-height: 64px;
-  color: #f1ebe1;
+  justify-content: center;
+  gap: 2px;
+  padding: 3px clamp(9px, 1vw, 18px);
+  color: #f6f1e8;
   text-decoration: none;
-  font: 600 15px/1.2 var(--font-body);
+  font: 650 14px/1.15 var(--font-body);
   white-space: nowrap;
-  border-right: 3px solid #c9c2b3;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 0 6px rgba(0, 0, 0, 0.6);
+  /* Nickel fret wire on the right edge, stopping at the binding. */
+  background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+  background-size: 3px calc(100% - 4px);
+  background-position: right center;
+  background-repeat: no-repeat;
 }
 .fret:hover {
-  background: rgba(255, 244, 228, 0.07);
+  background-color: rgba(255, 244, 228, 0.08);
 }
 .fret[aria-current='page'] {
-  background: rgba(255, 244, 228, 0.13);
+  background-color: rgba(255, 244, 228, 0.16);
 }
 .fret[aria-current='page']::after {
   content: '';
   position: absolute;
   left: 10px;
-  right: 10px;
-  bottom: 0;
-  height: 4px;
+  right: 12px;
+  bottom: 2px;
+  height: 3px;
   border-radius: 2px 2px 0 0;
   background: #f1ebe1;
 }
@@ -417,16 +525,22 @@ a.chip:hover {
   outline: 2.5px solid #ffd27a;
   outline-offset: -4px;
 }
+.fret-sub {
+  font: 600 11px/1.1 var(--font-body);
+  color: #f0dfc4;
+  font-variant-numeric: tabular-nums;
+}
 .inlay {
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid rgba(241, 235, 225, 0.75);
-  font: 750 14px var(--font-body);
+  font: 750 12px var(--font-body);
   color: #f1ebe1;
+  text-shadow: none;
 }
 .inlay.done {
   border-color: transparent;
@@ -471,7 +585,10 @@ a.chip:hover {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  border-right: 3px solid #c9c2b3;
+  background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+  background-size: 3px calc(100% - 4px);
+  background-position: right center;
+  background-repeat: no-repeat;
 }
 .twelfth::before,
 .twelfth::after {
@@ -1786,19 +1903,85 @@ table.shapes button.rowbtn {
   .timer-card {
     position: static;
   }
-  .topbar {
-    padding: 6px 12px;
+  /* No room for a whole guitar: the brand and the knobs share a top row, and the neck runs full width below,
+     scrolling sideways. */
+  .guitar {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'head controls'
+      'neck neck';
+    height: auto;
+    padding: 4px 0 0;
+    row-gap: 4px;
   }
-  .chip.opt {
+  .headstock {
+    grid-area: head;
+    padding-left: 12px;
+  }
+  .headstock-art,
+  .body-art {
     display: none;
   }
-  .fret {
-    min-height: 56px;
-    font-size: 14px;
+  .brand-plain {
+    display: inline-flex;
+  }
+  .neck {
+    grid-area: neck;
+    height: 68px;
+  }
+  .neck-board {
+    padding-right: 0;
+  }
+  .gbody {
+    grid-area: controls;
+    width: auto;
+    height: auto;
+    margin: 0;
+    justify-self: end;
+    padding-right: 12px;
+  }
+  .controls {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 4px 10px;
+    color: var(--ink);
+    text-shadow: none;
+  }
+  .controls .xp,
+  .controls .knob-btn.sound,
+  .controls .knob-btn.view,
+  .mic-led {
+    position: static;
+  }
+  .knob-btn {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    min-height: var(--tap);
+    gap: 6px;
+    padding: 0 6px;
+    color: var(--ink);
+    text-shadow: none;
+    font-size: 13px;
+  }
+  .knob-face {
+    width: 26px;
+    height: 26px;
+  }
+  .knob-face::before {
+    inset: 3px;
+  }
+  .knob-pointer::after {
+    top: 3px;
+    height: 8px;
+  }
+  .mic-led {
+    min-height: var(--tap);
   }
 }
 @media (max-width: 480px) {
-  .brand span {
+  .brand-plain > span {
     display: none;
   }
   main {
@@ -1856,7 +2039,7 @@ table.shapes button.rowbtn {
   body::before {
     display: none !important;
   }
-  .topbar,
+  .guitar,
   .neck,
   .mini,
   .toast,

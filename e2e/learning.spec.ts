@@ -25,7 +25,9 @@ test('Play from memory: mark the shape on a blank neck, at either of its places'
   const pc = MAJOR_NAMES.indexOf(m![2]! as (typeof MAJOR_NAMES)[number]);
   // The board starts blank: no note dots.
   await expect(quiz.locator('.dot')).toHaveCount(0);
-  const inst = instances(pc, 'major').filter((x) => x.shape === shape).at(-1)!;
+  const inst = instances(pc, 'major')
+    .filter((x) => x.shape === shape)
+    .at(-1)!;
   for (const k of wantedNotes(inst).want) {
     const [s, f] = k.split(':').map(Number) as [number, number];
     await quiz.getByRole('button', { name: new RegExp(`^${posName(s, f)}(,|$)`) }).click();
@@ -55,7 +57,9 @@ test('Your own song: type chords, plan them in a zone, no key picker or ear chec
   await expect(page.getByLabel("Your song's chords")).toHaveValue('Am F C G Bdim');
 });
 
-test('Fading: while the loop plays with "Nothing", the neck is blank; stopped, it shows the chord', async ({ page }) => {
+test('Fading: while the loop plays with "Nothing", the neck is blank; stopped, it shows the chord', async ({
+  page,
+}) => {
   await page.goto('/learn/5');
   const board = page.locator('#p5-board');
   await expect(board.locator('.dot').first()).toBeAttached();

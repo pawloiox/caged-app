@@ -10,7 +10,7 @@ for (const r of ['/learn/1', '/learn/2', '/learn/3', '/learn/5', '/explore', '/p
     const boards = await page.locator('.board-wrap').count();
     if (boards) expect(await page.locator('.board-wrap.vertical').count()).toBe(boards);
     const small = await page.$$eval(
-      'main .btn, main [role=radio], main .shape-btn, .nav-item, .chip, main .chord-card, main .check, main .rowbtn, main .tap-link',
+      'main .btn, main [role=radio], main .shape-btn, .nav-item, .chip, .knob-btn, .mic-led, main .chord-card, main .check, main .rowbtn, main .tap-link',
       (els) =>
         els
           .filter((e) => (e as HTMLElement).offsetParent !== null)
