@@ -583,3 +583,20 @@ hand (`scripts/guitar-trace/`):
 
 This replaces the earlier symmetrical cutaways. The photo's bass horn is longer than its treble horn, while its
 two cutaways have similar depth and both roll into the neck.
+
+**S-style body (replaces the traced charcoal body).** At the user's request the body now follows a second
+reference photo: a gloss black triple single-coil body. The headstock (3 + 3) and the rosewood neck were kept.
+- Outline: `scripts/guitar-trace/pixels.mjs` dumps the photo's pixels and `outline_h.py` traces the horizontal
+  photo column by column (flood-filling the white background), then maps it with 1.637 px per photo pixel along
+  the neck, the photo's 25 px neck band stretched to 64 px, and 1.28× outside it. The Catmull-Rom fit scales its
+  tangents by chord length, so the stretched neck band does not make the curves overshoot. The same script maps
+  the pickguard outline (points read off zoomed crops) and the hardware positions.
+- Drawing: gloss black with a grey band along the rolled edge and a dark rim. On top: a white guard with a dark
+  bevel line and nine screws, three white single-coil covers with pole pieces, a chrome vibrato plate with bent
+  saddles, an arm with a white tip, a five-way switch, a decorative third knob, an oval jack plate and a rosewood
+  fretboard end (to x 112.5).
+- Controls: Sound is the volume knob (221, 62) with its label to its left, and View is the first tone knob
+  (238.5, 40) with its label above. Both are white hat knobs (16 px) with dark labels, since they sit on the guard.
+  XP and the mic light moved to the black lower bout. `KNOB_AT` in Guitar.tsx records the knob centres used by
+  the CSS.
+- The photo has a maple neck; ours stays rosewood to match the navigation neck.

@@ -298,8 +298,8 @@ kbd {
 }
 .controls .xp {
   position: absolute;
-  left: 238px;
-  top: 150px;
+  left: 258px;
+  top: 158px;
   font-size: 12px;
   color: rgba(233, 225, 211, 0.75);
   font-variant-numeric: tabular-nums;
@@ -310,8 +310,8 @@ kbd {
 }
 .mic-led {
   position: absolute;
-  left: 236px;
-  top: 180px;
+  left: 254px;
+  top: 184px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -330,64 +330,66 @@ kbd {
   background: #6fe39a;
   box-shadow: 0 0 6px #6fe39a;
 }
-/* Knobs: the two controls on the body. Sound turns the pointer between "0" and "10". */
+/* Knobs: the two working controls are the volume and first tone knobs on the white pickguard (Guitar.tsx
+   KNOB_AT), so their labels are dark. Sound turns the pointer between "0" and "10". */
 .knob-btn {
   display: grid;
   justify-items: center;
-  gap: 3px;
+  gap: 1px;
   width: 58px;
   padding: 3px 0;
   background: none;
   border: 0;
-  border-radius: 10px;
-  color: #f1ebe1;
+  border-radius: 8px;
+  color: #22211e;
   font: 650 11.5px/1.1 var(--font-body);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   cursor: pointer;
   white-space: nowrap;
 }
-/* Both knobs sit on the treble side, behind the bridge: Sound nearer the bridge, View further along. Their
-   labels sit on the rim side, clear of the vibrato arm and the pickups. */
+/* Sound is the volume knob (centre 221, 62): its label reads to its left, along the guard above the pickups, and
+   the button is placed by its right edge so the knob stays put when the label changes. */
 .controls .knob-btn.sound {
   position: absolute;
-  left: 171px;
-  top: 22px;
+  right: 117px;
+  top: 51px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  padding: 3px 4px;
 }
+/* View is the tone knob (centre 238.5, 40.4), labelled above, clear of the switch and the arm. */
 .controls .knob-btn.view {
   position: absolute;
-  left: 223px;
-  top: 18px;
+  left: 209.5px;
+  top: 15.75px;
 }
-/* Sound's label sits on the rim side; View's on the inner side, so the two knobs form a diagonal. */
-.controls .knob-btn.sound .knob-label {
+.controls .knob-btn .knob-label {
   order: -1;
 }
 .knob-btn:focus-visible {
-  outline: 2.5px solid #ffd27a;
+  outline: 2.5px solid #1a1916;
   outline-offset: 0;
 }
 .knob-face {
   position: relative;
   display: block;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  /* A small dark knob: a knurled gunmetal skirt (the teeth catch the light) round a black top. */
-  background:
-    radial-gradient(circle, #141211 0 52%, transparent 54%),
-    repeating-conic-gradient(#4a4644 0 6deg, #121010 6deg 12deg);
+  /* A white hat knob: a flared skirt round a domed cap. */
+  background: radial-gradient(circle at 42% 38%, #f4f2ec, #dcd9d0 70%, #c4c0b5);
   box-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(0, 0, 0, 0.75);
+    0.4px 1.2px 1.8px rgba(0, 0, 0, 0.5),
+    0 0 0 0.6px rgba(60, 58, 52, 0.6);
 }
-/* A chrome insert in the cap. */
 .knob-face::before {
   content: '';
   position: absolute;
-  inset: 7.5px;
+  inset: 2.4px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #c3c7c8, #6d7275 55%, #33383a);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at 40% 35%, #ffffff, #f1efe8 60%, #d3d0c6);
+  box-shadow: 0 0 0 0.5px rgba(120, 116, 106, 0.6);
 }
 .knob-pointer {
   position: absolute;
@@ -398,18 +400,18 @@ kbd {
   content: '';
   position: absolute;
   left: 50%;
-  top: 1.5px;
-  width: 1.5px;
-  height: 5px;
-  margin-left: -0.75px;
+  top: 3px;
+  width: 1.3px;
+  height: 4px;
+  margin-left: -0.65px;
   border-radius: 1px;
-  background: #e9e1d3;
+  background: #3a3833;
 }
 .knob-btn:hover .knob-face,
 .knob-btn[data-state='open'] .knob-face {
   box-shadow:
-    0 3px 4px rgba(0, 0, 0, 0.6),
-    0 0 0 2px rgba(241, 235, 225, 0.7);
+    0.4px 1.2px 1.8px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(26, 25, 22, 0.55);
 }
 .menu {
   background: var(--surface);
@@ -2023,18 +2025,22 @@ table.shapes button.rowbtn {
     text-shadow: none;
     font-size: 13px;
   }
-  .controls .knob-btn.sound .knob-label {
+  .controls .knob-btn .knob-label {
     order: 0;
+  }
+  .controls .knob-btn.sound {
+    gap: 6px;
+    padding: 0 6px;
   }
   .knob-face {
     width: 26px;
     height: 26px;
   }
   .knob-face::before {
-    inset: 8px;
+    inset: 4px;
   }
   .knob-pointer::after {
-    top: 2px;
+    top: 5px;
     height: 6px;
   }
   .mic-led {

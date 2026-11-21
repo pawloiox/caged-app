@@ -2,15 +2,15 @@
  * The navigation is a guitar lying across the top of the page: the headstock is the home link, the neck holds
  * the steps and tools on its frets (ui/Layout.tsx), and the body carries the controls as knobs.
  *
- * Modelled on a modern double-cutaway solid body in a satin, open-grain charcoal finish: unbound rosewood neck,
- * black 3 + 3 headstock, two black open-pole humbuckers, a vibrato bridge with its arm, and two knobs on the
- * treble side. The outlines are our own, and the inlays stay the app's pearl dots (no maker's logo or inlays).
+ * The body is modelled on a classic triple single-coil solid body in gloss black: white pickguard, three white
+ * single-coil pickups (the bridge one slanted), a vintage vibrato with its arm, white hat knobs, a five-way switch
+ * and an oval jack plate on the face. The neck stays unbound rosewood and the headstock a black 3 + 3. The outlines
+ * are our own tracings, and the inlays stay the app's pearl dots (no maker's logo or inlays).
  *
  * Everything is drawn to one 224 px row in which the neck is 64 px tall and centred (y 80–144), so the six
  * strings run unbroken from the tuners, over the frets, to the bridge.
  */
-import { useEffect, useId, useState } from 'react';
-import { GRAIN_H, GRAIN_W, grainReady, loadGrain } from '../fretboard/materials';
+import { useId } from 'react';
 
 export const ROW_H = 224;
 export const NECK_TOP = 80;
@@ -20,19 +20,6 @@ export const STRING_AT = [0.12, 0.28, 0.44, 0.6, 0.76, 0.92] as const;
 const stringY = (i: number) => NECK_TOP + NECK_H * STRING_AT[i]!;
 /** Electric-guitar strings: wound (D, A, low E) nickel, a touch darker than the plain steel (e, B, G). */
 const STRING_W = [0.9, 1.1, 1.3, 1.6, 1.9, 2.3] as const;
-
-function useGrain(): string | null {
-  const [grain, setGrain] = useState<string | null>(grainReady);
-  useEffect(() => {
-    if (grain) return;
-    let live = true;
-    void loadGrain().then((u) => live && setGrain(u));
-    return () => {
-      live = false;
-    };
-  }, [grain]);
-  return grain;
-}
 
 /** The six strings from x1 (optionally starting at a tuner post's height) to x2, each with its shadow. */
 function Strings({
@@ -92,75 +79,6 @@ function MetalDefs({ id }: { id: string }) {
         <stop offset="0.5" stopColor="#c3c8ca" />
         <stop offset="1" stopColor="#6f7578" />
       </radialGradient>
-    </>
-  );
-}
-
-/**
- * Satin charcoal: a grey-brown stain that the open grain shows through, pale where the wood is worn
- * and darker toward the edges, with no binding.
- */
-function CharcoalDefs({ id, grain }: { id: string; grain: string | null }) {
-  return (
-    <>
-      {/* Sampled from the reference: a cool grey-brown, palest on the carved treble side and darkest across the
-          lower bass bout. */}
-      <linearGradient id={`${id}-stain`} x1="0" y1="0" x2="0.12" y2="1">
-        <stop offset="0" stopColor="#765b52" />
-        <stop offset="0.35" stopColor="#664a42" />
-        <stop offset="0.7" stopColor="#563c35" />
-        <stop offset="1" stopColor="#45302a" />
-      </linearGradient>
-      {grain ? (
-        // Stretched across the grain, so the streaks are wider and less regular than on the fretboard.
-        <pattern id={`${id}-grain`} patternUnits="userSpaceOnUse" width={GRAIN_W} height={GRAIN_H * 1.6}>
-          <image href={grain} width={GRAIN_W} height={GRAIN_H * 1.6} preserveAspectRatio="none" />
-        </pattern>
-      ) : null}
-      <filter id={`${id}-soft`} colorInterpolationFilters="sRGB" x="-10%" y="-10%" width="120%" height="120%">
-        <feGaussianBlur stdDeviation="4" />
-      </filter>
-      {/* Greys the rosewood grain almost to neutral, so it reads as fine open pores under a grey stain. */}
-      <filter id={`${id}-grey`}>
-        <feColorMatrix type="saturate" values="0.2" />
-        <feGaussianBlur stdDeviation="0.6" />
-      </filter>
-      {/* The figure: long, wavy, irregular dark streaks along the body's length. Noise stretched along x, bent by a
-          slow second noise, and turned into a dark grey-brown alpha only where it dips. */}
-      <filter id={`${id}-streak`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
-        <feTurbulence type="fractalNoise" baseFrequency="0.006 0.11" numOctaves={4} seed={11} result="n" />
-        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.03" numOctaves={2} seed={3} result="w" />
-        <feDisplacementMap in="n" in2="w" scale={9} xChannelSelector="R" yChannelSelector="G" result="d" />
-        <feColorMatrix in="d" type="matrix" values="0 0 0 0 0.17  0 0 0 0 0.11  0 0 0 0 0.075  -3 0 0 0 1.62" />
-      </filter>
-      {/* The pale side of the same figure: thinner light streaks where the noise peaks. */}
-      <filter id={`${id}-pale`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
-        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.2" numOctaves={3} seed={29} result="n" />
-        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.04" numOctaves={2} seed={5} result="w" />
-        <feDisplacementMap in="n" in2="w" scale={6} xChannelSelector="R" yChannelSelector="G" result="d" />
-        <feColorMatrix in="d" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.49  0 0 0 0 0.42  3 0 0 0 -1.62" />
-      </filter>
-      {/* Fine pores: dense hairlines along the grain. */}
-      <filter id={`${id}-pore`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
-        <feTurbulence type="fractalNoise" baseFrequency="0.03 0.9" numOctaves={2} seed={17} />
-        <feColorMatrix type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.08  0 0 0 0 0.06  -4 0 0 0 2.1" />
-      </filter>
-      <filter
-        id={`${id}-bout`}
-        colorInterpolationFilters="sRGB"
-        filterUnits="userSpaceOnUse"
-        x={180}
-        y={110}
-        width={240}
-        height={170}
-      >
-        <feGaussianBlur stdDeviation="14" />
-      </filter>
-      <linearGradient id={`${id}-satin`} x1="0" y1="0" x2="0.3" y2="1">
-        <stop offset="0" stopColor="rgba(255,255,255,0.13)" />
-        <stop offset="0.4" stopColor="rgba(255,255,255,0)" />
-        <stop offset="1" stopColor="rgba(0,0,0,0.22)" />
-      </linearGradient>
     </>
   );
 }
@@ -326,94 +244,202 @@ export const BODY_W = 350;
 export const BODY_OVERLAP = 70;
 
 /**
- * Traced from the reference photo's silhouette, row by row, then mapped onto this guitar: along the neck at
- * 1.257 px per photo pixel, and across it so the neck is 64 px wide (photo 32) while the body keeps its own
- * proportions outside the neck band. A long bass horn, a shorter treble horn, cutaways that roll into the neck,
- * a gentle waist and a full, round lower bout. Regenerate with scripts/guitar-trace (rows.mjs, then outline.py).
+ * Traced from the reference photo's silhouette column by column, then mapped onto this guitar: along the neck at
+ * 1.637 px per photo pixel, and across it so the neck is 64 px wide while the body keeps its own proportions outside
+ * the neck band. A long bass horn, a shorter treble horn, deep rounded cutaways, a waist and a full lower bout.
+ * Regenerate with scripts/guitar-trace (pixels.mjs, then outline_h.py).
  */
 const BODY_PATH =
-  'M78.7 80.0 C78.3 76.7 77.4 64.6 76.2 60.1 C74.9 55.6 72.8 54.8 71.1 52.8 C69.5 50.9 67.8 49.4 66.1 48.2 C64.4 47.0 62.8 46.4 61.1 45.5 C59.4 44.7 57.7 43.9 56.1 43.0 C54.4 42.1 51.9 41.8 51.0 40.2 C50.2 38.6 50.2 35.3 51.0 33.5 C51.9 31.6 54.4 30.3 56.1 29.2 C57.7 28.0 59.4 27.3 61.1 26.7 C62.8 26.0 64.4 25.6 66.1 25.3 C67.8 25.0 69.5 25.0 71.1 25.1 C72.8 25.2 74.5 25.4 76.2 25.7 C77.9 26.0 79.5 26.4 81.2 26.8 C82.9 27.3 84.6 27.7 86.2 28.2 C87.9 28.7 89.6 29.2 91.3 29.7 C92.9 30.3 94.6 31.0 96.3 31.7 C98.0 32.3 99.6 33.0 101.3 33.6 C103.0 34.2 104.7 34.8 106.4 35.3 C108.0 35.8 109.7 36.2 111.4 36.7 C113.1 37.1 114.7 37.6 116.4 38.0 C118.1 38.4 119.8 38.7 121.4 39.0 C123.1 39.2 124.8 39.5 126.5 39.6 C128.1 39.6 129.8 39.4 131.5 39.2 C133.2 39.0 134.8 38.7 136.5 38.4 C138.2 38.1 139.9 37.7 141.6 37.2 C143.2 36.8 144.9 36.3 146.6 35.7 C148.3 35.1 149.9 34.5 151.6 33.8 C153.3 33.1 155.0 32.4 156.6 31.7 C158.3 30.9 160.0 30.2 161.7 29.3 C163.3 28.5 165.0 27.6 166.7 26.7 C168.4 25.8 170.1 24.9 171.7 24.0 C173.4 23.1 175.1 22.1 176.8 21.3 C178.4 20.4 180.1 19.6 181.8 18.8 C183.5 18.0 185.1 17.2 186.8 16.4 C188.5 15.7 190.2 15.0 191.8 14.3 C193.5 13.7 195.2 13.0 196.9 12.4 C198.5 11.8 200.2 11.1 201.9 10.5 C203.6 9.9 205.3 9.4 206.9 8.9 C208.6 8.4 210.3 7.8 212.0 7.4 C213.6 6.9 215.3 6.6 217.0 6.2 C218.7 5.9 220.3 5.4 222.0 5.1 C223.7 4.7 225.4 4.4 227.0 4.1 C228.7 3.9 230.4 3.7 232.1 3.5 C233.8 3.3 235.4 3.1 237.1 3.0 C238.8 2.9 240.5 3.1 242.1 3.0 C243.8 2.8 245.5 2.4 247.2 2.2 C248.8 2.0 250.5 1.9 252.2 2.0 C253.9 2.1 255.5 2.4 257.2 2.6 C258.9 2.7 260.6 2.8 262.2 3.0 C263.9 3.1 265.6 3.3 267.3 3.5 C269.0 3.8 270.6 4.2 272.3 4.5 C274.0 4.9 275.7 5.2 277.3 5.7 C279.0 6.1 280.7 6.5 282.4 7.0 C284.0 7.5 285.7 7.9 287.4 8.5 C289.1 9.2 290.7 9.9 292.4 10.7 C294.1 11.4 295.8 12.0 297.5 13.0 C299.1 13.9 300.8 15.2 302.5 16.3 C304.2 17.3 305.8 18.1 307.5 19.3 C309.2 20.6 310.9 22.1 312.5 23.6 C314.2 25.1 315.9 26.7 317.6 28.4 C319.2 30.1 320.9 31.9 322.6 34.0 C324.3 36.1 326.0 38.1 327.6 40.9 C329.3 43.7 331.0 46.4 332.7 50.5 C334.3 54.6 335.0 55.3 337.7 65.6 C340.4 75.8 348.8 97.7 349.0 112.0 C349.2 126.3 341.5 141.7 338.9 151.5 C336.4 161.3 335.6 165.9 333.9 170.8 C332.2 175.6 330.6 177.9 328.9 180.8 C327.2 183.6 325.5 185.8 323.9 187.9 C322.2 190.1 320.5 191.9 318.8 193.7 C317.1 195.5 315.5 197.2 313.8 198.7 C312.1 200.2 310.4 201.4 308.8 202.7 C307.1 204.1 305.4 205.5 303.7 206.6 C302.1 207.7 300.4 208.6 298.7 209.5 C297.0 210.4 295.4 211.2 293.7 212.0 C292.0 212.8 290.3 213.5 288.7 214.1 C287.0 214.7 285.3 215.3 283.6 215.8 C281.9 216.4 280.3 216.9 278.6 217.4 C276.9 217.8 275.2 218.1 273.6 218.5 C271.9 218.9 270.2 219.4 268.5 219.7 C266.9 220.0 265.2 220.0 263.5 220.3 C261.8 220.5 260.2 220.9 258.5 221.0 C256.8 221.2 255.1 221.0 253.4 221.0 C251.8 221.0 250.1 221.0 248.4 221.0 C246.7 221.0 245.1 221.1 243.4 221.0 C241.7 221.0 240.0 220.8 238.4 220.7 C236.7 220.5 235.0 220.3 233.3 220.1 C231.7 219.8 230.0 219.6 228.3 219.3 C226.6 219.0 225.0 218.5 223.3 218.1 C221.6 217.8 219.9 217.4 218.2 217.0 C216.6 216.6 214.9 216.3 213.2 215.8 C211.5 215.4 209.9 215.0 208.2 214.5 C206.5 213.9 204.8 213.2 203.2 212.6 C201.5 212.0 199.8 211.4 198.1 210.8 C196.5 210.2 194.8 209.6 193.1 208.9 C191.4 208.2 189.7 207.4 188.1 206.6 C186.4 205.8 184.7 205.1 183.0 204.3 C181.4 203.5 179.7 202.6 178.0 201.8 C176.3 200.9 174.7 200.1 173.0 199.3 C171.3 198.5 169.6 197.8 168.0 197.0 C166.3 196.2 164.6 195.3 162.9 194.5 C161.3 193.7 159.6 192.8 157.9 192.1 C156.2 191.5 154.5 191.0 152.9 190.4 C151.2 189.8 149.5 189.2 147.8 188.7 C146.2 188.1 144.5 187.6 142.8 187.1 C141.1 186.7 139.5 186.2 137.8 185.8 C136.1 185.4 134.4 185.0 132.8 184.6 C131.1 184.3 129.4 183.9 127.7 183.7 C126.0 183.5 124.4 183.5 122.7 183.5 C121.0 183.4 119.3 183.5 117.7 183.5 C116.0 183.5 114.3 183.4 112.6 183.5 C111.0 183.6 109.3 183.8 107.6 184.1 C105.9 184.3 104.3 184.5 102.6 184.8 C100.9 185.1 99.2 185.4 97.6 185.8 C95.9 186.1 94.2 186.5 92.5 186.9 C90.8 187.4 89.2 188.0 87.5 188.5 C85.8 189.0 84.1 189.5 82.5 190.0 C80.8 190.6 79.1 191.4 77.4 192.0 C75.8 192.5 74.1 193.0 72.4 193.5 C70.7 194.0 69.1 194.6 67.4 195.0 C65.7 195.5 64.0 196.0 62.3 196.4 C60.7 196.8 59.0 197.0 57.3 197.3 C55.6 197.7 54.0 198.1 52.3 198.3 C50.6 198.6 48.9 198.8 47.3 198.9 C45.6 199.0 43.9 198.9 42.2 198.9 C40.6 198.9 38.9 199.0 37.2 198.9 C35.5 198.8 33.9 198.7 32.2 198.5 C30.5 198.3 28.8 198.0 27.1 197.5 C25.5 197.1 23.8 196.6 22.1 196.0 C20.4 195.4 18.8 194.9 17.1 193.9 C15.4 192.8 13.7 192.5 12.1 189.6 C10.4 186.8 8.7 177.7 7.0 176.9 C5.4 176.1 2.8 184.4 2.0 184.8 C1.2 185.1 0.3 180.1 2.0 179.0 C3.7 177.9 9.5 178.5 12.1 178.3 C14.6 178.1 15.4 177.8 17.1 177.7 C18.8 177.6 20.4 177.8 22.1 177.7 C23.8 177.6 25.5 177.3 27.1 177.1 C28.8 176.9 30.5 176.8 32.2 176.5 C33.9 176.3 35.5 175.8 37.2 175.4 C38.9 175.0 40.6 174.7 42.2 174.0 C43.9 173.4 45.6 172.4 47.3 171.5 C48.9 170.6 50.6 169.7 52.3 168.7 C54.0 167.6 55.6 166.6 57.3 165.2 C59.0 163.7 60.7 163.5 62.3 160.0 C64.0 156.5 66.5 146.7 67.4 144.0 L67 144 L70 80 Z';
-/** The two cutaway edges (neck joint to horn tip), for the carve shading. */
+  'M98.6 80.0 C98.0 71.2 98.3 62.1 96.9 53.7 C96.7 52.2 94.7 51.6 93.7 50.5 C92.5 49.3 91.6 47.8 90.4 46.7 C89.4 45.8 88.2 45.1 87.1 44.4 C86.1 43.8 85.0 43.2 83.8 42.7 C82.8 42.2 81.7 41.8 80.6 41.4 C79.5 41.1 78.4 40.8 77.3 40.6 C76.2 40.3 75.1 40.1 74.0 39.9 C72.9 39.7 71.8 39.5 70.7 39.3 C69.6 39.1 68.6 38.8 67.5 38.6 C66.4 38.4 65.3 38.3 64.2 38.0 C63.1 37.8 62.0 37.5 60.9 37.2 C59.8 36.8 58.7 36.2 57.7 35.7 C56.6 35.3 55.0 35.2 54.4 34.3 C53.3 32.8 52.4 30.6 52.4 28.7 C52.4 26.8 53.4 24.7 54.4 23.1 C55.1 22.0 56.5 21.3 57.7 20.5 C58.7 19.8 59.8 19.0 60.9 18.4 C62.0 17.9 63.1 17.6 64.2 17.1 C65.3 16.7 66.4 16.2 67.5 15.9 C68.5 15.5 69.7 15.3 70.7 15.0 C71.8 14.7 72.9 14.4 74.0 14.1 C75.1 13.9 76.2 13.9 77.3 13.7 C78.4 13.5 79.5 13.0 80.6 12.9 C81.6 12.7 82.7 12.9 83.8 12.9 C84.9 12.9 86.0 12.9 87.1 12.9 C88.2 12.9 89.3 12.9 90.4 12.9 C91.5 12.9 92.6 12.9 93.7 12.9 C94.8 12.9 95.9 12.7 96.9 12.9 C98.0 13.0 99.1 13.5 100.2 13.7 C101.3 13.9 102.4 14.0 103.5 14.1 C104.6 14.3 105.7 14.4 106.8 14.6 C107.9 14.8 108.9 15.1 110.0 15.4 C111.1 15.7 112.2 16.0 113.3 16.3 C114.4 16.6 115.5 16.8 116.6 17.1 C117.7 17.4 118.8 17.7 119.8 18.0 C120.9 18.3 122.1 18.5 123.1 18.8 C124.2 19.2 125.3 19.7 126.4 20.1 C127.5 20.5 128.6 21.0 129.7 21.4 C130.7 21.7 131.9 21.9 132.9 22.2 C134.1 22.6 135.1 23.1 136.2 23.5 C137.3 24.0 138.4 24.4 139.5 24.8 C140.6 25.2 141.7 25.4 142.8 25.7 C143.9 25.9 144.9 26.3 146.0 26.5 C147.1 26.7 148.2 26.7 149.3 26.9 C150.4 27.2 151.5 27.6 152.6 27.8 C153.7 28.0 154.8 28.1 155.9 28.2 C156.9 28.3 158.0 28.2 159.1 28.2 C160.2 28.2 161.3 28.2 162.4 28.2 C163.5 28.2 164.6 28.3 165.7 28.2 C166.8 28.1 167.9 28.0 169.0 27.8 C170.1 27.6 171.1 27.2 172.2 26.9 C173.3 26.7 174.4 26.8 175.5 26.5 C176.6 26.2 177.7 25.6 178.8 25.2 C179.8 24.9 181.0 24.7 182.0 24.4 C183.1 24.1 184.3 23.9 185.3 23.5 C186.4 23.2 187.5 22.7 188.6 22.2 C189.7 21.8 190.8 21.4 191.9 21.0 C193.0 20.5 194.1 20.1 195.1 19.7 C196.2 19.3 197.3 18.8 198.4 18.4 C199.5 18.0 200.6 17.6 201.7 17.1 C202.8 16.7 203.9 16.3 205.0 15.9 C206.1 15.4 207.1 15.0 208.2 14.6 C209.3 14.1 210.4 13.7 211.5 13.3 C212.6 12.9 213.7 12.4 214.8 12.0 C215.9 11.7 217.0 11.4 218.1 11.2 C219.1 10.9 220.2 10.6 221.3 10.3 C222.4 10.0 223.5 9.7 224.6 9.5 C225.7 9.2 226.8 8.9 227.9 8.6 C229.0 8.3 230.1 8.0 231.2 7.8 C232.2 7.5 233.3 7.2 234.4 6.9 C235.5 6.6 236.6 6.3 237.7 6.0 C238.8 5.8 239.9 5.4 241.0 5.2 C242.0 5.0 243.2 5.0 244.2 4.8 C245.3 4.6 246.4 4.1 247.5 3.9 C248.6 3.7 249.7 3.7 250.8 3.5 C251.9 3.3 253.0 2.8 254.1 2.6 C255.1 2.5 256.3 2.8 257.3 2.6 C258.4 2.5 259.5 2.0 260.6 1.8 C261.7 1.6 262.8 1.4 263.9 1.4 C265.0 1.3 266.1 1.4 267.2 1.4 C268.3 1.4 269.3 1.4 270.4 1.4 C271.5 1.4 272.6 1.4 273.7 1.4 C274.8 1.4 275.9 1.4 277.0 1.4 C278.1 1.4 279.2 1.4 280.3 1.4 C281.3 1.4 282.4 1.4 283.5 1.4 C284.6 1.4 285.7 1.3 286.8 1.4 C287.9 1.4 289.0 1.6 290.1 1.8 C291.2 2.0 292.2 2.4 293.3 2.6 C294.4 2.8 295.5 2.9 296.6 3.1 C297.7 3.3 298.8 3.6 299.9 3.9 C301.0 4.2 302.1 4.4 303.2 4.8 C304.3 5.1 305.4 5.6 306.4 6.0 C307.5 6.5 308.6 6.9 309.7 7.3 C310.8 7.8 311.9 8.1 313.0 8.6 C314.1 9.1 315.2 9.7 316.3 10.3 C317.4 10.9 318.5 11.4 319.5 12.0 C320.7 12.7 321.8 13.4 322.8 14.1 C323.9 15.0 325.0 15.9 326.1 16.7 C327.2 17.6 328.3 18.3 329.4 19.3 C330.5 20.3 331.6 21.5 332.6 22.7 C333.8 23.9 334.8 25.2 335.9 26.5 C337.0 27.9 338.2 29.3 339.2 30.8 C340.4 32.8 342.2 34.8 342.5 37.2 C345.4 61.9 349.0 87.1 349.0 112.0 C349.0 129.2 345.2 146.4 342.5 163.4 C341.9 166.8 340.4 170.0 339.2 173.2 C338.2 175.7 337.1 178.1 335.9 180.4 C334.9 182.6 333.9 184.8 332.6 186.8 C331.7 188.4 330.4 189.7 329.4 191.1 C328.3 192.5 327.2 194.0 326.1 195.4 C325.0 196.7 323.9 197.9 322.8 199.2 C321.8 200.4 320.6 201.5 319.5 202.6 C318.4 203.7 317.4 205.0 316.3 206.0 C315.2 206.9 314.1 207.7 313.0 208.6 C311.9 209.4 310.8 210.3 309.7 211.1 C308.7 211.9 307.6 212.6 306.4 213.3 C305.4 213.9 304.3 214.4 303.2 215.0 C302.1 215.5 301.0 216.2 299.9 216.7 C298.8 217.2 297.7 217.5 296.6 218.0 C295.5 218.4 294.5 218.9 293.3 219.2 C292.3 219.6 291.2 219.8 290.1 220.1 C289.0 220.4 287.9 220.7 286.8 220.9 C285.7 221.1 284.6 221.3 283.5 221.4 C282.4 221.4 281.3 221.2 280.3 221.4 C279.1 221.5 278.1 222.0 277.0 222.2 C275.9 222.4 274.8 222.6 273.7 222.6 C272.6 222.7 271.5 222.6 270.4 222.6 C269.3 222.6 268.2 222.7 267.2 222.6 C266.1 222.6 265.0 222.4 263.9 222.2 C262.8 222.0 261.7 221.5 260.6 221.4 C259.5 221.2 258.4 221.4 257.3 221.4 C256.2 221.4 255.2 221.4 254.1 221.4 C253.0 221.3 251.9 221.1 250.8 220.9 C249.7 220.7 248.6 220.3 247.5 220.1 C246.4 219.9 245.3 219.9 244.2 219.7 C243.1 219.4 242.1 219.0 241.0 218.8 C239.9 218.6 238.8 218.6 237.7 218.4 C236.6 218.2 235.5 217.8 234.4 217.5 C233.3 217.2 232.2 217.0 231.2 216.7 C230.1 216.4 229.0 216.1 227.9 215.8 C226.8 215.5 225.7 215.3 224.6 215.0 C223.5 214.7 222.4 214.5 221.3 214.1 C220.2 213.8 219.2 213.2 218.1 212.8 C217.0 212.5 215.9 212.3 214.8 212.0 C213.7 211.6 212.6 211.1 211.5 210.7 C210.4 210.4 209.3 210.1 208.2 209.9 C207.1 209.6 206.0 209.3 205.0 209.0 C203.9 208.6 202.8 208.1 201.7 207.7 C200.6 207.3 199.5 206.8 198.4 206.4 C197.3 206.1 196.2 205.9 195.1 205.6 C194.0 205.2 193.0 204.7 191.9 204.3 C190.8 204.0 189.7 203.7 188.6 203.5 C187.5 203.2 186.4 203.0 185.3 202.6 C184.2 202.2 183.1 201.8 182.0 201.3 C181.0 200.9 179.9 200.4 178.8 200.0 C177.7 199.7 176.6 199.5 175.5 199.2 C174.4 198.9 173.3 198.6 172.2 198.3 C171.1 198.1 170.0 197.8 169.0 197.5 C167.9 197.2 166.8 196.9 165.7 196.6 C164.6 196.4 163.5 195.9 162.4 195.8 C161.3 195.6 160.2 195.9 159.1 195.8 C158.0 195.7 156.9 195.6 155.9 195.4 C154.8 195.1 153.7 194.7 152.6 194.5 C151.5 194.4 150.4 194.5 149.3 194.5 C148.2 194.5 147.1 194.4 146.0 194.5 C144.9 194.6 143.8 194.7 142.8 194.9 C141.7 195.2 140.6 195.6 139.5 195.8 C138.4 195.9 137.3 195.7 136.2 195.8 C135.1 195.9 134.0 196.0 132.9 196.2 C131.8 196.4 130.8 196.8 129.7 197.1 C128.6 197.3 127.5 197.3 126.4 197.5 C125.3 197.7 124.2 198.1 123.1 198.3 C122.0 198.6 120.9 198.9 119.8 199.2 C118.8 199.5 117.7 199.8 116.6 200.0 C115.5 200.3 114.4 200.6 113.3 200.9 C112.2 201.2 111.1 201.5 110.0 201.8 C108.9 202.0 107.8 202.3 106.8 202.6 C105.7 202.9 104.6 203.2 103.5 203.5 C102.4 203.7 101.3 204.0 100.2 204.3 C99.1 204.6 98.0 204.9 96.9 205.2 C95.8 205.4 94.8 205.8 93.7 206.0 C92.6 206.2 91.5 206.2 90.4 206.4 C89.3 206.7 88.2 207.0 87.1 207.3 C86.0 207.6 84.9 207.9 83.8 208.1 C82.8 208.4 81.6 208.4 80.6 208.6 C79.5 208.8 78.4 209.2 77.3 209.4 C76.2 209.6 75.1 209.8 74.0 209.9 C72.9 209.9 71.8 209.7 70.7 209.9 C69.6 210.0 68.6 210.5 67.5 210.7 C66.4 210.9 65.3 211.1 64.2 211.1 C63.1 211.2 62.0 211.1 60.9 211.1 C59.8 211.1 58.7 211.1 57.7 211.1 C56.6 211.1 55.5 211.1 54.4 211.1 C53.3 211.1 52.2 211.1 51.1 211.1 C50.0 211.1 48.9 211.1 47.8 211.1 C46.7 211.1 45.6 211.1 44.6 211.1 C43.5 211.1 42.4 211.1 41.3 211.1 C40.2 211.1 39.1 211.3 38.0 211.1 C36.9 211.0 35.8 210.5 34.7 210.3 C33.7 210.1 32.5 210.1 31.5 209.9 C30.4 209.6 29.3 209.3 28.2 209.0 C27.1 208.7 26.0 208.5 24.9 208.1 C23.8 207.8 22.7 207.3 21.6 206.9 C20.6 206.4 19.4 206.1 18.4 205.6 C17.2 205.0 16.2 204.2 15.1 203.5 C14.0 202.7 12.9 201.8 11.8 200.9 C10.7 199.9 9.3 199.1 8.5 197.9 C7.0 195.5 5.3 192.7 4.9 190.0 C4.7 188.3 5.8 185.8 6.9 184.7 C7.5 184.1 9.1 184.8 10.2 184.7 C11.3 184.6 12.4 184.1 13.5 183.9 C14.5 183.6 15.6 183.1 16.7 183.0 C17.8 182.9 18.9 183.0 20.0 183.0 C21.1 183.0 22.2 183.0 23.3 183.0 C24.4 183.0 25.5 183.1 26.6 183.0 C27.6 182.9 28.7 182.8 29.8 182.6 C30.9 182.4 32.0 181.9 33.1 181.7 C34.2 181.6 35.3 181.8 36.4 181.7 C37.5 181.6 38.6 181.6 39.6 181.3 C40.8 181.0 41.8 180.4 42.9 180.0 C44.0 179.6 45.1 179.2 46.2 178.7 C47.3 178.3 48.4 178.0 49.5 177.5 C50.6 176.9 51.7 176.1 52.7 175.3 C53.9 174.5 55.0 173.7 56.0 172.8 C57.1 171.8 58.5 171.0 59.3 169.8 C60.6 167.9 62.0 165.7 62.6 163.4 C64.2 157.1 64.7 150.5 65.8 144.0 L66 144 L70 80 Z';
+/** The two cutaway edges (neck joint to horn tip), for the shading where the top rolls into them. */
 const CUT_TREBLE =
-  'M78.7 80.0 C78.3 76.7 77.4 64.6 76.2 60.1 C74.9 55.6 72.8 54.8 71.1 52.8 C69.5 50.9 67.8 49.4 66.1 48.2 C64.4 47.0 62.8 46.4 61.1 45.5 C59.4 44.7 57.7 43.9 56.1 43.0 C54.4 42.1 51.9 40.7 51.0 40.2';
+  'M98.6 80.0 C98.0 71.2 98.3 62.1 96.9 53.7 C96.7 52.2 94.7 51.6 93.7 50.5 C92.5 49.3 91.6 47.8 90.4 46.7 C89.4 45.8 88.2 45.1 87.1 44.4 C86.1 43.8 85.0 43.2 83.8 42.7 C82.8 42.2 81.7 41.8 80.6 41.4 C79.5 41.1 78.4 40.8 77.3 40.6 C76.2 40.3 75.1 40.1 74.0 39.9 C72.9 39.7 71.8 39.5 70.7 39.3 C69.6 39.1 68.6 38.8 67.5 38.6 C66.4 38.4 65.3 38.3 64.2 38.0 C63.1 37.8 62.0 37.5 60.9 37.2 C59.8 36.8 58.7 36.2 57.7 35.7 C56.6 35.3 55.0 35.2 54.4 34.3 C53.3 32.8 53.1 30.6 52.4 28.7';
 const CUT_BASS =
-  'M2.0 179.0 C3.7 178.9 9.5 178.5 12.1 178.3 C14.6 178.1 15.4 177.8 17.1 177.7 C18.8 177.6 20.4 177.8 22.1 177.7 C23.8 177.6 25.5 177.3 27.1 177.1 C28.8 176.9 30.5 176.8 32.2 176.5 C33.9 176.3 35.5 175.8 37.2 175.4 C38.9 175.0 40.6 174.7 42.2 174.0 C43.9 173.4 45.6 172.4 47.3 171.5 C48.9 170.6 50.6 169.7 52.3 168.7 C54.0 167.6 55.6 166.6 57.3 165.2 C59.0 163.7 60.7 163.5 62.3 160.0 C64.0 156.5 66.5 146.7 67.4 144.0';
+  'M4.9 190.0 C5.6 188.3 5.8 185.8 6.9 184.7 C7.5 184.1 9.1 184.8 10.2 184.7 C11.3 184.6 12.4 184.1 13.5 183.9 C14.5 183.6 15.6 183.1 16.7 183.0 C17.8 182.9 18.9 183.0 20.0 183.0 C21.1 183.0 22.2 183.0 23.3 183.0 C24.4 183.0 25.5 183.1 26.6 183.0 C27.6 182.9 28.7 182.8 29.8 182.6 C30.9 182.4 32.0 181.9 33.1 181.7 C34.2 181.6 35.3 181.8 36.4 181.7 C37.5 181.6 38.6 181.6 39.6 181.3 C40.8 181.0 41.8 180.4 42.9 180.0 C44.0 179.6 45.1 179.2 46.2 178.7 C47.3 178.3 48.4 178.0 49.5 177.5 C50.6 176.9 51.7 176.1 52.7 175.3 C53.9 174.5 55.0 173.7 56.0 172.8 C57.1 171.8 58.5 171.0 59.3 169.8 C60.6 167.9 62.0 165.7 62.6 163.4 C64.2 157.1 64.7 150.5 65.8 144.0';
+/** The pickguard: one piece over the treble horn, round the pickups and the bridge, under the fretboard. */
+const GUARD_PATH =
+  'M67.5 25.7 C68.0 24.8 69.5 24.0 70.7 23.5 C72.3 22.8 74.0 22.5 75.7 22.2 C77.8 21.8 80.0 21.5 82.2 21.4 C85.5 21.2 88.7 21.1 92.0 21.2 C95.3 21.3 98.6 21.5 101.8 21.9 C104.0 22.2 106.2 22.7 108.4 23.2 C110.6 23.7 112.7 24.4 114.9 25.0 C117.1 25.6 119.3 26.0 121.5 26.6 C123.7 27.1 125.8 27.8 128.0 28.3 C130.2 28.9 132.4 29.3 134.6 29.9 C136.8 30.6 138.9 31.6 141.1 32.2 C143.3 32.8 145.5 33.2 147.7 33.7 C149.9 34.2 152.0 34.6 154.2 35.0 C156.4 35.4 158.6 35.7 160.8 36.0 C163.0 36.2 165.1 36.5 167.3 36.5 C168.9 36.5 170.6 36.2 172.2 36.0 C173.8 35.7 175.5 35.3 177.1 35.0 C179.3 34.6 181.5 34.2 183.7 33.7 C185.9 33.1 188.0 32.4 190.2 31.7 C192.4 31.0 194.6 30.2 196.8 29.4 C199.0 28.6 201.1 27.6 203.3 26.8 C205.5 26.0 207.7 25.3 209.9 24.5 C212.1 23.7 214.2 22.7 216.4 21.9 C218.6 21.0 220.8 20.2 223.0 19.4 C225.1 18.6 227.3 17.9 229.5 17.3 C231.7 16.7 233.9 16.2 236.1 15.6 C238.3 15.0 240.4 14.1 242.6 13.5 C245.3 12.8 248.1 12.2 250.8 11.7 C253.5 11.2 256.3 10.8 259.0 10.4 C261.2 10.1 263.3 9.8 265.5 9.7 C267.1 9.6 268.8 9.6 270.4 9.9 C271.8 10.2 273.2 10.8 274.5 11.5 C275.7 12.2 276.9 13.0 277.8 14.1 C278.5 15.0 279.3 16.2 279.3 17.3 C279.3 18.4 278.5 19.5 277.8 20.5 C277.1 21.5 276.1 22.2 275.3 23.1 C274.5 24.0 273.8 24.9 272.9 25.7 C271.6 26.9 270.2 27.8 268.8 28.9 C267.2 30.2 265.4 31.3 263.9 32.7 C262.4 34.1 261.2 35.7 259.8 37.2 C258.4 38.7 257.0 40.1 255.7 41.6 C254.5 43.0 253.4 44.5 252.4 46.1 C251.5 47.5 250.7 49.0 250.0 50.6 C249.3 52.2 248.8 54.0 248.3 55.7 C247.8 57.6 247.6 59.7 246.9 61.5 C246.2 63.3 245.2 64.9 244.2 66.6 C243.3 68.1 241.9 69.4 241.3 71.0 C240.6 72.6 240.3 74.4 240.3 76.2 C240.0 100.0 239.1 124.4 240.3 147.8 C240.4 149.7 243.2 150.6 244.2 152.3 C245.0 153.6 245.6 155.3 245.6 156.8 C245.5 158.5 244.8 160.4 243.9 161.9 C243.0 163.2 241.6 164.3 240.2 165.2 C238.7 166.2 236.9 167.1 235.2 167.8 C233.4 168.6 231.4 169.3 229.5 169.8 C227.4 170.4 225.2 170.8 223.0 171.1 C220.3 171.4 217.5 171.5 214.8 171.6 C212.1 171.6 209.3 171.6 206.6 171.4 C203.9 171.2 201.1 171.0 198.4 170.6 C196.2 170.3 194.0 169.8 191.9 169.3 C189.7 168.8 187.5 168.1 185.3 167.5 C183.1 166.9 181.0 166.2 178.8 165.5 C176.6 164.8 174.4 164.1 172.2 163.4 C170.0 162.8 167.9 162.2 165.7 161.6 C163.5 161.0 161.3 160.5 159.1 159.9 C156.9 159.4 154.8 158.7 152.6 158.3 C149.9 157.8 147.1 157.3 144.4 157.0 C141.1 156.7 137.9 156.5 134.6 156.4 C131.3 156.3 128.1 156.3 124.8 156.3 C121.5 156.4 118.2 156.5 114.9 156.7 C112.2 156.9 109.5 157.1 106.8 157.4 C104.1 157.7 101.3 158.0 98.6 158.4 C96.4 158.7 94.2 159.3 92.0 159.5 C90.4 159.7 88.6 160.0 87.1 159.6 C86.0 159.3 84.7 158.5 84.3 157.6 C83.8 156.5 83.9 154.9 84.2 153.6 C84.5 152.2 85.2 150.8 86.1 149.6 C87.0 148.3 88.2 147.0 89.6 146.3 C91.3 145.4 93.4 145.1 95.3 144.8 C98.5 144.3 104.7 146.9 105.1 144.0 C107.9 125.3 103.6 100.6 105.1 80.0 C105.2 78.0 108.9 77.8 110.0 76.2 C111.3 74.4 111.9 72.0 112.3 69.8 C112.7 67.3 112.5 64.7 112.3 62.1 C112.1 59.3 111.7 56.5 111.0 53.8 C110.4 51.6 109.5 49.4 108.4 47.4 C107.4 45.6 106.2 43.9 104.8 42.4 C103.5 41.0 101.8 39.7 100.2 38.6 C98.7 37.6 97.0 36.6 95.3 35.9 C93.2 35.0 91.0 34.3 88.8 33.6 C86.6 32.9 84.4 32.1 82.2 31.5 C80.1 30.9 77.9 30.5 75.7 30.0 C74.2 29.6 72.6 29.4 71.1 28.9 C70.2 28.6 69.2 28.2 68.5 27.6 C68.0 27.1 67.2 26.2 67.5 25.7 Z';
 
-/** An uncovered humbucker: black, two rows of poles (screws and slugs), in a black mounting ring. */
-function Humbucker({ x, id }: { x: number; id: string }) {
-  const top = NECK_TOP - 8;
-  const h = NECK_H + 16;
+/** Six pole pieces under the strings, on a pickup running from (x1, y1) to (x2, y2). */
+const along = (x1: number, y1: number, x2: number, y2: number, y: number) => x1 + ((x2 - x1) * (y - y1)) / (y2 - y1);
+
+/** A single-coil pickup in a white cover with rounded ends; its two mounting screws sit just past the ends. */
+function SingleCoil({ x1, y1, x2, y2, id }: { x1: number; y1: number; x2: number; y2: number; id: string }) {
+  const cx = (x1 + x2) / 2;
+  const cy = (y1 + y2) / 2;
+  const half = Math.hypot(x2 - x1, y2 - y1) / 2;
+  const tilt = (Math.atan2(x2 - x1, y1 - y2) * 180) / Math.PI;
+  const lenHalf = half - 3.6;
   return (
     <g>
-      <rect x={x - 5} y={top - 4} width={34} height={h + 8} rx={5} fill="#0d0c0c" stroke="#24211f" strokeWidth={1} />
-      <line x1={x - 2} x2={x + 26} y1={top - 3.2} y2={top - 3.2} stroke="rgba(255,255,255,0.12)" strokeWidth={0.6} />
-      {[
-        [x - 2, top - 1],
-        [x + 26, top - 1],
-        [x - 2, top + h + 1],
-        [x + 26, top + h + 1],
-      ].map(([cx, cy]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.1} fill="#55595b" />
-      ))}
-      <rect x={x} y={top + 2} width={24} height={h - 4} rx={3} fill="#060606" />
-      <line x1={x + 12} x2={x + 12} y1={top + 4} y2={top + h - 4} stroke="#1c1a19" strokeWidth={0.8} />
+      <g transform={`rotate(${tilt} ${cx} ${cy})`}>
+        <rect
+          x={cx - 5.9}
+          y={cy - lenHalf}
+          width={11.8}
+          height={lenHalf * 2}
+          rx={5.6}
+          ry={6.5}
+          fill={`url(#${id}-cover)`}
+          stroke="rgba(70,68,62,0.55)"
+          strokeWidth={0.6}
+          filter={`url(#${id}-lift)`}
+        />
+        <rect
+          x={cx - 4.6}
+          y={cy - lenHalf + 1.4}
+          width={9.2}
+          height={lenHalf * 2 - 2.8}
+          rx={4.4}
+          ry={5.2}
+          fill="none"
+          stroke="rgba(255,255,255,0.75)"
+          strokeWidth={0.7}
+        />
+        {[cy - half, cy + half].map((sy) => (
+          <Screw key={sy} x={cx} y={sy} id={id} />
+        ))}
+      </g>
       {STRING_AT.map((_, i) => (
-        <g key={i}>
-          <circle cx={x + 6} cy={stringY(i)} r={2.3} fill={`url(#${id}-post)`} />
-          <circle cx={x + 6} cy={stringY(i)} r={0.6} fill="#3d4245" />
-          <circle cx={x + 18} cy={stringY(i)} r={1.9} fill={`url(#${id}-post)`} opacity={0.85} />
-        </g>
+        <circle
+          key={i}
+          cx={along(x1, y1, x2, y2, stringY(i)) + 0.1}
+          cy={stringY(i) + 0.4}
+          r={1.55}
+          fill="#5c5d5c"
+          stroke="#2c2d2d"
+          strokeWidth={0.4}
+        />
       ))}
     </g>
   );
 }
 
-/** The body: satin charcoal, two humbuckers, a vibrato bridge with its arm, a mini switch and strap buttons. */
+/** A small chrome screw head with its slot. */
+function Screw({ x, y, id, r = 1.7 }: { x: number; y: number; id: string; r?: number }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r={r} fill={`url(#${id}-post)`} stroke="rgba(0,0,0,0.45)" strokeWidth={0.4} />
+      <line x1={x - r * 0.65} x2={x + r * 0.65} y1={y + r * 0.2} y2={y - r * 0.2} stroke="#4a4f52" strokeWidth={0.45} />
+    </g>
+  );
+}
+
+/** A white hat knob drawn in the art (the third knob, a second tone control, does nothing here). */
+function HatKnob({ x, y, id }: { x: number; y: number; id: string }) {
+  return (
+    <g filter={`url(#${id}-lift)`}>
+      <circle cx={x} cy={y} r={7.9} fill="#d9d7cf" stroke="rgba(60,58,52,0.6)" strokeWidth={0.6} />
+      <circle cx={x} cy={y} r={5.6} fill={`url(#${id}-hat)`} stroke="rgba(120,116,106,0.6)" strokeWidth={0.5} />
+      <line x1={x} x2={x} y1={y - 4.6} y2={y - 1.6} stroke="#3a3833" strokeWidth={0.9} strokeLinecap="round" />
+    </g>
+  );
+}
+
+/** Pickguard screws, read off the photo. */
+const GUARD_SCREWS = [
+  [77.3, 26.3],
+  [114.1, 75.5],
+  [90.4, 155.5],
+  [164.9, 158.1],
+  [175.5, 39.7],
+  [217.2, 31.4],
+  [242.6, 71.7],
+  [242.6, 158.1],
+  [272.1, 16.1],
+] as const;
+/** Pickups as their mounting-screw ends: neck and middle square to the strings, the bridge one slanted. */
+const PICKUPS = [
+  [128.9, 74.2, 128.9, 151.0],
+  [174.7, 74.2, 174.7, 151.0],
+  [221.3, 74.2, 211.5, 151.0],
+] as const;
+/** Where the two working knobs sit (Layout places the buttons over these): Volume, then Tone. */
+export const KNOB_AT = {
+  sound: [221.3, 62.1],
+  view: [238.5, 40.4],
+} as const;
+
+/**
+ * The body: gloss black with a white pickguard, three single-coil pickups, a vintage vibrato bridge with its arm,
+ * a five-way switch, a third knob, an oval jack plate on the face and two strap buttons.
+ */
 export function GuitarBody() {
   const id = useId().replace(/:/g, '');
-  const grain = useGrain();
-  const plateX = 203;
-  const anchorX = 226;
+  const plateX = 238.5;
+  const plateY = 67.2;
+  const plateH = 150.4 - 67.2;
+  const anchorX = 265.6;
   return (
     <svg className="body-art" width={BODY_W} height={ROW_H} viewBox={`0 0 ${BODY_W} ${ROW_H}`} aria-hidden="true">
       <defs>
         <MetalDefs id={id} />
-        <CharcoalDefs id={id} grain={grain} />
         <clipPath id={`${id}-clip`}>
           <path d={BODY_PATH} />
         </clipPath>
+        <clipPath id={`${id}-guardclip`}>
+          <path d={GUARD_PATH} />
+        </clipPath>
+        {/* Gloss black: the top is near black; the rounded edge catches a grey band of light, brightest along the
+            upper edges, and the very edge falls back to black. */}
+        <linearGradient id={`${id}-black`} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stopColor="#141415" />
+          <stop offset="0.5" stopColor="#0a0a0b" />
+          <stop offset="1" stopColor="#050505" />
+        </linearGradient>
+        <linearGradient id={`${id}-roll`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={ROW_H}>
+          <stop offset="0" stopColor="rgba(200,200,205,0.8)" />
+          <stop offset="0.35" stopColor="rgba(150,150,156,0.48)" />
+          <stop offset="0.65" stopColor="rgba(110,110,116,0.34)" />
+          <stop offset="1" stopColor="rgba(150,150,156,0.48)" />
+        </linearGradient>
+        <linearGradient id={`${id}-guard`} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0" stopColor="#f6f6f4" />
+          <stop offset="0.55" stopColor="#e9e9e7" />
+          <stop offset="1" stopColor="#d6d6d3" />
+        </linearGradient>
+        <linearGradient id={`${id}-cover`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#e4e2da" />
+          <stop offset="0.4" stopColor="#fbfaf6" />
+          <stop offset="1" stopColor="#d8d6cd" />
+        </linearGradient>
+        <radialGradient id={`${id}-hat`} cx="0.4" cy="0.35" r="0.7">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.6" stopColor="#f1efe8" />
+          <stop offset="1" stopColor="#cfccc2" />
+        </radialGradient>
+        <linearGradient id={`${id}-chrome`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f7f8f8" />
+          <stop offset="0.35" stopColor="#c4c9cb" />
+          <stop offset="0.55" stopColor="#8e9497" />
+          <stop offset="0.8" stopColor="#d9dcdd" />
+          <stop offset="1" stopColor="#8a9093" />
+        </linearGradient>
+        <linearGradient id={`${id}-dish`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#4b5053" />
+          <stop offset="0.6" stopColor="#9aa0a3" />
+          <stop offset="1" stopColor="#d8dbdc" />
+        </linearGradient>
+        <linearGradient id={`${id}-saddle`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f2f3f2" />
+          <stop offset="0.5" stopColor="#b9bdbe" />
+          <stop offset="1" stopColor="#7c8285" />
+        </linearGradient>
+        <linearGradient id={`${id}-rosewood`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2f1d13" />
+          <stop offset="0.55" stopColor="#24160e" />
+          <stop offset="1" stopColor="#1a0f09" />
+        </linearGradient>
         <filter
-          id={`${id}-band`}
+          id={`${id}-roll-blur`}
           colorInterpolationFilters="sRGB"
           filterUnits="userSpaceOnUse"
-          x={-20}
-          y={-20}
-          width={BODY_W + 40}
-          height={ROW_H + 40}
+          x={-10}
+          y={-10}
+          width={BODY_W + 20}
+          height={ROW_H + 20}
         >
-          <feGaussianBlur stdDeviation="4" />
-        </filter>
-        <filter
-          id={`${id}-carve`}
-          colorInterpolationFilters="sRGB"
-          filterUnits="userSpaceOnUse"
-          x={0}
-          y={0}
-          width={160}
-          height={ROW_H}
-        >
-          <feGaussianBlur stdDeviation="4" />
-        </filter>
-        <filter
-          id={`${id}-edge`}
-          colorInterpolationFilters="sRGB"
-          filterUnits="userSpaceOnUse"
-          x={0}
-          y={0}
-          width={160}
-          height={ROW_H}
-        >
-          <feGaussianBlur stdDeviation="1.5" />
+          <feGaussianBlur stdDeviation="2.2" />
         </filter>
         <filter
           id={`${id}-rim`}
@@ -424,164 +450,157 @@ export function GuitarBody() {
           width={BODY_W + 20}
           height={ROW_H + 20}
         >
-          <feGaussianBlur stdDeviation="1.4" />
+          <feGaussianBlur stdDeviation="0.8" />
         </filter>
-        <filter id={`${id}-glow`} colorInterpolationFilters="sRGB" x="-20%" y="-50%" width="140%" height="200%">
-          <feGaussianBlur stdDeviation="8" />
+        <filter id={`${id}-sheen`} colorInterpolationFilters="sRGB" x="-30%" y="-60%" width="160%" height="220%">
+          <feGaussianBlur stdDeviation="9" />
         </filter>
-        <linearGradient id={`${id}-saddle`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ece9e2" />
-          <stop offset="1" stopColor="#9d998f" />
-        </linearGradient>
-        <linearGradient id={`${id}-rear`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b5b1a9" />
-          <stop offset="1" stopColor="#7a766e" />
-        </linearGradient>
-        <linearGradient id={`${id}-bridge`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#e4e0d8" />
-          <stop offset="0.5" stopColor="#a8a49c" />
-          <stop offset="1" stopColor="#6e6a62" />
-        </linearGradient>
-        <linearGradient id={`${id}-rosewood`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2f1d13" />
-          <stop offset="0.55" stopColor="#24160e" />
-          <stop offset="1" stopColor="#1a0f09" />
-        </linearGradient>
+        <filter id={`${id}-lift`} colorInterpolationFilters="sRGB" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0.4" dy="1" stdDeviation="0.8" floodColor="#000" floodOpacity="0.45" />
+        </filter>
       </defs>
       <g filter="drop-shadow(0 6px 8px rgba(0,0,0,0.55))">
-        <path d={BODY_PATH} fill={`url(#${id}-stain)`} />
+        <path d={BODY_PATH} fill={`url(#${id}-black)`} />
       </g>
       <g clipPath={`url(#${id}-clip)`}>
-        {grain ? (
-          <rect
-            width={BODY_W}
-            height={ROW_H}
-            fill={`url(#${id}-grain)`}
-            filter={`url(#${id}-grey)`}
-            opacity={0.2}
-            style={{ mixBlendMode: 'multiply' }}
-          />
-        ) : null}
-        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-pore)`} opacity={0.45} />
-        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-streak)`} opacity={0.8} />
-        <rect width={BODY_W} height={ROW_H} filter={`url(#${id}-pale)`} opacity={0.16} />
-        {/* The worn, paler treble horn and upper bout, where the carve catches the light. */}
-        <g filter={`url(#${id}-band)`}>
-          <ellipse cx={100} cy={42} rx={44} ry={13} fill="rgba(215,190,178,0.2)" />
-          <ellipse cx={262} cy={34} rx={66} ry={20} fill="rgba(215,190,178,0.1)" />
-        </g>
-        {/* The top darkens toward the lower bass bout and the butt. */}
-        <ellipse cx={300} cy={190} rx={70} ry={40} fill="rgba(24,16,12,0.22)" filter={`url(#${id}-bout)`} />
-        {/* Broad darker streaks along the grain: one behind the bridge to the butt, one across the lower bout. */}
-        <g filter={`url(#${id}-band)`}>
-          <path d="M228 114 C262 110 300 119 350 113" fill="none" stroke="rgba(40,25,16,0.28)" strokeWidth={14} />
-          <path d="M60 156 C140 150 230 162 345 152" fill="none" stroke="rgba(40,25,16,0.2)" strokeWidth={10} />
-        </g>
-        <rect width={BODY_W} height={ROW_H} fill={`url(#${id}-satin)`} />
-        {/* The carved top rolls down into both cutaways: a soft lit ridge just inside each edge, then the edge
-            itself falling into shadow. */}
+        {/* A broad, soft reflection across the lower bout, as gloss shows under room light. */}
+        <ellipse cx={300} cy={176} rx={44} ry={16} fill="rgba(255,255,255,0.05)" filter={`url(#${id}-sheen)`} />
+        {/* The rolled edge: a band of light just inside the outline, then the outline itself in shadow. */}
+        <path d={BODY_PATH} fill="none" stroke={`url(#${id}-roll)`} strokeWidth={11} filter={`url(#${id}-roll-blur)`} />
+        <path d={BODY_PATH} fill="none" stroke="#020202" strokeWidth={3.6} filter={`url(#${id}-rim)`} />
         {[CUT_TREBLE, CUT_BASS].map((d) => (
-          <g key={d}>
-            <path d={d} fill="none" stroke="rgba(255,240,222,0.11)" strokeWidth={22} filter={`url(#${id}-carve)`} />
-            <path d={d} fill="none" stroke="rgba(0,0,0,0.32)" strokeWidth={6} filter={`url(#${id}-edge)`} />
-          </g>
+          <path key={d} d={d} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth={3} filter={`url(#${id}-rim)`} />
         ))}
-        {/* Light along the carved upper bass bout and horn. */}
-        <path
-          d="M30 180 C80 186 130 196 200 206"
-          fill="none"
-          stroke="rgba(255,255,255,0.10)"
-          strokeWidth={14}
-          strokeLinecap="round"
-          filter={`url(#${id}-glow)`}
-        />
-        {/* The rounded edge falls off into shadow. */}
-        <path d={BODY_PATH} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth={20} filter={`url(#${id}-soft)`} />
-        <path d={BODY_PATH} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth={5} filter={`url(#${id}-rim)`} />
       </g>
-      <path d={BODY_PATH} fill="none" stroke="rgba(10,8,6,0.8)" strokeWidth={1} />
+      <path d={BODY_PATH} fill="none" stroke="rgba(70,70,74,0.9)" strokeWidth={0.7} />
       {/* Strap buttons: the tip of the bass horn and the end of the body. */}
       {[
-        [5, 179],
-        [346, 112],
+        [4.6, 187.4],
+        [347.2, 112.6],
       ].map(([cx, cy]) => (
         <g key={cx}>
-          <circle cx={cx} cy={cy} r={3.2} fill="#2b2826" />
-          <circle cx={cx} cy={cy} r={2.4} fill={`url(#${id}-post)`} opacity={0.85} />
+          <circle cx={cx} cy={cy} r={3.3} fill="#1b1b1c" />
+          <circle cx={cx} cy={cy} r={2.5} fill={`url(#${id}-post)`} />
         </g>
       ))}
-      {/* The fretboard runs on over the body almost to the neck pickup, with its last frets. */}
-      {/* The fretboard stands proud of the top, so it casts a soft shadow onto the body. */}
+      {/* The pickguard: white, with the black middle ply showing as a thin line on its bevelled edge. */}
+      <g filter="drop-shadow(0 1px 1.2px rgba(0,0,0,0.7))">
+        <path d={GUARD_PATH} fill={`url(#${id}-guard)`} />
+      </g>
+      <g clipPath={`url(#${id}-guardclip)`}>
+        <path d={GUARD_PATH} fill="none" stroke="rgba(120,120,118,0.55)" strokeWidth={3.4} />
+        <path d={GUARD_PATH} fill="none" stroke="#2b2b2b" strokeWidth={1.5} />
+      </g>
+      {GUARD_SCREWS.map(([x, y]) => (
+        <Screw key={`${x}-${y}`} x={x} y={y} id={id} />
+      ))}
+      {/* The oval jack plate on the face, angled along the treble edge. */}
+      <g transform="rotate(-45.5 289.3 39.1)" filter={`url(#${id}-lift)`}>
+        <ellipse cx={289.3} cy={39.1} rx={26} ry={9.4} fill={`url(#${id}-chrome)`} stroke="#3d4144" strokeWidth={0.6} />
+        <ellipse
+          cx={290.3}
+          cy={39.1}
+          rx={14}
+          ry={4.4}
+          fill={`url(#${id}-dish)`}
+          stroke="rgba(30,32,34,0.7)"
+          strokeWidth={0.5}
+        />
+        <ellipse cx={293} cy={39.1} rx={3.4} ry={2.6} fill="#202325" stroke="#a9aeb0" strokeWidth={0.8} />
+
+        <circle cx={268} cy={39.1} r={1.5} fill="#6f7578" stroke="#2f3436" strokeWidth={0.4} />
+        <circle cx={310.6} cy={39.1} r={1.5} fill="#6f7578" stroke="#2f3436" strokeWidth={0.4} />
+      </g>
+      {/* The five-way switch: a slot in the guard with its white tip. */}
+      <g transform="rotate(-39.9 208.3 38.1)">
+        <rect x={199.6} y={36.8} width={17.4} height={2.6} rx={1.3} fill="#2d2c2a" />
+        <rect
+          x={204.4}
+          y={35.3}
+          width={7.6}
+          height={5.6}
+          rx={2.4}
+          fill={`url(#${id}-hat)`}
+          filter={`url(#${id}-lift)`}
+        />
+      </g>
+      <HatKnob x={263.1} y={19.3} id={id} />
+      {/* The fretboard runs on over the body, under the guard's edge, with its last frets. */}
       <rect
         x={70}
         y={NECK_TOP}
-        width={20}
+        width={112.5 - 70}
         height={NECK_H}
         fill={`url(#${id}-rosewood)`}
-        filter="drop-shadow(0 0 2.5px rgba(0,0,0,0.55))"
+        filter="drop-shadow(0.5px 0 1.5px rgba(0,0,0,0.6))"
       />
-      {[80, 86].map((x) => (
+      {[78, 87, 96, 105].map((x) => (
         <rect key={x} x={x} y={NECK_TOP} width={1.2} height={NECK_H} fill="#c9cdcf" opacity={0.8} />
       ))}
-      <rect x={89} y={NECK_TOP} width={1} height={NECK_H} fill="rgba(0,0,0,0.5)" />
-      <Humbucker x={98} id={id} />
-      <Humbucker x={162} id={id} />
-      {/* Vibrato bridge: a warm nickel base plate with six pivot screws in front and a saddle per string. */}
-      <g filter="drop-shadow(0 1.5px 1.5px rgba(0,0,0,0.6))">
+      <rect x={111.5} y={NECK_TOP} width={1} height={NECK_H} fill="rgba(0,0,0,0.5)" />
+      {PICKUPS.map(([x1, y1, x2, y2]) => (
+        <SingleCoil key={x1} x1={x1} y1={y1} x2={x2} y2={y2} id={id} />
+      ))}
+      {/* Vintage vibrato: a chrome plate with six pivot screws along its front edge, a bent-steel saddle per
+          string with its two height screws, and the strings through the body behind them. */}
+      <g filter={`url(#${id}-lift)`}>
         <rect
           x={plateX}
-          y={NECK_TOP - 9}
-          width={26}
-          height={NECK_H + 18}
-          rx={3}
-          fill={`url(#${id}-bridge)`}
-          stroke="#4e5457"
+          y={plateY}
+          width={31}
+          height={plateH}
+          rx={2}
+          fill={`url(#${id}-chrome)`}
+          stroke="#3d4144"
           strokeWidth={0.6}
         />
-        {/* The saddle channel, so the gaps between saddles read, and a plainer rear plate. */}
-        <rect x={204} y={NECK_TOP - 8} width={12} height={NECK_H + 16} fill="#2a2826" />
-        <rect x={216} y={NECK_TOP - 9} width={13} height={NECK_H + 18} rx={3} fill={`url(#${id}-rear)`} />
-        {Array.from({ length: 6 }, (_, k) => (
-          <circle
-            key={k}
-            cx={plateX + 1.6}
-            cy={NECK_TOP - 4 + ((NECK_H + 8) * k) / 5}
-            r={1.8}
-            fill="#5d6265"
-            stroke="#2f3436"
-            strokeWidth={0.4}
-          />
-        ))}
-        {STRING_AT.map((_, i) => (
-          <rect
-            key={i}
-            x={205 + i * 0.6}
-            y={stringY(i) - 2.6}
-            width={9}
-            height={5.2}
-            rx={1.3}
-            fill={`url(#${id}-saddle)`}
-            stroke="#5a574f"
-            strokeWidth={0.5}
-          />
-        ))}
       </g>
-      <Strings id={id} from={0} to={anchorX} />
-      {STRING_AT.map((_, i) => (
-        <circle key={i} cx={anchorX} cy={stringY(i)} r={1.5} fill="#3d4245" />
+      {Array.from({ length: 6 }, (_, k) => (
+        <Screw key={k} x={plateX + 2.8} y={plateY + 4 + ((plateH - 8) * k) / 5} id={id} r={1.4} />
       ))}
-      {/* The vibrato arm: thin and nearly straight, lying back along the treble side of the pickups. */}
-      <g filter="drop-shadow(0 1.5px 1px rgba(0,0,0,0.6))">
-        <circle cx={221} cy={72} r={3.5} fill={`url(#${id}-post)`} stroke="#4e5457" strokeWidth={0.5} />
-        <path d="M221 72 C202 68 160 66 116 66" fill="none" stroke="#d9dcdd" strokeWidth={2.5} strokeLinecap="round" />
-        <rect x={111} y={64} width={11} height={4} rx={2} fill="#151312" />
-        <line x1={112.5} x2={120.5} y1={65} y2={65} stroke="rgba(255,255,255,0.25)" strokeWidth={0.6} />
+      {STRING_AT.map((_, i) => {
+        const y = stringY(i);
+        return (
+          <g key={i}>
+            <rect
+              x={244.5}
+              y={y - 4.4}
+              width={15.5}
+              height={8.8}
+              rx={1.2}
+              fill={`url(#${id}-saddle)`}
+              stroke="#4c5255"
+              strokeWidth={0.5}
+            />
+            <rect x={246.5} y={y - 0.9} width={11.5} height={1.8} fill="rgba(40,44,46,0.55)" />
+            <circle cx={248} cy={y - 2.7} r={0.9} fill="#2c3032" />
+            <circle cx={248} cy={y + 2.7} r={0.9} fill="#2c3032" />
+            <path d={`M260 ${y - 1.4} l1.2 2.8 l1.2 -2.8 l1.2 2.8`} fill="none" stroke="#3b3f41" strokeWidth={0.7} />
+            <rect x={264.4} y={y - 2.3} width={3.6} height={4.6} rx={0.8} fill="#2a2d2f" />
+          </g>
+        );
+      })}
+      <Strings id={id} from={0} to={anchorX} />
+      {/* The vibrato arm: from the bridge's treble corner, bent up and back over the guard, with a white tip. */}
+      <g filter={`url(#${id}-lift)`}>
+        <circle cx={249.2} cy={65.9} r={2.6} fill={`url(#${id}-post)`} stroke="#3d4144" strokeWidth={0.5} />
+        <path
+          d="M249.2 65.9 L216.4 47.3 Q213.1 45.5 209 45.6 L196 46"
+          fill="none"
+          stroke="#dfe2e3"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <path
+          d="M249.2 65.9 L216.4 47.3"
+          fill="none"
+          stroke="#7d8487"
+          strokeWidth={0.6}
+          transform="translate(0.4 0.8)"
+        />
+        <line x1={193} y1={46.1} x2={210} y2={45.6} stroke="#cfccc3" strokeWidth={4.6} strokeLinecap="round" />
+        <line x1={193} y1={45.5} x2={210} y2={45} stroke="#f8f7f2" strokeWidth={2.6} strokeLinecap="round" />
       </g>
-      {/* Mini switch. */}
-      <circle cx={276} cy={68} r={5.2} fill="#1a1716" />
-      <circle cx={276} cy={68} r={4.2} fill={`url(#${id}-post)`} opacity={0.55} />
-      <circle cx={275.4} cy={67.4} r={2.4} fill="#121010" stroke="#000" strokeWidth={0.4} />
-      <circle cx={274.8} cy={66.8} r={0.8} fill="rgba(255,255,255,0.35)" />
     </svg>
   );
 }

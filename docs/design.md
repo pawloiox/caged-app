@@ -13,8 +13,9 @@ often a phone. The interface has one job: show the neck and what to play next, r
 3. **Type at arm's length.** Chord names and page titles are the largest things on screen, set condensed and
    heavy like the chord symbol on a chord chart.
 4. **One bold element: the guitar.** The navigation is a guitar lying across the top of the page
-   (`src/ui/Guitar.tsx`, `Layout.tsx`), modelled on a modern double-cutaway solid body in satin charcoal (the
-   reference photo the user supplied). The outlines are our own, and there is no maker's logo or bird inlays.
+   (`src/ui/Guitar.tsx`, `Layout.tsx`). The body follows the user's reference photo of a classic triple
+   single-coil solid body in gloss black; the headstock and neck are our own. The outlines are our own tracings,
+   and there is no maker's logo or inlays.
    - The headstock is the home link: gloss black, 3 + 3, flaring from the nut, with chrome tuner shafts and dark
      keys, a small truss-rod cover, a bone nut and the CAGED Lab logo.
    - The neck is unbound rosewood holding the steps and tools. Steps 1–5 are fret positions with inlay dots (a
@@ -22,10 +23,12 @@ often a phone. The interface has one job: show the neck and what to play next, r
      beyond them. Status sits on the frets: "Next up" under the next step, "3 due" under Train, and the routine
      timer or streak under Routine. Past the tools, the upper frets close up toward the body (decorative; they
      fill only the space the items leave).
-   - The body is a satin grey-brown with the open grain showing, a soft carved bevel and no binding. It has a
-     pair of matching horns with deep cutaways that mirror each other across the neck, two black open-pole humbuckers, a vibrato bridge with its arm swung
-     back along the treble side, and strap buttons. Its two dark knobs on the treble side are the controls: Sound
-     (the pointer turns between 0 and 10) and View. XP and the live-mic light sit on the lower bout.
+   - The body is gloss black, with a band of light along its rolled edge. It has a long bass horn, a shorter
+     treble horn and deep cutaways. On it sit a white pickguard with a thin dark bevel line, three white
+     single-coil pickups (the bridge one slanted), a vintage vibrato with bent-steel saddles and its arm, a
+     five-way switch, an oval jack plate on the face and strap buttons. The volume and first tone knobs (white
+     hats on the guard) are the controls: Sound (the pointer turns between 0 and 10) and View, with dark labels.
+     The third knob is decoration. XP and the live-mic light sit on the black lower bout.
    - Everything is drawn on one 224 px row with the 64 px neck centred, so the strings run unbroken from the
      tuners to the bridge.
    - Every item fits from 1280 px up (fret labels tighten below 1440). Narrower, the neck scrolls sideways
