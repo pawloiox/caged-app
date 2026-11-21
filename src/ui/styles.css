@@ -350,13 +350,13 @@ kbd {
    labels sit on the rim side, clear of the vibrato arm and the pickups. */
 .controls .knob-btn.sound {
   position: absolute;
-  left: 176px;
-  top: 7px;
+  left: 171px;
+  top: 19px;
 }
 .controls .knob-btn.view {
   position: absolute;
-  left: 235px;
-  top: 7px;
+  left: 223px;
+  top: 15px;
 }
 /* Sound's label sits on the rim side; View's on the inner side, so the two knobs form a diagonal. */
 .controls .knob-btn.sound .knob-label {

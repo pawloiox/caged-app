@@ -569,3 +569,17 @@ treble ones across the neck's centre line, and both scoops cut about 10 px deepe
 Then the joins were reshaped: each cutaway now rolls into the neck along its edge rather than meeting it square,
 the carved top shades down into both cutaways (a soft lit ridge, then a shadowed edge), and the fretboard end
 casts a soft shadow on the body.
+
+**Traced body outline.** The body outline is now traced from the reference photo's silhouette instead of drawn by
+hand (`scripts/guitar-trace/`):
+- `rows.mjs` reads each pixel row's dark runs on the white background.
+- `outline.py` follows the horn and outer edges, then maps them onto this guitar. Along the neck it uses
+  1.257 px per photo pixel. Across the neck, the photo's 32 px neck becomes 64 px; outside the neck band the body
+  keeps the photo's proportions (0.96×). The result is fitted with Catmull-Rom curves.
+- The hardware was placed from the photo too: the dark pickups, the bright bridge, and the knob and switch
+  centres. The finish colour was sampled from the photo (#594439 average) and the stain stops warmed to match.
+- The reference photo itself is not in the repo; the scripts' constants (neck edges, centre line, horn-tip and
+  butt rows) are for that 600×600 image.
+
+This replaces the earlier symmetrical cutaways. The photo's bass horn is longer than its treble horn, while its
+two cutaways have similar depth and both roll into the neck.

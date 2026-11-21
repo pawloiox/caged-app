@@ -104,10 +104,10 @@ function CharcoalDefs({ id, grain }: { id: string; grain: string | null }) {
   return (
     <>
       <radialGradient id={`${id}-stain`} cx="0.5" cy="0.55" r="0.78">
-        <stop offset="0" stopColor="#86705c" />
-        <stop offset="0.55" stopColor="#67513f" />
-        <stop offset="0.88" stopColor="#4e3d30" />
-        <stop offset="1" stopColor="#34281f" />
+        <stop offset="0" stopColor="#7c5f4b" />
+        <stop offset="0.55" stopColor="#664a39" />
+        <stop offset="0.88" stopColor="#4f3a2d" />
+        <stop offset="1" stopColor="#32241b" />
       </radialGradient>
       {grain ? (
         // Stretched across the grain, so the streaks are wider and less regular than on the fretboard.
@@ -120,7 +120,7 @@ function CharcoalDefs({ id, grain }: { id: string; grain: string | null }) {
       </filter>
       {/* Greys the rosewood grain, so it reads as stained open-pore wood. */}
       <filter id={`${id}-grey`}>
-        <feColorMatrix type="saturate" values="0.4" />
+        <feColorMatrix type="saturate" values="0.75" />
         <feGaussianBlur stdDeviation="0.5" />
       </filter>
       {/* Coarse open-pore streaks along the body's length: noise stretched along x, turned into a brown alpha. */}
@@ -301,21 +301,18 @@ export const BODY_W = 350;
 export const BODY_OVERLAP = 70;
 
 /**
- * Double cutaway with matching horns: the two scoops are mirror images across the neck's centre line, cut deep
- * into the body. A narrow upper body widens into a full round lower bout. The neck enters on the left between
- * the horns (y 80–144).
+ * Traced from the reference photo's silhouette, row by row, then mapped onto this guitar: along the neck at
+ * 1.257 px per photo pixel, and across it so the neck is 64 px wide (photo 32) while the body keeps its own
+ * proportions outside the neck band. A long bass horn, a shorter treble horn, cutaways that roll into the neck,
+ * a gentle waist and a full, round lower bout. Regenerate with scripts/guitar-trace (rows.mjs, then outline.py).
  */
 const BODY_PATH =
-  // Each cutaway rolls into the neck along its edge (tangent to it), not square onto it.
-  'M60 80 C74 80 86 76 90 66 C94 56 88 46 76 42 C64 38 52 36 50 29 C48 21 55 16 63 17 C75 18 85 21 97 26 C109 31 118 34 130 34 ' +
-  'C152 33 182 13 224 4 C262 0 302 6 325 27 C342 42 349 76 349 112 C349 150 340 186 318 204 ' +
-  'C302 218 278 222 248 222 C206 222 164 192 130 190 ' +
-  // The bass horn and cutaway mirror the treble ones across the neck's centre line (y = 112).
-  'C118 190 109 193 97 198 C85 203 75 206 63 207 C55 208 48 203 50 195 C52 188 64 186 76 182 ' +
-  'C88 178 94 168 90 158 C86 148 74 144 60 144 L70 144 L70 80 Z';
-/** The two cutaway edges, for the carve shading (mirror images across y = 112). */
-const CUT_TREBLE = 'M60 80 C74 80 86 76 90 66 C94 56 88 46 76 42 C64 38 52 36 50 29';
-const CUT_BASS = 'M50 195 C52 188 64 186 76 182 C88 178 94 168 90 158 C86 148 74 144 60 144';
+  'M78.7 80.0 C78.3 76.7 77.4 64.6 76.2 60.1 C74.9 55.6 72.8 54.8 71.1 52.8 C69.5 50.9 67.8 49.4 66.1 48.2 C64.4 47.0 62.8 46.4 61.1 45.5 C59.4 44.7 57.7 43.9 56.1 43.0 C54.4 42.1 51.9 41.8 51.0 40.2 C50.2 38.6 50.2 35.3 51.0 33.5 C51.9 31.6 54.4 30.3 56.1 29.2 C57.7 28.0 59.4 27.3 61.1 26.7 C62.8 26.0 64.4 25.6 66.1 25.3 C67.8 25.0 69.5 25.0 71.1 25.1 C72.8 25.2 74.5 25.4 76.2 25.7 C77.9 26.0 79.5 26.4 81.2 26.8 C82.9 27.3 84.6 27.7 86.2 28.2 C87.9 28.7 89.6 29.2 91.3 29.7 C92.9 30.3 94.6 31.0 96.3 31.7 C98.0 32.3 99.6 33.0 101.3 33.6 C103.0 34.2 104.7 34.8 106.4 35.3 C108.0 35.8 109.7 36.2 111.4 36.7 C113.1 37.1 114.7 37.6 116.4 38.0 C118.1 38.4 119.8 38.7 121.4 39.0 C123.1 39.2 124.8 39.5 126.5 39.6 C128.1 39.6 129.8 39.4 131.5 39.2 C133.2 39.0 134.8 38.7 136.5 38.4 C138.2 38.1 139.9 37.7 141.6 37.2 C143.2 36.8 144.9 36.3 146.6 35.7 C148.3 35.1 149.9 34.5 151.6 33.8 C153.3 33.1 155.0 32.4 156.6 31.7 C158.3 30.9 160.0 30.2 161.7 29.3 C163.3 28.5 165.0 27.6 166.7 26.7 C168.4 25.8 170.1 24.9 171.7 24.0 C173.4 23.1 175.1 22.1 176.8 21.3 C178.4 20.4 180.1 19.6 181.8 18.8 C183.5 18.0 185.1 17.2 186.8 16.4 C188.5 15.7 190.2 15.0 191.8 14.3 C193.5 13.7 195.2 13.0 196.9 12.4 C198.5 11.8 200.2 11.1 201.9 10.5 C203.6 9.9 205.3 9.4 206.9 8.9 C208.6 8.4 210.3 7.8 212.0 7.4 C213.6 6.9 215.3 6.6 217.0 6.2 C218.7 5.9 220.3 5.4 222.0 5.1 C223.7 4.7 225.4 4.4 227.0 4.1 C228.7 3.9 230.4 3.7 232.1 3.5 C233.8 3.3 235.4 3.1 237.1 3.0 C238.8 2.9 240.5 3.1 242.1 3.0 C243.8 2.8 245.5 2.4 247.2 2.2 C248.8 2.0 250.5 1.9 252.2 2.0 C253.9 2.1 255.5 2.4 257.2 2.6 C258.9 2.7 260.6 2.8 262.2 3.0 C263.9 3.1 265.6 3.3 267.3 3.5 C269.0 3.8 270.6 4.2 272.3 4.5 C274.0 4.9 275.7 5.2 277.3 5.7 C279.0 6.1 280.7 6.5 282.4 7.0 C284.0 7.5 285.7 7.9 287.4 8.5 C289.1 9.2 290.7 9.9 292.4 10.7 C294.1 11.4 295.8 12.0 297.5 13.0 C299.1 13.9 300.8 15.2 302.5 16.3 C304.2 17.3 305.8 18.1 307.5 19.3 C309.2 20.6 310.9 22.1 312.5 23.6 C314.2 25.1 315.9 26.7 317.6 28.4 C319.2 30.1 320.9 31.9 322.6 34.0 C324.3 36.1 326.0 38.1 327.6 40.9 C329.3 43.7 331.0 46.4 332.7 50.5 C334.3 54.6 335.0 55.3 337.7 65.6 C340.4 75.8 348.8 97.7 349.0 112.0 C349.2 126.3 341.5 141.7 338.9 151.5 C336.4 161.3 335.6 165.9 333.9 170.8 C332.2 175.6 330.6 177.9 328.9 180.8 C327.2 183.6 325.5 185.8 323.9 187.9 C322.2 190.1 320.5 191.9 318.8 193.7 C317.1 195.5 315.5 197.2 313.8 198.7 C312.1 200.2 310.4 201.4 308.8 202.7 C307.1 204.1 305.4 205.5 303.7 206.6 C302.1 207.7 300.4 208.6 298.7 209.5 C297.0 210.4 295.4 211.2 293.7 212.0 C292.0 212.8 290.3 213.5 288.7 214.1 C287.0 214.7 285.3 215.3 283.6 215.8 C281.9 216.4 280.3 216.9 278.6 217.4 C276.9 217.8 275.2 218.1 273.6 218.5 C271.9 218.9 270.2 219.4 268.5 219.7 C266.9 220.0 265.2 220.0 263.5 220.3 C261.8 220.5 260.2 220.9 258.5 221.0 C256.8 221.2 255.1 221.0 253.4 221.0 C251.8 221.0 250.1 221.0 248.4 221.0 C246.7 221.0 245.1 221.1 243.4 221.0 C241.7 221.0 240.0 220.8 238.4 220.7 C236.7 220.5 235.0 220.3 233.3 220.1 C231.7 219.8 230.0 219.6 228.3 219.3 C226.6 219.0 225.0 218.5 223.3 218.1 C221.6 217.8 219.9 217.4 218.2 217.0 C216.6 216.6 214.9 216.3 213.2 215.8 C211.5 215.4 209.9 215.0 208.2 214.5 C206.5 213.9 204.8 213.2 203.2 212.6 C201.5 212.0 199.8 211.4 198.1 210.8 C196.5 210.2 194.8 209.6 193.1 208.9 C191.4 208.2 189.7 207.4 188.1 206.6 C186.4 205.8 184.7 205.1 183.0 204.3 C181.4 203.5 179.7 202.6 178.0 201.8 C176.3 200.9 174.7 200.1 173.0 199.3 C171.3 198.5 169.6 197.8 168.0 197.0 C166.3 196.2 164.6 195.3 162.9 194.5 C161.3 193.7 159.6 192.8 157.9 192.1 C156.2 191.5 154.5 191.0 152.9 190.4 C151.2 189.8 149.5 189.2 147.8 188.7 C146.2 188.1 144.5 187.6 142.8 187.1 C141.1 186.7 139.5 186.2 137.8 185.8 C136.1 185.4 134.4 185.0 132.8 184.6 C131.1 184.3 129.4 183.9 127.7 183.7 C126.0 183.5 124.4 183.5 122.7 183.5 C121.0 183.4 119.3 183.5 117.7 183.5 C116.0 183.5 114.3 183.4 112.6 183.5 C111.0 183.6 109.3 183.8 107.6 184.1 C105.9 184.3 104.3 184.5 102.6 184.8 C100.9 185.1 99.2 185.4 97.6 185.8 C95.9 186.1 94.2 186.5 92.5 186.9 C90.8 187.4 89.2 188.0 87.5 188.5 C85.8 189.0 84.1 189.5 82.5 190.0 C80.8 190.6 79.1 191.4 77.4 192.0 C75.8 192.5 74.1 193.0 72.4 193.5 C70.7 194.0 69.1 194.6 67.4 195.0 C65.7 195.5 64.0 196.0 62.3 196.4 C60.7 196.8 59.0 197.0 57.3 197.3 C55.6 197.7 54.0 198.1 52.3 198.3 C50.6 198.6 48.9 198.8 47.3 198.9 C45.6 199.0 43.9 198.9 42.2 198.9 C40.6 198.9 38.9 199.0 37.2 198.9 C35.5 198.8 33.9 198.7 32.2 198.5 C30.5 198.3 28.8 198.0 27.1 197.5 C25.5 197.1 23.8 196.6 22.1 196.0 C20.4 195.4 18.8 194.9 17.1 193.9 C15.4 192.8 13.7 192.5 12.1 189.6 C10.4 186.8 8.7 177.7 7.0 176.9 C5.4 176.1 2.8 184.4 2.0 184.8 C1.2 185.1 0.3 180.1 2.0 179.0 C3.7 177.9 9.5 178.5 12.1 178.3 C14.6 178.1 15.4 177.8 17.1 177.7 C18.8 177.6 20.4 177.8 22.1 177.7 C23.8 177.6 25.5 177.3 27.1 177.1 C28.8 176.9 30.5 176.8 32.2 176.5 C33.9 176.3 35.5 175.8 37.2 175.4 C38.9 175.0 40.6 174.7 42.2 174.0 C43.9 173.4 45.6 172.4 47.3 171.5 C48.9 170.6 50.6 169.7 52.3 168.7 C54.0 167.6 55.6 166.6 57.3 165.2 C59.0 163.7 60.7 163.5 62.3 160.0 C64.0 156.5 66.5 146.7 67.4 144.0 L67 144 L70 80 Z';
+/** The two cutaway edges (neck joint to horn tip), for the carve shading. */
+const CUT_TREBLE =
+  'M78.7 80.0 C78.3 76.7 77.4 64.6 76.2 60.1 C74.9 55.6 72.8 54.8 71.1 52.8 C69.5 50.9 67.8 49.4 66.1 48.2 C64.4 47.0 62.8 46.4 61.1 45.5 C59.4 44.7 57.7 43.9 56.1 43.0 C54.4 42.1 51.9 40.7 51.0 40.2';
+const CUT_BASS =
+  'M2.0 179.0 C3.7 178.9 9.5 178.5 12.1 178.3 C14.6 178.1 15.4 177.8 17.1 177.7 C18.8 177.6 20.4 177.8 22.1 177.7 C23.8 177.6 25.5 177.3 27.1 177.1 C28.8 176.9 30.5 176.8 32.2 176.5 C33.9 176.3 35.5 175.8 37.2 175.4 C38.9 175.0 40.6 174.7 42.2 174.0 C43.9 173.4 45.6 172.4 47.3 171.5 C48.9 170.6 50.6 169.7 52.3 168.7 C54.0 167.6 55.6 166.6 57.3 165.2 C59.0 163.7 60.7 163.5 62.3 160.0 C64.0 156.5 66.5 146.7 67.4 144.0';
 
 /** An uncovered humbucker: black, two rows of poles (screws and slugs), in a black mounting ring. */
 function Humbucker({ x, id }: { x: number; id: string }) {
@@ -436,7 +433,7 @@ export function GuitarBody() {
         ))}
         {/* Light along the carved upper bass bout and horn. */}
         <path
-          d="M58 198 C90 200 130 202 200 208"
+          d="M30 180 C80 186 130 196 200 206"
           fill="none"
           stroke="rgba(255,255,255,0.10)"
           strokeWidth={14}
@@ -448,8 +445,8 @@ export function GuitarBody() {
       </g>
       <path d={BODY_PATH} fill="none" stroke="rgba(10,8,6,0.8)" strokeWidth={1} />
       {/* Strap buttons: the tip of the bass horn and the end of the body. */}
-      <circle cx={49} cy={200} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
-      <circle cx={345} cy={112} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
+      <circle cx={5} cy={179} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
+      <circle cx={346} cy={112} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
       {/* The fretboard runs on over the body almost to the neck pickup, with its last frets. */}
       {/* The fretboard stands proud of the top, so it casts a soft shadow onto the body. */}
       <rect
@@ -512,13 +509,13 @@ export function GuitarBody() {
       ))}
       {/* The vibrato arm: thin and nearly straight, lying back along the treble side of the pickups. */}
       <g filter="drop-shadow(0 1.5px 1px rgba(0,0,0,0.6))">
-        <circle cx={224} cy={69} r={3.5} fill={`url(#${id}-post)`} stroke="#4e5457" strokeWidth={0.5} />
-        <path d="M224 69 C205 64 160 61 114 59" fill="none" stroke="#d9dcdd" strokeWidth={2.5} strokeLinecap="round" />
-        <ellipse cx={114} cy={59} rx={4} ry={2.6} fill="#f2f2f2" stroke="#8f969a" strokeWidth={0.5} />
+        <circle cx={221} cy={72} r={3.5} fill={`url(#${id}-post)`} stroke="#4e5457" strokeWidth={0.5} />
+        <path d="M221 72 C202 68 160 66 116 66" fill="none" stroke="#d9dcdd" strokeWidth={2.5} strokeLinecap="round" />
+        <ellipse cx={116} cy={66} rx={4} ry={2.6} fill="#f2f2f2" stroke="#8f969a" strokeWidth={0.5} />
       </g>
       {/* Mini switch. */}
-      <circle cx={280} cy={68} r={6} fill="#141110" />
-      <circle cx={280} cy={68} r={4.5} fill={`url(#${id}-brass)`} />
+      <circle cx={276} cy={68} r={6} fill="#141110" />
+      <circle cx={276} cy={68} r={4.5} fill={`url(#${id}-brass)`} />
     </svg>
   );
 }
