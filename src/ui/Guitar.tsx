@@ -301,15 +301,17 @@ export const BODY_W = 350;
 export const BODY_OVERLAP = 70;
 
 /**
- * Pear-shaped double cutaway: a narrow upper body, a thick bass horn pointing straight at the headstock with a
- * deep U cutaway, a short treble horn with a shallow scoop, and a wide round lower bout. The neck enters on the
- * left between the horns (y 80–144).
+ * Double cutaway with matching horns: the two scoops are mirror images across the neck's centre line, cut deep
+ * into the body. A narrow upper body widens into a full round lower bout. The neck enters on the left between
+ * the horns (y 80–144).
  */
 const BODY_PATH =
-  'M74 80 C80 66 74 52 62 46 C54 42 48 38 47 31 C46 22 54 17 62 18 C74 18 84 21 96 26 C108 31 118 34 130 34 ' +
+  'M84 80 C90 64 84 50 70 44 C60 40 52 36 50 29 C48 21 55 16 63 17 C75 18 85 21 97 26 C109 31 118 34 130 34 ' +
   'C152 33 182 13 224 4 C262 0 302 6 325 27 C342 42 349 76 349 112 C349 150 340 186 318 204 ' +
-  'C302 218 278 222 248 222 C212 222 182 214 152 207 C126 202 96 200 60 200 C40 201 24 202 14 200 ' +
-  'C4 197 0 189 1 182 C2 174 8 168 17 169 C30 175 48 172 58 166 C66 161 69 153 70 144 L70 80 Z';
+  'C302 218 278 222 248 222 C206 222 164 192 130 190 ' +
+  // The bass horn and cutaway mirror the treble ones across the neck's centre line (y = 112).
+  'C118 190 109 193 97 198 C85 203 75 206 63 207 C55 208 48 203 50 195 C52 188 60 184 70 180 ' +
+  'C84 174 90 160 84 144 L70 144 L70 80 Z';
 
 /** An uncovered humbucker: black, two rows of poles (screws and slugs), in a black mounting ring. */
 function Humbucker({ x, id }: { x: number; id: string }) {
@@ -416,20 +418,20 @@ export function GuitarBody() {
         <rect width={BODY_W} height={ROW_H} fill={`url(#${id}-satin)`} />
         {/* The body's thickness inside the cutaways: shadowed in the bass U, lit in the treble scoop. */}
         <path
-          d="M17 169 C30 175 48 172 58 166 C66 161 69 153 70 144"
+          d="M50 195 C52 188 60 184 70 180 C84 174 90 160 84 144"
           fill="none"
           stroke="rgba(0,0,0,0.35)"
           strokeWidth={5}
         />
         <path
-          d="M74 80 C80 66 74 52 62 46 C54 42 48 38 47 31"
+          d="M84 80 C90 64 84 50 70 44 C60 40 52 36 50 29"
           fill="none"
           stroke="rgba(255,235,210,0.10)"
           strokeWidth={5}
         />
         {/* Light along the carved upper bass bout and horn. */}
         <path
-          d="M20 186 C60 192 120 200 200 208"
+          d="M58 198 C90 200 130 202 200 208"
           fill="none"
           stroke="rgba(255,255,255,0.10)"
           strokeWidth={14}
@@ -441,7 +443,7 @@ export function GuitarBody() {
       </g>
       <path d={BODY_PATH} fill="none" stroke="rgba(10,8,6,0.8)" strokeWidth={1} />
       {/* Strap buttons: the tip of the bass horn and the end of the body. */}
-      <circle cx={2} cy={180} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
+      <circle cx={49} cy={200} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
       <circle cx={345} cy={112} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
       {/* The fretboard runs on over the body almost to the neck pickup, with its last frets. */}
       <rect x={70} y={NECK_TOP} width={20} height={NECK_H} fill={`url(#${id}-rosewood)`} />

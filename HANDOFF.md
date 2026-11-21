@@ -563,3 +563,6 @@ The critic put the ceiling at about 8.5 for each, given the fixed limits:
 
 What remains different by design: the body is compressed across the strings (3.5× the neck width rather than
 about 6×) so it fits a header, and there are no maker's logo or inlays.
+
+Afterwards, at the user's request, the two cutaways were made symmetrical: the bass horn and scoop now mirror the
+treble ones across the neck's centre line, and both scoops cut about 10 px deeper into the body.

@@ -23,7 +23,7 @@ often a phone. The interface has one job: show the neck and what to play next, r
      timer or streak under Routine. Past the tools, the upper frets close up toward the body (decorative; they
      fill only the space the items leave).
    - The body is a satin grey-brown with the open grain showing, a soft carved bevel and no binding. It has a
-     long bass horn and a shorter treble horn, two black open-pole humbuckers, a vibrato bridge with its arm swung
+     pair of matching horns with deep cutaways that mirror each other across the neck, two black open-pole humbuckers, a vibrato bridge with its arm swung
      back along the treble side, and strap buttons. Its two dark knobs on the treble side are the controls: Sound
      (the pointer turns between 0 and 10) and View. XP and the live-mic light sit on the lower bout.
    - Everything is drawn on one 224 px row with the 64 px neck centred, so the strings run unbroken from the
@@ -55,14 +55,14 @@ The default theme is **wood**: the page is rosewood with the same grain as the f
 a fixed layer behind the content), and the fretboard sits in a darker recessed tray. **Light** (the pearl page)
 and **Match device** are under View. Printing always uses the light tokens on white paper.
 
-| Token | Light | Wood | Use |
-|---|---|---|---|
-| Pearl `--bg` | `#f2f4f3` | rosewood `#2b1a10` + grain | page |
-| Case ink `--ink` | `#1f2a33` | pearl `#eef1f0` | text, primary buttons, focus ring |
-| Graphite `--muted` | `#5b6770` | `#cbbdb1` | secondary text, group names |
-| Nickel `--rule` | `#a7b0b5` | `#8b7363` | rules and underlines only, like fret wire (never text) |
-| Tray `--surface-2` | `#e7ebec` | `#170d07` | the recess the fretboard sits in |
-| Rosewood | `#3a2317` | `#120b07` | the neck strip and the board |
+| Token              | Light     | Wood                       | Use                                                    |
+| ------------------ | --------- | -------------------------- | ------------------------------------------------------ |
+| Pearl `--bg`       | `#f2f4f3` | rosewood `#2b1a10` + grain | page                                                   |
+| Case ink `--ink`   | `#1f2a33` | pearl `#eef1f0`            | text, primary buttons, focus ring                      |
+| Graphite `--muted` | `#5b6770` | `#cbbdb1`                  | secondary text, group names                            |
+| Nickel `--rule`    | `#a7b0b5` | `#8b7363`                  | rules and underlines only, like fret wire (never text) |
+| Tray `--surface-2` | `#e7ebec` | `#170d07`                  | the recess the fretboard sits in                       |
+| Rosewood           | `#3a2317` | `#120b07`                  | the neck strip and the board                           |
 
 `--accent` is an alias of ink, kept so that existing components follow the identity.
 
