@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { engine, toPlayable } from '../audio/engine';
 import { COL, NEUTRAL, NEUTRAL_ROOT, barreSpec, textFor } from '../fretboard/build';
 import { Pill } from '../fretboard/extras';
@@ -8,7 +8,6 @@ import { MicToggle } from '../listen/MicControls';
 import { useMicEvents } from '../lessons/useMicNotes';
 import { addXP, announce, logReviewDay, recordStat, updateProgress, usePrefs, useProgress } from '../store/app';
 import {
-  isTonic,
   tonicOf,
   BOTH_NAMES,
   MAX_FRET,
@@ -23,8 +22,20 @@ import {
 } from '../theory';
 import { Card, Check, Kbd, PageHead, Seg, ShapeAnswer } from '../ui/controls';
 import { useHotkeys, useVertical } from '../ui/hooks';
-import { dueKeys, pickWeighted, weightOf } from './leitner';
-import { TRAIN_MODES, isClickMode, makeQuestion, modeOfStat, type Mode, type Question } from './questions';
+import { dueKeys, isDue, isSlow, pickWeighted, weightOf } from './leitner';
+import {
+  TARGET_MS,
+  TRAIN_MODES,
+  isClickMode,
+  judgeRecall,
+  makeItemQuestion,
+  isQuizItem,
+  makeQuestion,
+  type Mode,
+  type Question,
+} from './questions';
+import { DueDrills } from './DueDrills';
+import { linkDue } from './drills';
 
 const MODE_IDS = TRAIN_MODES.map(([m]) => m);
 const MODE_TITLE: Record<Mode, string> = {
@@ -32,14 +43,14 @@ const MODE_TITLE: Record<Mode, string> = {
   chord: 'Name the chord from its shape',
   roots: 'Find the roots in a shape',
   build: 'Build a shape from its root',
+  recall: 'Play a shape from memory',
   octaves: 'Find every root on the neck',
   ear: 'Hear major or minor',
   earhand: 'Hear the chord, find its root',
   order: 'Know the shape order',
 };
-/** Items the review queue can serve. Older saves may hold retired items such as prog:251:I (the home chord). */
-const reviewable = (k: string): boolean =>
-  !!modeOfStat(k) && !(k.startsWith('prog:') && isTonic(k.split(':')[2] ?? ''));
+const reviewable = isQuizItem;
+const secs = (ms: number) => (ms / 1000).toFixed(1).replace(/\.0$/, '') + ' s';
 
 function Mastery() {
   const stats = useProgress((p) => p.stats);
@@ -49,7 +60,7 @@ function Mastery() {
         let r = 0;
         let w = 0;
         (['major', 'minor'] as const).forEach((q) =>
-          ['shape', 'roots', 'build'].forEach((p) => {
+          ['shape', 'roots', 'build', 'recall'].forEach((p) => {
             const x = stats[`${p}:${q}:${s}`];
             if (x) {
               r += x.r;
@@ -78,10 +89,20 @@ export default function Train() {
   const nav = useNavigate();
   const review = params.mode === 'review';
   const mode: Mode = review ? 'shape' : MODE_IDS.includes(params.mode as Mode) ? (params.mode as Mode) : 'shape';
+  // The routine's weakest-shape block links here with ?shape=G: only that shape, in the shape drills.
+  const [search] = useSearchParams();
+  const shapeParam = search.get('shape') as Shape | null;
+  const only =
+    shapeParam &&
+    (ORDER as readonly string[]).includes(shapeParam) &&
+    ['shape', 'roots', 'build', 'recall'].includes(mode)
+      ? shapeParam
+      : undefined;
   const prefs = usePrefs();
   const stats = useProgress((p) => p.stats);
   const best = useProgress((p) => p.best);
   const due = useMemo(() => dueKeys(stats).filter(reviewable), [stats]);
+  const drillsDue = useMemo(() => linkDue(stats), [stats]);
   const [minor, setMinor] = useState(false);
   const [hint, setHint] = useState(true);
   const [q, setQ] = useState<Question | null>(null);
@@ -95,6 +116,9 @@ export default function Train() {
   const [reviewed, setReviewed] = useState(0);
   const [heard, setHeard] = useState('');
   const last = useRef<Instance | null>(null);
+  /** When the question appeared (fluency timing), and how long the naming took in Ear + hand. */
+  const shownAt = useRef(0);
+  const nameMs = useRef<number | null>(null);
   const headRef = useRef<HTMLHeadingElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const feedbackRef = useRef<HTMLParagraphElement>(null);
@@ -125,13 +149,14 @@ export default function Train() {
         return;
       }
       const item = pickWeighted(keys, (k) => weightOf(useProgress.getState().stats[k]));
-      nq = makeQuestion(modeOfStat(item)!, { minor: true, stats, item, sp: prefs.minorSpelling });
+      nq = makeItemQuestion(item, { minor: true, stats, item, sp: prefs.minorSpelling })!;
     } else
       nq = makeQuestion(mode, {
         minor,
         stats: useProgress.getState().stats,
         last: last.current,
         sp: prefs.minorSpelling,
+        only,
       });
     last.current = nq.inst ?? null;
     setQ(nq);
@@ -142,6 +167,8 @@ export default function Train() {
     setRootPhase('off');
     setRootTries([]);
     setHeard('');
+    shownAt.current = performance.now();
+    nameMs.current = null;
     if (nq.type === 'ear' || nq.type === 'earhand') hear(nq);
     if (focus) requestAnimationFrame(() => headRef.current?.focus({ preventScroll: true }));
   };
@@ -149,11 +176,17 @@ export default function Train() {
   useEffect(() => {
     newQ(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, review, minor]);
+  }, [mode, review, minor, only]);
 
   const finishAnswer = (good: boolean, lead: string) => {
     if (!q) return;
-    if (q.stat) recordStat(q.stat, good);
+    // Fluency: Ear + hand is timed on the naming, the rest from the question to the answer.
+    const ms = nameMs.current ?? performance.now() - shownAt.current;
+    const timing = { ms, targetMs: TARGET_MS[q.type] };
+    const wasDue = !q.stat || isDue(useProgress.getState().stats[q.stat]) || !useProgress.getState().stats[q.stat];
+    if (q.stat) recordStat(q.stat, good, timing);
+    if (good && isSlow(timing))
+      lead += ` It took ${secs(ms)}; aim for under ${secs(timing.targetMs)}.${wasDue ? ' It comes back at the same interval until it is quick.' : ''}`;
     const streak = good ? score.streak + 1 : 0;
     setScore({ score: score.score + (good ? 1 : 0), total: score.total + 1, streak });
     if (good) addXP(10);
@@ -171,11 +204,13 @@ export default function Train() {
     if (picked != null || !q) return;
     setPicked(v);
     let good: boolean;
-    if (isClickMode(q.type)) {
+    if (q.type === 'recall') good = judgeRecall(q.alts!, sel).ok;
+    else if (isClickMode(q.type)) {
       const marked = [...sel].filter((k) => !q.optional?.includes(k));
       good = q.want!.length === marked.length && q.want!.every((k) => sel.has(k));
     } else good = v === q.answer;
     if (q.type === 'earhand') {
+      nameMs.current = performance.now() - shownAt.current;
       // Name first, then the hand: find the root inside the zone.
       setOk(good);
       const m = `${good ? 'Right' : 'Not quite'}: ${q.explain.charAt(0).toLowerCase()}${q.explain.slice(1)} Now find its root inside frets ${q.ear!.zone.lo}–${q.ear!.zone.hi}.`;
@@ -189,7 +224,7 @@ export default function Train() {
     const lead = good
       ? 'Correct.'
       : isClickMode(q.type)
-        ? `Not quite. ✓ found, ! missed, ✗ ${q.type === 'build' ? 'not in the shape' : 'not a root'}.`
+        ? `Not quite. ✓ found, ! missed, ✗ ${q.type === 'build' || q.type === 'recall' ? 'not in the shape' : 'not a root'}.`
         : `Not quite: the answer is ${q.answer}.`;
     finishAnswer(good, lead);
   };
@@ -231,6 +266,26 @@ export default function Train() {
         if (p) tryRoot(p.s, p.f, true);
         return;
       }
+      if (q.type === 'recall' && picked == null && q.alts) {
+        // Exact pitch: the note must be in the shape at one of its places. Prefer the place already begun.
+        const lead = judgeRecall(q.alts, sel).inst;
+        const at = [lead, ...q.alts.filter((a) => a !== lead)].flatMap((a) =>
+          notesOf(a).filter((n) => n.midi === e.midi && !sel.has(`${n.s}:${n.f}`)),
+        );
+        if (!at.length) {
+          setHeard(`Heard ${BOTH_NAMES[e.midi % 12]}: not a new note of this shape.`);
+          return;
+        }
+        const n = at[0]!;
+        const next = new Set(sel).add(`${n.s}:${n.f}`);
+        setSel(next);
+        setHeard(`Heard ${posName(n.s, n.f)}.`);
+        if (judgeRecall(q.alts, next).ok) {
+          setPicked('heard');
+          finishAnswer(true, 'Every note heard.');
+        }
+        return;
+      }
       if (q.type === 'roots' && picked == null && q.inst) {
         const at = notesOf(q.inst).filter((n) => n.midi === e.midi);
         if (!at.length) {
@@ -242,7 +297,7 @@ export default function Train() {
         setHeard(`Heard ${posName(n.s, n.f)}.`);
       }
     },
-    !!q && (rootPhase === 'find' || (q.type === 'roots' && picked == null)),
+    !!q && (rootPhase === 'find' || ((q.type === 'roots' || q.type === 'recall') && picked == null)),
   );
 
   const onCell = (s: number, f: number) => {
@@ -256,6 +311,7 @@ export default function Train() {
     const can =
       (q.type === 'roots' && q.inst!.frets[s] === f) ||
       (q.type === 'octaves' && f <= 12) ||
+      q.type === 'recall' ||
       (q.type === 'build' && !(s === q.anchor!.s && f === q.anchor!.f));
     if (can) {
       const n = new Set(sel);
@@ -332,6 +388,15 @@ export default function Train() {
         };
       }
       return { dots: tr, to: MAX_FRET };
+    }
+    if (q.type === 'recall') {
+      const dots: DotSpec[] = [];
+      if (revealed) {
+        const j = judgeRecall(q.alts!, sel);
+        j.want.forEach((k) => dots.push(mark(k, sel.has(k) ? 'var(--good)' : 'var(--warn)', sel.has(k) ? '✓' : '!')));
+        sel.forEach((k) => !j.want.includes(k) && !j.optional.includes(k) && dots.push(mark(k, 'var(--bad)', '✗')));
+      } else sel.forEach((k) => dots.push({ ...mark(k, 'var(--accent)', ''), cls: 'sel' }));
+      return { dots, to: MAX_FRET };
     }
     if (q.type === 'build' || q.type === 'octaves') {
       const want = new Set(q.want);
@@ -436,6 +501,7 @@ export default function Train() {
     q &&
     (q.type === 'octaves' ||
       q.type === 'build' ||
+      q.type === 'recall' ||
       (q.type === 'earhand' ? rootPhase !== 'off' : q.inst && (q.type !== 'ear' || answered)));
   const bd = boardDots();
   // Barres: shown with the shape (neutral while the colour would give the answer away). In "Build a shape"
@@ -450,9 +516,13 @@ export default function Train() {
         ? revealed
           ? barreSpec(q.inst!, null)
           : null
-        : q.inst && (q.type !== 'ear' || revealed)
-          ? barreSpec(q.inst, null, revealed || q.type === 'chord' ? COL[q.inst.shape] : NEUTRAL)
-          : null;
+        : q.type === 'recall'
+          ? revealed
+            ? barreSpec(judgeRecall(q.alts!, sel).inst, null)
+            : null
+          : q.inst && (q.type !== 'ear' || revealed)
+            ? barreSpec(q.inst, null, revealed || q.type === 'chord' ? COL[q.inst.shape] : NEUTRAL)
+            : null;
   const optionButtons =
     q && q.options && !isClickMode(q.type) && rootPhase === 'off'
       ? q.options.map((o, i) => {
@@ -502,14 +572,21 @@ export default function Train() {
             </span>
             <Link to="/train/shape">Back to all drills</Link>
           </p>
-        ) : (
+        ) : null}
+        {review && drillsDue.length ? <DueDrills keys={drillsDue} /> : null}
+        {review ? null : (
           <div className="toolbar">
             <Seg value={mode} options={TRAIN_MODES} onChange={(m) => nav(`/train/${m}`)} label="Drill" />
           </div>
         )}
+        {only ? (
+          <p className="muted">
+            Only the {only}-shape, from today's routine. <Link to={`/train/${mode}`}>Practise every shape</Link>
+          </p>
+        ) : null}
         {!review ? (
           <div className="toolbar">
-            {['shape', 'chord', 'roots', 'build'].includes(mode) ? (
+            {['shape', 'chord', 'roots', 'build', 'recall'].includes(mode) ? (
               <Check checked={minor} onChange={setMinor}>
                 Include minor chords
               </Check>
@@ -559,7 +636,7 @@ export default function Train() {
             <h2 ref={headRef} tabIndex={-1}>
               {q.prompt}
             </h2>
-            {q.type === 'roots' || rootPhase === 'find' ? <MicToggle /> : null}
+            {q.type === 'roots' || q.type === 'recall' || rootPhase === 'find' ? <MicToggle /> : null}
             {q.type === 'earhand' ? feedbackEl : null}
             {showBoard ? (
               <Fretboard
@@ -571,7 +648,7 @@ export default function Train() {
                 band={q.type === 'earhand' ? { lo: q.ear!.zone.lo, hi: q.ear!.zone.hi, label: 'Your zone' } : null}
                 onCell={onCell}
                 label={q.type === 'earhand' ? 'Find the root inside your zone' : 'Quiz fretboard'}
-                hidePitch={!answered && ['chord', 'roots', 'octaves', 'build', 'earhand'].includes(q.type)}
+                hidePitch={!answered && ['chord', 'roots', 'octaves', 'build', 'recall', 'earhand'].includes(q.type)}
               />
             ) : q.type === 'ear' || q.type === 'earhand' ? (
               <div className="ear-hidden">
@@ -616,15 +693,19 @@ export default function Train() {
         <Card title="Shape mastery">
           <Mastery />
           <p className="muted">
-            From “Name the shape”, “Roots in a shape”, “Build a shape” and the Step 3 shape check. Weak shapes come up
-            more often.
+            From “Name the shape”, “Roots in a shape”, “Build a shape”, “Play from memory” and the Step 3 shape check.
+            Weak shapes come up more often.
           </p>
         </Card>
         <Card title="How to use these drills">
           <ul>
             <li>Say your answer out loud before you press it.</li>
             <li>After each answer, play the shape on your guitar.</li>
-            <li>With the mic on, “Roots in a shape” and “Ear + hand” listen to what you play.</li>
+            <li>With the mic on, “Roots in a shape”, “Play from memory” and “Ear + hand” listen to what you play.</li>
+            <li>
+              Speed counts. A right answer that is slower than the drill's target is practice: the item comes back at
+              the same interval until you answer it quickly.
+            </li>
             <li>
               Five minutes a day beats an hour once a week. Items you get right come back after 1, 2, 4 and then 8 days;
               misses come back today.

@@ -90,7 +90,6 @@ export function buildProgression(
   sp: MinorSpelling = 'flat',
 ): ChordPlan[] {
   const p = progById(progId);
-  const zone = zoneById(zoneId);
   const tonic = keyName(keyPc, p.minor ? 'minor' : 'major', sp);
   const chords = p.deg.map((dg) => ({
     pc: mod12(keyPc + dg.iv),
@@ -98,6 +97,20 @@ export function buildProgression(
     roman: dg.roman,
     rootName: spell(tonic, dg.iv),
   }));
+  return planChords(chords, zoneId, voicing);
+}
+
+/** A chord to plan, already spelled. In your own song `roman` is the bar ("Bar 3"). */
+export interface ChordSpec {
+  pc: number;
+  q: Quality;
+  roman: string;
+  rootName: string;
+}
+
+/** Plan any list of chords in a zone: the shared core of the built-in progressions and your own song. */
+export function planChords(chords: readonly ChordSpec[], zoneId: string, voicing: Voicing): ChordPlan[] {
+  const zone = zoneById(zoneId);
   const plan = planProgression(chords, zone, voicing);
   return chords.map((c, i) => {
     const pl = plan[i]!;

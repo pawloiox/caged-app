@@ -19,7 +19,8 @@ often a phone. The interface has one job: show the neck and what to play next, r
    inlays are mother-of-pearl: a cool nacre base, soft pastel iridescent bands that slowly slide across (as when
    the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the
    neck, and a dark seam where pearl meets wood. It is the only ambient motion in the app and stops entirely
-   with reduced motion (tested). The coloured note dots never shimmer: they carry information.
+   with reduced motion (tested). The coloured note dots never shimmer: they carry information. A finished step
+   whose next-day check is due shows a dulled pearl (desaturated, still, with a faint ring) until it is checked.
 6. **A real fretboard.** Every board is built like the instrument:
    - Frets close up toward the body (equal-temperament spacing, softened and floored at 40 px, or 44 px on
      phones, so notes and touch targets still fit).

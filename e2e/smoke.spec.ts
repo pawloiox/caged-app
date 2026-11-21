@@ -14,6 +14,7 @@ const ROUTES = [
   '/train/chord',
   '/train/roots',
   '/train/build',
+  '/train/recall',
   '/train/octaves',
   '/train/ear',
   '/train/earhand',

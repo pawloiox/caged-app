@@ -8,3 +8,4 @@ export * from './pentatonic';
 export * from './planner';
 export * from './progressions';
 export * from './routine';
+export * from './song';

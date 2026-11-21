@@ -7,7 +7,7 @@ import { COL, barreSpec, mutedSpecs, noteDesc, textFor } from '../fretboard/buil
 import { Legend, Pill } from '../fretboard/extras';
 import { Fretboard, type BadgeSpec, type DotSpec, type GhostSpec } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
-import { addXP, announce, patchSeen, recordStat, toast, usePrefs, useProgress } from '../store/app';
+import { addXP, announce, patchSeen, recordStat, toast, updateProgress, usePrefs, useProgress } from '../store/app';
 import {
   BOTH_NAMES,
   CHORD_IVS,
@@ -21,6 +21,9 @@ import {
   dotLabel,
   explainChoice,
   fingerOf,
+  parseSong,
+  planChords,
+  SONG_EXAMPLE,
   mod12,
   notesOf,
   pcAt,
@@ -36,10 +39,10 @@ import {
   type ChordPlan,
   type Voicing,
 } from '../theory';
-import { Card, Check, Head, KeyPicker, Kbd, LabelSeg, Seg } from '../ui/controls';
+import { Card, Check, FadeSeg, Head, KeyPicker, Kbd, LabelSeg, Seg } from '../ui/controls';
 import { useHotkeys, useVertical } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 interface S5 {
   key: number;
@@ -257,12 +260,37 @@ export default function Step5() {
   const zonesDone = useMemo(() => new Set(seen ?? []), [seen]);
   const set = (p: Partial<S5>) => useS5.setState(p);
   const playing = usePlayer((p) => p.id === 'loop');
+  // While the loop plays, the neck can fade to roots only, or to nothing: play the changes from memory.
+  const fade = playing ? prefs.fade : 'shapes';
   const prog = progById(s.prog);
   const zone = zoneById(s.zone);
+  // Your own song: the chords as typed, planned through the zone like any progression.
+  const own = s.prog === 'own';
+  const songText = useProgress((p) => p.song);
+  const song = useMemo(() => parseSong(songText || SONG_EXAMPLE), [songText]);
   const chords = useMemo(
-    () => buildProgression(s.key, s.prog, s.zone, s.voicing, prefs.minorSpelling),
-    [s.key, s.prog, s.zone, s.voicing, prefs.minorSpelling],
+    () =>
+      own && song.chords.length
+        ? planChords(
+            song.chords.map((c, i) => ({ pc: c.pc, q: c.q, rootName: c.rootName, roman: `Bar ${i + 1}` })),
+            s.zone,
+            s.voicing,
+          )
+        : buildProgression(s.key, own ? '145' : s.prog, s.zone, s.voicing, prefs.minorSpelling),
+    [own, song, s.key, s.prog, s.zone, s.voicing, prefs.minorSpelling],
   );
+  // The routine links here with a progression and zone (?prog=1564&zone=z7&key=7).
+  const [params] = useSearchParams();
+  useEffect(() => {
+    const p: Partial<S5> = {};
+    const pr = params.get('prog');
+    if (pr && (pr === 'own' || PROGS.some((x) => x.id === pr))) p.prog = pr;
+    const z = params.get('zone');
+    if (z && ZONES.some((x) => x.id === z)) p.zone = z;
+    const k = Number(params.get('key'));
+    if (params.has('key') && Number.isInteger(k) && k >= 0 && k < 12) p.key = k;
+    if (Object.keys(p).length) set({ ...p, cur: 0 });
+  }, [params]);
   const planRef = useRef(chords);
   planRef.current = chords;
   const [beat, setBeat] = useState(-1);
@@ -303,7 +331,7 @@ export default function Step5() {
   useEffect(() => {
     valid.current = false;
     setAsk(null);
-  }, [s.key, s.prog, s.zone, s.voicing]);
+  }, [s.key, s.prog, s.zone, s.voicing, songText]);
 
   const judging = useMicEvents((e) => {
     if (!playing) return;
@@ -375,7 +403,7 @@ export default function Step5() {
     const judged = judging;
     void startLoop<Beat>({
       id: 'loop',
-      label: `${prog.name} in ${tonicOf(chords).name}`,
+      label: own ? 'Your song' : `${prog.name} in ${tonicOf(chords).name}`,
       bpm: s.bpm,
       beat: (t, n, spb) => {
         const plan = planRef.current;
@@ -527,12 +555,12 @@ export default function Step5() {
             return { s: n.s, f: n.f, label: nf, color: COL[nx.inst.shape], desc: `${nx.name} uses finger ${nf} here` };
           })
           .filter((b) => b.label && b.label !== '○');
-  const own = new Set(c.notes.map((n) => `${n.s}:${n.f}`));
+  const ownNotes = new Set(c.notes.map((n) => `${n.s}:${n.f}`));
   const ghosts: GhostSpec[] =
     nx === c || nx.name + nx.inst.minF === c.name + c.inst.minF
       ? []
       : nx.notes
-          .filter((n) => !own.has(`${n.s}:${n.f}`))
+          .filter((n) => !ownNotes.has(`${n.s}:${n.f}`))
           .map((n) => ({
             s: n.s,
             f: n.f,
@@ -583,6 +611,7 @@ export default function Step5() {
               value={s.prog}
               onChange={(e) => {
                 set({ prog: e.target.value, cur: 0 });
+                if (e.target.value === 'own') setEar(false);
               }}
             >
               {PROGS.map((x) => (
@@ -590,10 +619,47 @@ export default function Step5() {
                   {x.name}
                 </option>
               ))}
+              <option value="own">Your own song</option>
             </select>
           </label>
-          <KeyPicker value={s.key} q={prog.minor ? 'minor' : 'major'} onChange={(k) => set({ key: k })} />
+          {own ? null : (
+            <KeyPicker value={s.key} q={prog.minor ? 'minor' : 'major'} onChange={(k) => set({ key: k })} />
+          )}
         </div>
+        {own ? (
+          <div className="song">
+            <label className="field song-field" htmlFor="song">
+              Your song's chords
+              <input
+                id="song"
+                type="text"
+                value={songText || ''}
+                placeholder={SONG_EXAMPLE}
+                spellCheck={false}
+                autoComplete="off"
+                autoCapitalize="off"
+                aria-describedby="song-help"
+                onChange={(e) => {
+                  const v = e.target.value.slice(0, 400);
+                  updateProgress((p) => ({ ...p, song: v }));
+                  set({ cur: 0 });
+                }}
+              />
+            </label>
+            <p id="song-help" className="muted">
+              One chord per bar, in the order of the song, for example “G D Em C” or “Am F C G”. Major, minor (m) and
+              7th chords; % repeats the chord before. It is saved on this device.
+            </p>
+            {song.errors.length ? (
+              <p className="callout warn" role="status">
+                Not chords this app can play: {song.errors.join(', ')}. Diminished and augmented chords aren't covered
+                by the CAGED shapes here.
+              </p>
+            ) : null}
+            {song.notes.length ? <p className="muted">{song.notes.join('; ')}.</p> : null}
+            {!songText ? <p className="muted">Showing the example until you type your own chords.</p> : null}
+          </div>
+        ) : null}
         <div className="toolbar">
           <Seg
             value={s.zone}
@@ -606,7 +672,9 @@ export default function Step5() {
           <Seg
             value={s.voicing}
             options={
-              prog.id === 'blues7' ? VOICE_OPTS.map(([v, l]) => [v, v === 'tri' ? '4-note' : l] as const) : VOICE_OPTS
+              prog.id === 'blues7' || (own && chords.some((ch) => ch.q === 'dom7'))
+                ? VOICE_OPTS.map(([v, l]) => [v, v === 'tri' ? '4-note' : l] as const)
+                : VOICE_OPTS
             }
             onChange={(v) => set({ voicing: v })}
             label="Strings to play"
@@ -626,6 +694,9 @@ export default function Step5() {
             </Check>
           ) : null}
           <LabelSeg />
+        </div>
+        <div className="toolbar">
+          <FadeSeg />
         </div>
         <div className="toolbar">
           <label className="field" htmlFor="bpm">
@@ -706,15 +777,19 @@ export default function Step5() {
         </div>
         <Fretboard
           id="p5-board"
-          dots={dots}
-          ghosts={ghosts}
-          badges={badges}
-          muted={mutedSpecs(c.inst, c.strings)}
-          barre={barreSpec(c.inst, c.strings, COL[c.inst.shape])}
+          dots={fade === 'shapes' ? dots : fade === 'roots' ? dots.filter((d) => d.root) : []}
+          ghosts={fade === 'shapes' ? ghosts : []}
+          badges={fade === 'shapes' ? badges : []}
+          muted={fade === 'shapes' ? mutedSpecs(c.inst, c.strings) : []}
+          barre={fade === 'shapes' ? barreSpec(c.inst, c.strings, COL[c.inst.shape]) : null}
           {...(vertical ? neckWindow : {})}
           band={{ lo: zone.lo, hi: zone.hi, label: 'Your zone' }}
           soon={soon}
-          label={`${c.name} with the ${c.inst.shape}-shape; dashed circles show the next chord, ${nx.name}`}
+          label={
+            fade === 'shapes'
+              ? `${c.name} with the ${c.inst.shape}-shape; dashed circles show the next chord, ${nx.name}`
+              : `${c.name} with the ${c.inst.shape}-shape, ${fade === 'roots' ? 'roots only' : 'from memory'}`
+          }
         />
         <Legend
           keys={[
@@ -765,7 +840,7 @@ export default function Step5() {
             {askMsg}
           </p>
         ) : null}
-        {loops > 0 && !playing && !ear ? (
+        {loops > 0 && !playing && !ear && !own ? (
           <div className="callout">
             <p>
               <strong>Ear + hand check:</strong> hear a hidden chord from this progression, name its numeral, then find
@@ -805,7 +880,7 @@ export default function Step5() {
           </div>
         </div>
       </section>
-      {ear ? <EarCheck chords={chords} progId={s.prog} zoneId={s.zone} onClose={() => setEar(false)} /> : null}
+      {ear && !own ? <EarCheck chords={chords} progId={s.prog} zoneId={s.zone} onClose={() => setEar(false)} /> : null}
       <div className="cards">
         <Card title="To finish this step">
           <p>

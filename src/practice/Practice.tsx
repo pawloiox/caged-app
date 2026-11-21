@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { exportJSON, importJSON, notify, resetAll, useProgress, useUi } from '../store/app';
 import { dueKeys } from '../train/leitner';
-import { fmtTime, routine, streakOf, todayKey, todayStr, MAJOR_NAMES } from '../theory';
+import { fmtTime, streakOf, todayKey, todayStr, MAJOR_NAMES } from '../theory';
 import { Card, PageHead } from '../ui/controls';
 import { useHotkeys } from '../ui/hooks';
+import { planRoutine } from './plan';
+import { LearningRecord } from './LearningRecord';
 import { pauseRoutine, resetRoutine, routineActive, skipBlock, startRoutine, useRoutine } from './routineStore';
 
 function download(name: string, text: string, type = 'application/json') {
@@ -26,9 +28,12 @@ export default function Practice() {
   const keepRef = useRef<HTMLButtonElement>(null);
   const storageProblem = useUi((u) => u.storageProblem);
   const [confirmReset, setConfirmReset] = useState(false);
-  const rs = routine();
-  const b = rs[r.block]!;
+  // Today's plan comes from your own data; once started it stays fixed until the routine ends.
+  const planned = useMemo(() => planRoutine(progress), [progress]);
+  const rs = r.plan ?? planned;
+  const b = rs[Math.min(r.block, rs.length - 1)]!;
   const total = b.min * 60;
+  const remaining = r.plan ? r.remaining : total;
   const days = new Set(progress.days);
   const last14 = Array.from({ length: 14 }, (_, i) => {
     const d = new Date();
@@ -46,19 +51,19 @@ export default function Practice() {
     <>
       <PageHead
         title="Today's practice"
-        lede="Fifteen minutes in four short blocks, every day. The timer keeps running while you open an exercise, and a chime tells you when to move on."
+        lede="Fifteen minutes in four short blocks, every day, picked from what your answers say needs work. The timer keeps running while you open an exercise, and a chime tells you when to move on."
       />
       <div className="routine">
         <section className="timer-card" aria-label="Timer">
           <p className="eyebrow">Block {r.block + 1} of 4</p>
-          <div className="big-time" role="timer" aria-label={`${fmtTime(r.remaining)} left in this block`}>
-            {fmtTime(r.remaining)}
+          <div className="big-time" role="timer" aria-label={`${fmtTime(remaining)} left in this block`}>
+            {fmtTime(remaining)}
           </div>
           <p>
             <strong>{b.title}</strong>
           </p>
           <div className="bar" aria-hidden="true">
-            <span style={{ width: `${(100 * (1 - r.remaining / total)).toFixed(1)}%` }} />
+            <span style={{ width: `${(100 * (1 - remaining / total)).toFixed(1)}%` }} />
           </div>
           <div className="actions">
             <button type="button" className="btn primary big" onClick={toggle}>
@@ -82,7 +87,8 @@ export default function Practice() {
               <span className="mins">{x.min} min</span>
               <div>
                 <strong>{x.title}</strong>
-                <p className="muted">{x.text}</p>
+                <p>{x.text}</p>
+                <p className="muted why">{x.why}</p>
                 <Link className="btn small" to={x.to}>
                   Open exercise
                 </Link>
@@ -109,6 +115,7 @@ export default function Practice() {
             </strong>
           </p>
         </Card>
+        <LearningRecord />
         <Card title="Your streak">
           <p className="stat">
             {st} {st === 1 ? 'day' : 'days'}

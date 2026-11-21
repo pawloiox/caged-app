@@ -7,6 +7,11 @@ export interface PivotScore {
   total: number;
 }
 
+export interface Tally {
+  ok: number;
+  n: number;
+}
+
 export interface Progress {
   version: 2;
   /** 'step-1' … 'step-5' */
@@ -23,6 +28,13 @@ export interface Progress {
   drills: Record<string, number>;
   /** Heard pivots per key and tempo (listening mode), e.g. major0 → { 60: {clean, total} }. */
   pivots: Record<string, Record<string, PivotScore>>;
+  /**
+   * Retention: answers to items that had been learned (box 1 or more), by how long they had rested.
+   * d1 = 1–5 days, d7 = 6 days or more.
+   */
+  retention: { d1: Tally; d7: Tally };
+  /** The player's own song for Step 5, as typed ("G D Em C"). */
+  song: string;
   seen: {
     s1?: string[];
     s2?: number;
@@ -33,6 +45,9 @@ export interface Progress {
     s5?: string[];
   };
 }
+
+/** What the neck shows while a drill or loop plays: everything, only the roots, or nothing (play from memory). */
+export type Fade = 'shapes' | 'roots' | 'none';
 
 export type Theme = 'system' | 'light' | 'dark';
 export type NeckOrientation = 'auto' | 'horizontal' | 'vertical';
@@ -56,6 +71,7 @@ export interface Prefs {
   micLatency: number | null;
   /** The player chose to use listening mode (we still ask the browser each session). */
   micWanted: boolean;
+  fade: Fade;
 }
 
 export const defaultProgress = (): Progress => ({
@@ -68,6 +84,8 @@ export const defaultProgress = (): Progress => ({
   stats: {},
   drills: {},
   pivots: {},
+  retention: { d1: { ok: 0, n: 0 }, d7: { ok: 0, n: 0 } },
+  song: '',
   seen: {},
 });
 
@@ -86,4 +104,5 @@ export const defaultPrefs = (): Prefs => ({
   headphones: false,
   micLatency: null,
   micWanted: false,
+  fade: 'shapes',
 });

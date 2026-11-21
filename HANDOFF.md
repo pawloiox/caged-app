@@ -451,3 +451,67 @@ checks pass (61 unit, 52 E2E tests, including axe in light and dark).
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
 
+
+## 14. Learning-method upgrades (after the visual identity; not critic-reviewed, by request)
+
+These upgrades move the method from recognising shapes toward fluent recall that lasts. They were built and tested,
+but no 7th critic round was run, by request.
+
+1. **Speed counts** (`src/train/leitner.ts`, `TARGET_MS` in `src/train/questions.ts`).
+   - Every Train answer and the Step 3 shape check are timed from the moment the question appears.
+   - A right answer slower than its mode's target is practice: the item keeps its box, its timer resets, and it
+     comes back at the same interval. The feedback gives the time and the target.
+   - Each item stores a running average of its right-answer times (`t`).
+2. **Play from memory** (Train → "Play from memory", items `recall:<quality>:<shape>`).
+   - The app names a shape and a chord. The neck is blank.
+   - Mark the notes and press Check, or play them one string at a time with the mic on (exact pitch; it finishes
+     itself when every note is heard).
+   - Any of the shape's places on the neck counts (the open C-shape or the one at fret 12).
+3. **Mastery that survives a day.**
+   - Finishing a step schedules a re-test, `step:<n>`, for the next day (`STEP_MODE` and `makeStepQuestion` in
+     `questions.ts`). The re-tests are: name the open chord; name a moved shape; name a shape of C; where a key
+     starts; and ear + hand.
+   - While a step's re-test is due, its pearl inlay on the neck dulls (no sheen, no motion), and its link reads
+     "(completed, check due)".
+   - A clean linking drill is a review item too, `link:<key>`. A clean run at or above the best tempo moves it up a
+     box. A run that wasn't clean, at a tempo already played clean before, sends it back.
+   - Review lists due drills beside the quiz queue, with links that open the drill at its key and best tempo
+     (`/learn/4?key=7&q=major&bpm=80#drill`).
+4. **Fading** (the saved preference `fade`; the "While it plays, show" control).
+   - The linking drill and the Step 5 loop can show whole shapes, roots only, or nothing while they play.
+   - Stopped, the neck always shows everything.
+5. **Adaptive routine** (`src/practice/plan.ts`, pure). It is still fifteen minutes in four blocks, now chosen from
+   the player's data, and each block says why:
+   1. Review what is due, naming any step check, or open chords for a new player, or the weakest shape from memory.
+   2. A linking drill that is due, else C until it is clean, else the slowest key one tempo step up, else a new key.
+   3. The weakest shape by accuracy and speed (`/train/build?shape=G` and similar), or today's chord when there is
+      no data yet.
+   4. Your own song if you saved one, else the next zone you haven't played, with a rotating progression.
+
+   The plan is fixed when the routine starts, so answering review items mid-routine doesn't reshuffle it.
+6. **Your own song** (Step 5 → Progression → "Your own song"; `src/theory/song.ts`).
+   - Type chords as on a chord chart: "G D Em C", "| Bb | F/A | Gm7 |", with % to repeat.
+   - Major, minor and 7th chords play as typed. Richer chords play as the nearest of those, and the page says so.
+     Diminished and augmented chords are reported as not playable here.
+   - The song is planned through the zone with the same planner as the progressions (`planChords`).
+   - It is saved in progress (`song`). The key picker and ear check are hidden for your own song.
+7. **Learning record** (Practice; `src/practice/record.ts`). It shows three measures:
+   - Mastered items, with the median days and answers from first try to mastered (box 2: right, on time, after at
+     least a day).
+   - Retention: right answers to learned items after 1–5 days of rest and after 6 days or more (`retention` in
+     progress).
+   - The share of timed items answered within their target.
+
+**Data.** Stats gain the optional fields `t`, `first`, `mast` and `ma`, and progress gains `retention` and `song`.
+All of them are validated field by field on load and import; older saves load unchanged.
+
+**Tests.**
+- `tests/learning.test.ts`: 24 unit tests covering the scheduler with timing, retention buckets, step re-tests,
+  the recall judge, the chord parser and song planning, drill links, the routine planner and the learning record.
+- `e2e/learning.spec.ts`: 5 tests covering play from memory, your own song (saved across a reload), fading, a due
+  step check (dull inlay, routine reason, review question), and a due drill link that opens at its tempo.
+- `/train/recall` was added to the axe route sweep.
+- Totals: 89 unit and 61 E2E tests, all passing.
+
+**Not verified.** The fluency targets are first guesses. Tune them once there are real answer times. The mic path
+of "Play from memory" is tested in unit logic only, not with the fake-microphone WAV.

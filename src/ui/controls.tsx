@@ -51,6 +51,26 @@ export function LabelSeg() {
   return <Seg value={labels} options={LABEL_OPTS} onChange={(v) => setPrefs({ labels: v })} label="Dot labels" />;
 }
 
+/**
+ * Fade the scaffolding: while a drill or loop plays, the neck shows the whole shape, only its roots, or nothing
+ * (play it from memory). Stopped, the neck always shows everything.
+ */
+export function FadeSeg() {
+  const fade = usePrefs((p) => p.fade);
+  return (
+    <Seg
+      value={fade}
+      options={[
+        ['shapes', 'Whole shapes'],
+        ['roots', 'Roots only'],
+        ['none', 'Nothing'],
+      ]}
+      onChange={(v) => setPrefs({ fade: v })}
+      label="While it plays, show"
+    />
+  );
+}
+
 export function KeyPicker({ value, q, onChange }: { value: number; q: Quality; onChange: (pc: number) => void }) {
   const sp = usePrefs((p) => p.minorSpelling);
   return (

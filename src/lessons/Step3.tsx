@@ -23,6 +23,7 @@ import {
 } from '../theory';
 import { Card, Criteria, Head, Kbd, NextLink, ShapeAnswer } from '../ui/controls';
 import { MapBench, createMapStore, useMapList } from './map';
+import { TARGET_MS } from '../train/questions';
 
 const useS3 = createMapStore({ key: 0, q: 'major', voicing: 'full' });
 
@@ -72,6 +73,8 @@ function ShapeCheck() {
   const [picked, setPicked] = useState<Shape | null>(null);
   const [msg, setMsg] = useState('');
   const secRef = useRef<HTMLElement>(null);
+  /** When the current question appeared: a right but slow answer isn't promoted in review. */
+  const shownAt = useRef(0);
   const L = LEVELS[level - 1]!;
 
   const focus = (sel: string) =>
@@ -91,6 +94,7 @@ function ShapeCheck() {
     setPicked(null);
     setMsg('');
     setQ(makeQ(LEVELS[lv - 1]!, null));
+    shownAt.current = performance.now();
     focus('h2');
   };
   const answer = (v: Shape) => {
@@ -101,7 +105,10 @@ function ShapeCheck() {
     setPicked(v);
     setN(nn);
     setCorrect(cc);
-    recordStat(`shape:${q.inst.q}:${q.inst.shape}`, ok);
+    recordStat(`shape:${q.inst.q}:${q.inst.shape}`, ok, {
+      ms: performance.now() - shownAt.current,
+      targetMs: TARGET_MS.shape,
+    });
     let m = ok
       ? `Correct: the ${q.inst.shape}-shape at frets ${q.inst.minF}–${q.inst.maxF}.`
       : `Not quite: that's the ${q.inst.shape}-shape at frets ${q.inst.minF}–${q.inst.maxF}. Look at where its roots sit.`;
@@ -123,6 +130,7 @@ function ShapeCheck() {
   const nextQ = () => {
     setQ(makeQ(L, q));
     setPicked(null);
+    shownAt.current = performance.now();
     focus('[data-ans]');
   };
 

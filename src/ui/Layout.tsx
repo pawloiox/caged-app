@@ -11,6 +11,7 @@ import { dueKeys } from '../train/leitner';
 import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
 import { loadGrain } from '../fretboard/materials';
+import { isDue } from '../train/leitner';
 
 /** Steps are fret positions on the neck; the tools sit past the 12th-fret inlay. */
 const STEPS = [
@@ -282,15 +283,17 @@ export function Layout() {
           <span className="nut" aria-hidden="true" />
           {STEPS.map((it) => {
             const done = !!progress.steps['step-' + it.n];
+            // A finished step whose re-test is due: the pearl dulls until the skill is checked again.
+            const due = done && isDue(progress.stats['step:' + it.n]);
             return (
               <NavLink key={it.to} to={it.to} className="fret">
-                <span className={`inlay${done ? ' done' : ''}`} aria-hidden="true">
+                <span className={`inlay${done ? ' done' : ''}${due ? ' due' : ''}`} aria-hidden="true">
                   {it.n}
                 </span>
                 <span>
                   <span className="sr-only">Step {it.n}: </span>
                   {it.t}
-                  {done ? <span className="sr-only"> (completed)</span> : null}
+                  {done ? <span className="sr-only">{due ? ' (completed, check due)' : ' (completed)'}</span> : null}
                 </span>
               </NavLink>
             );

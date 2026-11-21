@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { engine } from '../audio/engine';
 import { listener } from '../audio/mic/listener';
 import { todayStr } from '../theory/routine';
-import { record as leitnerRecord } from '../train/leitner';
+import { BOX_DAYS, gapDays, isDue, record as leitnerRecord, type Stat, type Timing } from '../train/leitner';
 import { newlyComplete } from './criteria';
 import {
   MemoryRepository,
@@ -81,7 +81,14 @@ export function updateProgress(fn: (p: Progress) => Progress): void {
   if (done.length) {
     const steps = { ...next.steps };
     done.forEach((id) => (steps[id] = true));
-    useProgress.setState({ ...next, steps, xp: next.xp + 50 * done.length });
+    // A step is finished today, but mastered only once its skill survives a day: schedule a re-test.
+    const now = Date.now();
+    const stats = { ...next.stats };
+    done.forEach((id) => {
+      const k = 'step:' + id.slice(5);
+      if (!stats[k]) stats[k] = { r: 1, w: 0, box: 1, last: now, first: now };
+    });
+    useProgress.setState({ ...next, steps, stats, xp: next.xp + 50 * done.length });
     engine.chime();
     useUi.setState((u) => ({ justCompleted: [...u.justCompleted, ...done] }));
     // The caller usually shows its own feedback in the same tick ("Correct: …"). Let that be read first,
@@ -96,16 +103,45 @@ export function updateProgress(fn: (p: Progress) => Progress): void {
 
 export const addXP = (n: number): void => updateProgress((p) => ({ ...p, xp: p.xp + n }));
 
-export function recordStat(key: string, ok: boolean): void {
-  updateProgress((p) => ({ ...p, stats: { ...p.stats, [key]: leitnerRecord(p.stats[key], ok) } }));
+/** Which retention bucket an answer falls in: a learned item, answered when due, after a rest. */
+export function retentionBucket(s: Stat | undefined, now = Date.now()): 'd1' | 'd7' | null {
+  if (!s || (s.box || 0) < 1 || !isDue(s, now)) return null;
+  const g = gapDays(s, now);
+  if (g >= 6) return 'd7';
+  if (g >= BOX_DAYS[1] * 0.75) return 'd1';
+  return null;
+}
+
+export function recordStat(key: string, ok: boolean, timing?: Timing): void {
+  const now = Date.now();
+  updateProgress((p) => {
+    const prev = p.stats[key];
+    const b = retentionBucket(prev, now);
+    const retention = b
+      ? { ...p.retention, [b]: { ok: p.retention[b].ok + (ok ? 1 : 0), n: p.retention[b].n + 1 } }
+      : p.retention;
+    return { ...p, retention, stats: { ...p.stats, [key]: leitnerRecord(prev, ok, now, timing) } };
+  });
 }
 
 export function patchSeen(patch: Partial<Progress['seen']>): void {
   updateProgress((p) => ({ ...p, seen: { ...p.seen, ...patch } }));
 }
 
+/**
+ * A clean linking drill. It sets the best tempo and is a review item ("link:<key>"): a clean run at or above
+ * the best tempo when it is due moves it up a box.
+ */
 export function logDrill(key: string, bpm: number): void {
+  const best = useProgress.getState().drills[key] ?? 0;
   updateProgress((p) => ({ ...p, xp: p.xp + 20, drills: { ...p.drills, [key]: Math.max(p.drills[key] ?? 0, bpm) } }));
+  if (bpm >= best) recordStat('link:' + key, true);
+}
+
+/** A drill that wasn't clean, at a tempo already played clean before: the change has slipped. */
+export function logDrillMiss(key: string, bpm: number): void {
+  const best = useProgress.getState().drills[key];
+  if (best && bpm <= best) recordStat('link:' + key, false);
 }
 
 export function logPivots(key: string, bpm: number, clean: number, total: number): void {

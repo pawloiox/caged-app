@@ -4,11 +4,31 @@ import { usePrefs, useProgress } from '../store/app';
 import { PRED_NEED, drillKeysOtherThanC } from '../store/criteria';
 import { chordLabel, chordLong, notesOf, stringsFor } from '../theory';
 import { Card, Criteria, Head, NextLink } from '../ui/controls';
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { MapBench, createMapStore, useMapList } from './map';
 
 const useS4 = createMapStore({ key: 7, q: 'major', voicing: 'full' });
 
 export default function Step4() {
+  const [params] = useSearchParams();
+  // A link from the review queue or the routine names a key (?key=2&q=major): open the map there. A drill
+  // review (?bpm=…) skips the prediction, which was already made for that key.
+  useEffect(() => {
+    const k = Number(params.get('key'));
+    const q = params.get('q');
+    if (!params.has('key') || !Number.isInteger(k) || k < 0 || k > 11) return;
+    const qq = q === 'minor' ? 'minor' : 'major';
+    const st = useS4.getState();
+    useS4.setState({
+      key: k,
+      q: qq,
+      idx: 0,
+      predMsg: '',
+      predStage: null,
+      revealed: params.has('bpm') ? { ...st.revealed, [qq + k]: true } : st.revealed,
+    });
+  }, [params]);
   const st = useS4();
   const sp = usePrefs((p) => p.minorSpelling);
   const list = useMapList(useS4);

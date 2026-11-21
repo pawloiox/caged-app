@@ -13,10 +13,12 @@ import {
   instances,
   midiAt,
   mod12,
+  openChord,
   notesOf,
   posName,
   rootsOf,
   earDegrees,
+  isTonic,
   tonicOf,
   type ChordPlan,
   type Instance,
@@ -28,20 +30,44 @@ import {
 } from '../theory';
 import { pickWeighted, weightOf, type Stat } from './leitner';
 
-export type Mode = 'shape' | 'chord' | 'roots' | 'build' | 'octaves' | 'ear' | 'order' | 'earhand';
+export type Mode = 'shape' | 'chord' | 'roots' | 'build' | 'recall' | 'octaves' | 'ear' | 'order' | 'earhand';
 
 export const TRAIN_MODES: ReadonlyArray<readonly [Mode, string]> = [
   ['shape', 'Name the shape'],
   ['chord', 'Name the chord'],
   ['roots', 'Roots in a shape'],
   ['build', 'Build a shape'],
+  ['recall', 'Play from memory'],
   ['octaves', 'Every root on the neck'],
   ['ear', 'Major or minor?'],
   ['earhand', 'Ear + hand'],
   ['order', 'Shape order'],
 ];
 
-export const isClickMode = (t: Mode): boolean => t === 'roots' || t === 'octaves' || t === 'build';
+export const isClickMode = (t: Mode): boolean => t === 'roots' || t === 'octaves' || t === 'build' || t === 'recall';
+
+/**
+ * How long a fluent answer takes, in ms, from the moment the question appears. A right answer slower than
+ * this is practice, not mastery: the item stays in its box. Listening modes include the time the sound plays.
+ */
+export const TARGET_MS: Record<Mode, number> = {
+  shape: 3000,
+  chord: 4000,
+  roots: 6000,
+  build: 15000,
+  recall: 20000,
+  octaves: 35000,
+  ear: 4000,
+  earhand: 7000,
+  order: 5000,
+};
+
+/** The fluency target of a stored item, or null for items that aren't timed (linking-drill tempos). */
+export function targetOfStat(key: string): number | null {
+  if (key.startsWith('step:')) return TARGET_MS[STEP_MODE[Number(key.slice(5))] ?? 'shape'];
+  const m = modeOfStat(key);
+  return m ? TARGET_MS[m] : null;
+}
 
 export interface Question {
   type: Mode;
@@ -55,6 +81,8 @@ export interface Question {
   want?: string[];
   /** Notes no finger can reach (full minor G-shape outer strings): neither required nor wrong. */
   optional?: string[];
+  /** Play from memory: every place this shape of this chord can be played; any one of them is right. */
+  alts?: Instance[];
   anchor?: Note;
   pc?: number;
   maxFret?: number;
@@ -86,6 +114,7 @@ export function itemsFor(mode: Mode, minor: boolean): string[] {
     case 'shape':
     case 'roots':
     case 'build':
+    case 'recall':
       return qs.flatMap((q) => ORDER.map((s) => `${mode}:${q}:${s}`));
     case 'chord':
       return qs.flatMap((q) => MAJOR_NAMES.map((_, pc) => `chord:${q}:${pc}`));
@@ -107,6 +136,7 @@ export function modeOfStat(key: string): Mode | null {
     chord: 'chord',
     roots: 'roots',
     build: 'build',
+    recall: 'recall',
     oct: 'octaves',
     ear: 'ear',
     prog: 'earhand',
@@ -153,11 +183,138 @@ export interface MakeOpts {
   sp?: MinorSpelling;
   /** Build exactly this item (review queue). */
   item?: string;
+  /** Only this shape (the routine's weakest-shape block). */
+  only?: Shape;
+}
+
+/** The notes of a shape a player must play, and the ones no finger reaches (neither required nor wrong). */
+export function wantedNotes(inst: Instance): { want: string[]; optional: string[] } {
+  const unreachable = (n: { s: number; f: number }) => n.f > 0 && fingerOf(inst, n.s) === '';
+  const ns = notesOf(inst);
+  return {
+    want: ns.filter((n) => !unreachable(n)).map((n) => `${n.s}:${n.f}`),
+    optional: ns.filter(unreachable).map((n) => `${n.s}:${n.f}`),
+  };
+}
+
+/**
+ * Play from memory: which of the shape's places the player went for, and how close they came.
+ * The best match is the place with the most notes found and the fewest wrong ones.
+ */
+export function judgeRecall(alts: readonly Instance[], sel: ReadonlySet<string>) {
+  let best: { inst: Instance; want: string[]; optional: string[]; found: number; wrong: number } | null = null;
+  for (const inst of alts) {
+    const { want, optional } = wantedNotes(inst);
+    const found = want.filter((k) => sel.has(k)).length;
+    const wrong = [...sel].filter((k) => !want.includes(k) && !optional.includes(k)).length;
+    if (!best || found - wrong > best.found - best.wrong) best = { inst, want, optional, found, wrong };
+  }
+  const b = best!;
+  return { ...b, ok: b.found === b.want.length && b.wrong === 0 };
+}
+
+/** What each step's delayed re-test asks: the step's core skill, as a quiz question. */
+export const STEP_MODE: Record<number, Mode> = { 1: 'shape', 2: 'chord', 3: 'shape', 4: 'order', 5: 'earhand' };
+export const STEP_SKILL: Record<number, string> = {
+  1: 'Name the open chord',
+  2: 'Name a moved shape',
+  3: 'Shapes of C up the neck',
+  4: 'Where a key starts',
+  5: 'Hear the chord, find its root',
+};
+
+/** The re-test for a finished step. Its stat is "step:<n>", so it is scheduled like any other item. */
+export function makeStepQuestion(n: number, o: MakeOpts): Question {
+  const stat = `step:${n}`;
+  const shape = rand(ORDER);
+  if (n === 1) {
+    const inst = openChord(shape, 'major');
+    return {
+      type: 'shape',
+      inst,
+      stat,
+      prompt: 'Step 1 check: which open chord is this?',
+      options: ORDER,
+      answer: shape,
+      explain: `It is open ${shape} (the ${shape}-shape at the nut). Roots: ${rootsOf(inst)
+        .map((r) => posName(r.s, r.f))
+        .join('; ')}.`,
+    };
+  }
+  if (n === 3) {
+    const inst = instances(0, 'major').find((x) => x.shape === shape)!;
+    return {
+      type: 'shape',
+      inst,
+      stat,
+      prompt: 'Step 3 check: which shape of C major is this?',
+      options: ORDER,
+      answer: shape,
+      explain: `This is the ${shape}-shape of C major, frets ${inst.minF}–${inst.maxF}. Up the neck, C runs C → A → G → E → D.`,
+    };
+  }
+  if (n === 4) {
+    const k = Math.floor(Math.random() * 12);
+    const l = instances(k, 'major');
+    return {
+      type: 'order',
+      stat,
+      prompt: `Step 4 check: which shape of ${chordLong(k, 'major', o.sp)} sits closest to the nut?`,
+      options: ORDER,
+      answer: l[0]!.shape,
+      explain: `${chordLong(k, 'major', o.sp)} starts the loop with the ${l[0]!.shape}-shape at frets ${l[0]!.minF}–${l[0]!.maxF}.`,
+    };
+  }
+  if (n === 5) {
+    const items = itemsFor('earhand', true);
+    const q = makeQuestion('earhand', { ...o, item: rand(items) });
+    return { ...q, stat, prompt: `Step 5 check: ${q.prompt}` };
+  }
+  // Step 2: a shape moved up the neck; name the chord from where its root is.
+  const q = makeQuestion('chord', { ...o, item: `chord:major:${Math.floor(Math.random() * 12)}` });
+  return { ...q, stat, prompt: `Step 2 check: ${q.prompt}` };
+}
+
+/**
+ * Items the review queue can serve as a question: every drill item and the step re-tests. Linking-drill tempos
+ * (link:…) are played, not answered. Older saves may hold retired items such as prog:251:I (the home chord).
+ */
+export const isQuizItem = (k: string): boolean =>
+  (/^step:[1-5]$/.test(k) || !!modeOfStat(k)) && !(k.startsWith('prog:') && isTonic(k.split(':')[2] ?? ''));
+
+/** Build the question for any stored item (the review queue). */
+export function makeItemQuestion(item: string, o: MakeOpts): Question | null {
+  if (/^step:[1-5]$/.test(item)) return makeStepQuestion(Number(item.slice(5)), o);
+  const m = modeOfStat(item);
+  return m ? makeQuestion(m, { ...o, item }) : null;
 }
 
 export function makeQuestion(mode: Mode, o: MakeOpts): Question {
-  const pick = (items: string[]) => o.item ?? pickWeighted(items, (k) => weightOf(o.stats[k]));
+  const pick = (items: string[]) => {
+    if (o.item) return o.item;
+    const only = o.only ? items.filter((k) => k.endsWith(':' + o.only)) : [];
+    return pickWeighted(only.length ? only : items, (k) => weightOf(o.stats[k]));
+  };
   if (mode === 'order') return orderQ();
+
+  if (mode === 'recall') {
+    const item = pick(itemsFor('recall', o.minor));
+    const [, q, sh] = item.split(':') as [string, Quality, Shape];
+    const inst = randomShapeInstance(q, sh);
+    const alts = instances(inst.keyPc, q).filter((x) => x.shape === sh);
+    const { want, optional } = wantedNotes(inst);
+    const where = alts.map((a) => `frets ${a.minF}–${a.maxF}`).join(' or ');
+    return {
+      type: 'recall',
+      inst,
+      alts,
+      want,
+      optional,
+      stat: item,
+      prompt: `Play the ${sh}-shape of ${chordLong(inst.keyPc, q, o.sp)} from memory, one string at a time (or mark its notes), then press Check.`,
+      explain: `The ${sh}-shape of ${chordLabel(inst.keyPc, q, o.sp)} sits at ${where}.`,
+    };
+  }
 
   if (mode === 'octaves') {
     const k = pick(itemsFor('octaves', false));
@@ -180,14 +337,9 @@ export function makeQuestion(mode: Mode, o: MakeOpts): Question {
     const [, q, sh] = item.split(':') as [string, Quality, Shape];
     const inst = randomShapeInstance(q, sh);
     const anchor = rootsOf(inst).find((n) => n.s === HOME[sh]) ?? rootsOf(inst)[0]!;
-    const unreachable = (n: { s: number; f: number }) => n.f > 0 && fingerOf(inst, n.s) === '';
-    const want = notesOf(inst)
-      .filter((n) => !unreachable(n))
-      .map((n) => `${n.s}:${n.f}`)
-      .filter((k) => k !== `${anchor.s}:${anchor.f}`);
-    const optional = notesOf(inst)
-      .filter(unreachable)
-      .map((n) => `${n.s}:${n.f}`);
+    const w = wantedNotes(inst);
+    const want = w.want.filter((k) => k !== `${anchor.s}:${anchor.f}`);
+    const optional = w.optional;
     return {
       type: 'build',
       optional,

@@ -447,6 +447,14 @@ a.chip:hover {
   box-shadow: inset 0 0 0 0.75px rgba(28, 14, 6, 0.5);
   animation: pearl-turn 11s linear infinite;
 }
+/* A step whose delayed check is due: the pearl dulls (no sheen, no motion) until it is checked again. */
+.inlay.done.due {
+  animation: none;
+  filter: saturate(0.1) brightness(0.62);
+  box-shadow:
+    inset 0 0 0 0.75px rgba(28, 14, 6, 0.5),
+    0 0 0 2px rgba(241, 235, 225, 0.35);
+}
 .fret.tool {
   font-weight: 500;
   color: #e3dacd;
@@ -1197,6 +1205,13 @@ table.shapes button.rowbtn {
   gap: 6px;
   align-items: flex-start;
 }
+.blocks li p {
+  margin: 0;
+}
+/* Why this block today: the routine's reason, from the player's own data. */
+.blocks .why {
+  font-size: 14px;
+}
 .mins {
   font: 600 13px var(--font-mono);
   color: var(--accent);
@@ -1221,6 +1236,72 @@ table.shapes button.rowbtn {
 .stat {
   font: 840 2.6rem/1 var(--font-display);
   font-stretch: var(--condensed);
+}
+.stat small {
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* Learning record: three measures, each a number over its explanation. */
+.record {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.record > div {
+  display: grid;
+  gap: 4px;
+}
+.record dt {
+  font-weight: 700;
+}
+.record dd {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.record .muted {
+  font-size: 14px;
+  max-width: 60ch;
+}
+
+/* Review: linking drills due, beside the question queue. */
+.due-drills {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Step 5: your own song's chords. */
+.song {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+.song p {
+  margin: 0;
+  max-width: 70ch;
+}
+.song-field {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.song-field input {
+  font: 600 1.1rem var(--font-body);
+  min-height: var(--tap);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  width: min(100%, 36rem);
 }
 
 /* Train */

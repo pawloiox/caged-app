@@ -50,7 +50,19 @@ export function normalizeProgress(raw: unknown, now = Date.now()): Progress {
   if (isObj(raw.stats))
     for (const [k, v] of Object.entries(raw.stats))
       if (isObj(v) && num(v.r) != null && num(v.w) != null)
-        stats[k] = migrateStat({ r: num(v.r)!, w: num(v.w)!, box: num(v.box, 0, 4), last: num(v.last) }, now);
+        stats[k] = migrateStat(
+          {
+            r: num(v.r)!,
+            w: num(v.w)!,
+            box: num(v.box, 0, 4),
+            last: num(v.last),
+            t: num(v.t, 0, 3_600_000),
+            first: num(v.first),
+            mast: num(v.mast),
+            ma: num(v.ma),
+          },
+          now,
+        );
   const steps: Record<string, boolean> = {};
   if (isObj(raw.steps))
     for (const [k, v] of Object.entries(raw.steps)) if (/^step-[1-5]$/.test(k) && v === true) steps[k] = true;
@@ -65,6 +77,11 @@ export function normalizeProgress(raw: unknown, now = Date.now()): Progress {
         for (const [bpm, sc] of Object.entries(byBpm))
           if (isObj(sc) && num(sc.clean) != null && num(sc.total) != null)
             (pivots[k] ??= {})[bpm] = { clean: num(sc.clean)!, total: num(sc.total)! };
+  const tally = (v: unknown) =>
+    isObj(v) && num(v.ok) != null && num(v.n) != null && num(v.ok)! <= num(v.n)!
+      ? { ok: num(v.ok)!, n: num(v.n)! }
+      : { ok: 0, n: 0 };
+  const ret = isObj(raw.retention) ? raw.retention : {};
   const seenRaw = isObj(raw.seen) ? raw.seen : {};
   const shapeLetters = new Set(['C', 'A', 'G', 'E', 'D']);
   const zoneIds = new Set(['open', 'z3', 'z5', 'z7', 'z10']);
@@ -88,6 +105,8 @@ export function normalizeProgress(raw: unknown, now = Date.now()): Progress {
     stats,
     drills,
     pivots,
+    retention: { d1: tally(ret.d1), d7: tally(ret.d7) },
+    song: typeof raw.song === 'string' ? raw.song.slice(0, 400) : '',
     seen,
   };
 }
@@ -97,6 +116,7 @@ export function normalizePrefs(raw: unknown): Prefs {
   if (!raw || typeof raw !== 'object') return base;
   const merged = { ...base, ...(raw as Partial<Prefs>) };
   if (!['iv', 'note', 'finger', 'shape', 'none'].includes(merged.labels)) merged.labels = 'iv';
+  if (!['shapes', 'roots', 'none'].includes(merged.fade)) merged.fade = 'shapes';
   // The wood theme is the default: anyone who never picked a theme (including older saves) gets it.
   if (!merged.themeChosen || !['system', 'light', 'dark'].includes(merged.theme)) merged.theme = 'dark';
   return merged;

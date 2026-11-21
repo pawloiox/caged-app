@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { PICK_CLARITY } from '../audio/mic/dsp';
@@ -7,7 +8,17 @@ import { COL, NEUTRAL_ROOT, barreSpec, isOptional, mapVisuals, noteRole, type Ma
 import { Legend, Pill } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
 import { MicToggle } from '../listen/MicControls';
-import { announce, logDrill, logPivots, patchSeen, toast, usePrefs, useProgress, addXP } from '../store/app';
+import {
+  announce,
+  logDrill,
+  logDrillMiss,
+  logPivots,
+  patchSeen,
+  toast,
+  usePrefs,
+  useProgress,
+  addXP,
+} from '../store/app';
 import {
   MAX_FRET,
   ORDER,
@@ -25,7 +36,7 @@ import {
   type Quality,
   type Voicing,
 } from '../theory';
-import { Check, KeyPicker, Kbd, LabelSeg, Seg, ShapeAnswer } from '../ui/controls';
+import { Check, FadeSeg, KeyPicker, Kbd, LabelSeg, Seg, ShapeAnswer } from '../ui/controls';
 import { useHotkeys, useNeckDirection } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
 
@@ -98,13 +109,24 @@ export function MapBench({
   const [pivotBeat, setPivotBeat] = useState(false);
   const playerId = usePlayer((p) => p.id);
   const walking = playerId === 'walk';
+  // While the linking drill plays, the neck can fade to roots only, or to nothing (play from memory).
+  const fade = playerId === 'drill' ? prefs.fade : 'shapes';
   const ctx = { labels: prefs.labels, sp: prefs.minorSpelling };
   const set = (p: Partial<MapStore>) => store.setState(p);
   const strOf = (i: Instance) => stringsFor(st.voicing, i);
   const play = (i = inst) => engine.strum(toPlayable(notesOf(i, strOf(i))));
   const pred = !!predict && !st.revealed[st.q + st.key];
-  const barre = st.focus ? barreSpec(inst, stringsFor(st.voicing, inst), COL[inst.shape]) : null;
-  const vis = useMemo(() => mapVisuals({ ...st, idx }, list, ctx), [st, idx, list, ctx.labels, ctx.sp]); // eslint-disable-line react-hooks/exhaustive-deps
+  const barre = st.focus && fade === 'shapes' ? barreSpec(inst, stringsFor(st.voicing, inst), COL[inst.shape]) : null;
+  const full = useMemo(() => mapVisuals({ ...st, idx }, list, ctx), [st, idx, list, ctx.labels, ctx.sp]); // eslint-disable-line react-hooks/exhaustive-deps
+  const vis =
+    fade === 'shapes'
+      ? full
+      : {
+          ...full,
+          dots: fade === 'roots' ? full.dots.filter((d) => (d.root && !d.dim) || d.cls === 'anchor') : [],
+          ghosts: [],
+          muted: [],
+        };
   const next = list[idx + 1];
   const prev = list[idx - 1];
   const linkNext = next ? sharedRoots(inst, next) : [];
@@ -386,7 +408,11 @@ export function MapBench({
             onCell={onCell}
             onZone={(i) => go(i)}
             pivot={pivotBeat}
-            label={`${chordLong(st.key, st.q, ctx.sp)} in its CAGED shapes`}
+            label={
+              fade === 'shapes'
+                ? `${chordLong(st.key, st.q, ctx.sp)} in its CAGED shapes`
+                : `${chordLong(st.key, st.q, ctx.sp)}: ${inst.shape}-shape, frets ${inst.minF} to ${inst.maxF}, ${fade === 'roots' ? 'roots only' : 'from memory'}`
+            }
           />
           <Legend
             keys={[
@@ -488,7 +514,12 @@ export function LinkingDrill({
   const drills = useProgress((p) => p.drills);
   const pivots = useProgress((p) => p.pivots);
   const drillKey = q + keyPc;
-  const [bpm, setBpm] = useState<number>(60);
+  // A review link brings the tempo along (?bpm=80): start there.
+  const [params] = useSearchParams();
+  const [bpm, setBpm] = useState<number>(() => {
+    const b = Number(params.get('bpm'));
+    return (LADDER as readonly number[]).includes(b) ? b : 60;
+  });
   const [playAlong, setPlayAlong] = useState(true);
   const [beat, setBeat] = useState(-1);
   const [count, setCount] = useState<number | null>(null);
@@ -521,6 +552,10 @@ export function LinkingDrill({
     },
   });
   const lastIdx = useRef(-1);
+  // Arriving from a review link: bring the drill into view.
+  useEffect(() => {
+    if (params.get('bpm')) document.getElementById('drill')?.scrollIntoView({ block: 'start' });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A pivot counts when the shared root is PICKED as a single note. A strummed chord also contains the
   // root, but its pitch clarity is far lower, so it doesn't count.
@@ -618,10 +653,12 @@ export function LinkingDrill({
               say(
                 `${clean} of ${total} pivots clean. ${up ? `Next time, try ${up} BPM.` : 'Top of the ladder: try another key.'}`,
               );
-            } else
+            } else {
+              logDrillMiss(drillKey, bpm);
               say(
                 `${clean} of ${total} pivots clean. Aim for 9 in 10: slow down a step, or switch to Easy shapes, and keep a finger on the shared root.`,
               );
+            }
           } else {
             setAsk(true);
             announce(`Drill finished. Were all your changes clean at ${bpm} BPM?`);
@@ -678,6 +715,7 @@ export function LinkingDrill({
           }}
           label="Drill tempo"
         />
+        <FadeSeg />
         <Check checked={playAlong} onChange={setPlayAlong}>
           Play each chord with me{micOn && !headphones ? ' (with headphones)' : ''}
         </Check>
@@ -731,6 +769,7 @@ export function LinkingDrill({
               className="btn small"
               onClick={() => {
                 setAsk(false);
+                logDrillMiss(drillKey, bpm);
                 say(
                   'No problem. Drop one step on the tempo ladder or switch to Easy shapes, and watch the shared root rather than your whole hand.',
                 );
