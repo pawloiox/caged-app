@@ -16,6 +16,8 @@ import { GuitarBody, Headstock, KnobFace } from './Guitar';
 
 /** Frets close up toward the body: each fret's share of spare width shrinks like real fret spacing. */
 const taper = (k: number) => +Math.pow(2, -k / 12).toFixed(3);
+/** The upper frets past the tools, each one a semitone's ratio narrower than the last. */
+const TAIL = Array.from({ length: 14 }, (_, k) => +(44 * Math.pow(2, -k / 12)).toFixed(1));
 
 /** Steps are fret positions on the neck; the tools sit past the 12th-fret inlay. */
 const STEPS = [
@@ -280,6 +282,17 @@ export function Layout() {
                 </NavLink>
               );
             })}
+            <span className="fret-tail" aria-hidden="true">
+              <span className="fret-tail-inner">
+                {TAIL.map((w, k) => (
+                  <span
+                    key={k}
+                    className={`fret-deco${k % 2 === 0 && k > 0 && k < 9 ? ' dot' : ''}`}
+                    style={{ width: w }}
+                  />
+                ))}
+              </span>
+            </span>
           </div>
         </nav>
         <div className="gbody">

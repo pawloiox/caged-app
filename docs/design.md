@@ -13,20 +13,24 @@ often a phone. The interface has one job: show the neck and what to play next, r
 3. **Type at arm's length.** Chord names and page titles are the largest things on screen, set condensed and
    heavy like the chord symbol on a chord chart.
 4. **One bold element: the guitar.** The navigation is a guitar lying across the top of the page
-   (`src/ui/Guitar.tsx`, `Layout.tsx`):
-   - The headstock is the home link: a 3 + 3 headstock with a scooped tip, nickel tuners and the logo.
-   - The neck holds the steps and tools. Steps 1–5 are fret positions with inlay dots (a pearl inlay means the
-     step is done), and a 12th-fret double inlay separates the lessons from the tools beyond them. Status sits on
-     the frets themselves: "Next up" under the next step, "3 due" under Train, and the routine timer or streak
-     under Routine. Frets close up toward the body.
-   - The body is stained wood with cream binding, two humbuckers, a bridge and a stop tailpiece. Its two knobs
-     are the controls: Sound (the pointer turns between 0 and 10) and View. XP and the live-mic light sit beside
-     them.
-   - The strings run unbroken from the tuners to the tailpiece: everything is drawn on one 152 px row with the
-     68 px neck centred.
-   - Between 861 and about 1200 px the neck scrolls sideways between headstock and body. At 860 px and below
-     the brand and knobs share a top row and the neck runs full width below.
-   - Everything else stays quiet.
+   (`src/ui/Guitar.tsx`, `Layout.tsx`), modelled on a modern double-cutaway solid body in satin charcoal (the
+   reference photo the user supplied). The outlines are our own, and there is no maker's logo or bird inlays.
+   - The headstock is the home link: gloss black, 3 + 3, flaring from the nut, with chrome tuner shafts and dark
+     keys, a small truss-rod cover, a bone nut and the CAGED Lab logo.
+   - The neck is unbound rosewood holding the steps and tools. Steps 1–5 are fret positions with inlay dots (a
+     pearl inlay means the step is done), and a 12th-fret double inlay separates the lessons from the tools
+     beyond them. Status sits on the frets: "Next up" under the next step, "3 due" under Train, and the routine
+     timer or streak under Routine. Past the tools, the upper frets close up toward the body (decorative; they
+     fill only the space the items leave).
+   - The body is a satin grey-brown with the open grain showing, a soft carved bevel and no binding. It has a
+     long bass horn and a shorter treble horn, two black open-pole humbuckers, a vibrato bridge with its arm swung
+     back along the treble side, and strap buttons. Its two dark knobs on the treble side are the controls: Sound
+     (the pointer turns between 0 and 10) and View. XP and the live-mic light sit on the lower bout.
+   - Everything is drawn on one 224 px row with the 64 px neck centred, so the strings run unbroken from the
+     tuners to the bridge.
+   - Every item fits from 1280 px up (fret labels tighten below 1440). Narrower, the neck scrolls sideways
+     between headstock and body; at 860 px and below the brand and knobs share a top row and the neck runs full
+     width below.
 5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step
    inlays are mother-of-pearl: a cool nacre base, soft pastel iridescent bands that slowly slide across (as when
    the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the

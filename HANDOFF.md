@@ -523,3 +523,8 @@ The header chips moved onto the guitar: Next up, review count and streak are sub
 Sound, View and the mic light are on the body. The header is no longer sticky. Tests: one E2E test checks the
 alignment of headstock, neck and body, the fret status, both knobs and the home link; the phone test now
 includes the knobs in its 44 px target check. Totals: 89 unit and 62 E2E tests, all passing.
+
+Afterwards the guitar was redrawn to resemble the user's reference photo (a modern double-cutaway solid body in
+satin charcoal): a larger body (224 px row) with a long bass horn, black open-pole humbuckers, a vibrato bridge and
+arm, two dark knobs on the treble side, an unbound neck with upper frets closing toward the body, and a gloss
+black 3 + 3 headstock. The maker's logo, bird inlays and exact outlines were deliberately not copied.

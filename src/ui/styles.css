@@ -234,16 +234,16 @@ kbd {
 }
 
 /* ===== Shell: the navigation is a guitar lying across the top =====
-   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 152 px row; the
-   neck is 68 px tall and centred, so the strings drawn in the headstock and body SVGs (ui/Guitar.tsx) line up
+   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 224 px row; the
+   neck is 64 px tall and centred, so the strings drawn in the headstock and body SVGs (ui/Guitar.tsx) line up
    with the strings across the neck. The guitar keeps its own materials in both themes. */
 .guitar {
   position: relative;
   z-index: 30;
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 284px;
+  grid-template-columns: 172px minmax(0, 1fr) 280px;
   align-items: center;
-  height: 152px;
+  height: 224px;
   box-sizing: content-box;
   padding: 10px clamp(10px, 2vw, 28px) 4px;
 }
@@ -278,10 +278,10 @@ kbd {
 }
 .gbody {
   position: relative;
-  width: 340px;
-  height: 152px;
+  width: 350px;
+  height: 224px;
   /* The body reaches back over the end of the neck: the neck pocket. */
-  margin-left: -56px;
+  margin-left: -70px;
   z-index: 2;
 }
 .body-art {
@@ -297,8 +297,8 @@ kbd {
 }
 .controls .xp {
   position: absolute;
-  left: 214px;
-  top: 20px;
+  left: 238px;
+  top: 150px;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
@@ -308,8 +308,8 @@ kbd {
 }
 .mic-led {
   position: absolute;
-  left: 280px;
-  top: 112px;
+  left: 236px;
+  top: 180px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -344,15 +344,16 @@ kbd {
   cursor: pointer;
   white-space: nowrap;
 }
+/* Both knobs sit on the treble side, behind the bridge: Sound nearer the bridge, View further along. */
 .controls .knob-btn.sound {
   position: absolute;
-  left: 206px;
-  top: 66px;
+  left: 233px;
+  top: 28px;
 }
 .controls .knob-btn.view {
   position: absolute;
-  left: 266px;
-  top: 40px;
+  left: 281px;
+  top: 64px;
 }
 .knob-btn:focus-visible {
   outline: 2.5px solid #ffd27a;
@@ -364,8 +365,8 @@ kbd {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  /* Knurled edge round a domed cap. */
-  background: repeating-conic-gradient(#0d0a09 0 5deg, #39322f 5deg 10deg);
+  /* A dark top-hat knob: knurled skirt round a domed cap. */
+  background: repeating-conic-gradient(#0d0a09 0 5deg, #3a3634 5deg 10deg);
   box-shadow:
     0 3px 4px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(0, 0, 0, 0.7);
@@ -428,10 +429,11 @@ kbd {
 
 /* ===== The neck =====
    Steps 1–5 are fret positions with inlay dots (a pearl inlay = step done); the 12th-fret double inlay separates
-   the lessons from the tools beyond it. Rosewood with cream binding, nickel frets, strings behind the labels. */
+   the lessons from the tools beyond it. Unbound rosewood, nickel frets, strings behind the labels; past the tools
+   the frets close up toward the body. */
 .neck {
   position: relative;
-  height: 68px;
+  height: 64px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -456,20 +458,20 @@ kbd {
     600px 120px,
     100% 100%;
   background-position:
-    0 8px,
-    0 19px,
-    0 29.5px,
-    0 40px,
-    0 51px,
-    0 61.5px,
+    0 7.2px,
+    0 17.4px,
+    0 27.4px,
+    0 37.6px,
+    0 47.6px,
+    0 57.6px,
     0 0,
     0 0,
     0 0;
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
-  /* Cream binding along both edges. */
+  /* Unbound: just the rounded edge of the fretboard catching the light, and its shadow. */
   box-shadow:
-    inset 0 2px 0 #e9dfc8,
-    inset 0 -2px 0 #e9dfc8,
+    inset 0 1px 0 rgba(255, 236, 214, 0.22),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.55),
     0 4px 6px rgba(0, 0, 0, 0.35);
 }
 .neck::-webkit-scrollbar {
@@ -479,9 +481,46 @@ kbd {
   display: flex;
   align-items: stretch;
   height: 100%;
-  min-width: max-content;
+  /* Min-content, not max-content: the upper frets (the tail) can shrink away; the items never do. */
+  min-width: min-content;
   /* The end of the neck runs under the body. */
-  padding-right: 60px;
+  padding-right: 74px;
+}
+/* The upper frets, toward the body: no items, just wire closing up and pearl dots. They give way first when
+   the screen is narrow. */
+.fret-tail {
+  position: relative;
+  flex: 4 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+/* Out of flow, so the tail never adds to the neck's width: it only fills what the items leave. */
+.fret-tail-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+.fret-deco {
+  flex: none;
+  position: relative;
+  background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+  background-size: 3px 100%;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+.fret-deco.dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 1.5px);
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.95) 0 14%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 38% 32%, #ffffff, #f6f3ea 32%, #e1e6e3 64%, #c5cecc 86%, #a7b2b0);
+  box-shadow: inset 0 0 0 0.75px rgba(28, 14, 6, 0.5);
 }
 .fret {
   flex: 1 0 auto;
@@ -491,7 +530,7 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 3px clamp(9px, 1vw, 18px);
+  padding: 3px clamp(8px, 0.8vw, 15px);
   color: #f6f1e8;
   text-decoration: none;
   font: 650 14px/1.15 var(--font-body);
@@ -501,7 +540,7 @@ kbd {
     0 0 6px rgba(0, 0, 0, 0.6);
   /* Nickel fret wire on the right edge, stopping at the binding. */
   background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
-  background-size: 3px calc(100% - 4px);
+  background-size: 3px 100%;
   background-position: right center;
   background-repeat: no-repeat;
 }
@@ -586,7 +625,7 @@ kbd {
   justify-content: center;
   gap: 14px;
   background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
-  background-size: 3px calc(100% - 4px);
+  background-size: 3px 100%;
   background-position: right center;
   background-repeat: no-repeat;
 }
@@ -1896,6 +1935,13 @@ table.shapes button.rowbtn {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Laptop widths: tighter fret labels so every item still fits between the headstock and the body. */
+@media (min-width: 861px) and (max-width: 1439px) {
+  .fret {
+    font-size: 13px;
+    padding-inline: 6px;
+  }
+}
 @media (max-width: 860px) {
   .routine {
     grid-template-columns: 1fr;
@@ -1927,7 +1973,9 @@ table.shapes button.rowbtn {
   }
   .neck {
     grid-area: neck;
-    height: 68px;
+  }
+  .fret-tail {
+    display: none;
   }
   .neck-board {
     padding-right: 0;
