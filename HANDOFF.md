@@ -566,3 +566,6 @@ about 6×) so it fits a header, and there are no maker's logo or inlays.
 
 Afterwards, at the user's request, the two cutaways were made symmetrical: the bass horn and scoop now mirror the
 treble ones across the neck's centre line, and both scoops cut about 10 px deeper into the body.
+Then the joins were reshaped: each cutaway now rolls into the neck along its edge rather than meeting it square,
+the carved top shades down into both cutaways (a soft lit ridge, then a shadowed edge), and the fretboard end
+casts a soft shadow on the body.

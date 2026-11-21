@@ -306,12 +306,16 @@ export const BODY_OVERLAP = 70;
  * the horns (y 80–144).
  */
 const BODY_PATH =
-  'M84 80 C90 64 84 50 70 44 C60 40 52 36 50 29 C48 21 55 16 63 17 C75 18 85 21 97 26 C109 31 118 34 130 34 ' +
+  // Each cutaway rolls into the neck along its edge (tangent to it), not square onto it.
+  'M60 80 C74 80 86 76 90 66 C94 56 88 46 76 42 C64 38 52 36 50 29 C48 21 55 16 63 17 C75 18 85 21 97 26 C109 31 118 34 130 34 ' +
   'C152 33 182 13 224 4 C262 0 302 6 325 27 C342 42 349 76 349 112 C349 150 340 186 318 204 ' +
   'C302 218 278 222 248 222 C206 222 164 192 130 190 ' +
   // The bass horn and cutaway mirror the treble ones across the neck's centre line (y = 112).
-  'C118 190 109 193 97 198 C85 203 75 206 63 207 C55 208 48 203 50 195 C52 188 60 184 70 180 ' +
-  'C84 174 90 160 84 144 L70 144 L70 80 Z';
+  'C118 190 109 193 97 198 C85 203 75 206 63 207 C55 208 48 203 50 195 C52 188 64 186 76 182 ' +
+  'C88 178 94 168 90 158 C86 148 74 144 60 144 L70 144 L70 80 Z';
+/** The two cutaway edges, for the carve shading (mirror images across y = 112). */
+const CUT_TREBLE = 'M60 80 C74 80 86 76 90 66 C94 56 88 46 76 42 C64 38 52 36 50 29';
+const CUT_BASS = 'M50 195 C52 188 64 186 76 182 C88 178 94 168 90 158 C86 148 74 144 60 144';
 
 /** An uncovered humbucker: black, two rows of poles (screws and slugs), in a black mounting ring. */
 function Humbucker({ x, id }: { x: number; id: string }) {
@@ -358,6 +362,12 @@ export function GuitarBody() {
         </clipPath>
         <filter id={`${id}-band`} filterUnits="userSpaceOnUse" x={-20} y={-20} width={BODY_W + 40} height={ROW_H + 40}>
           <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id={`${id}-carve`} filterUnits="userSpaceOnUse" x={0} y={0} width={160} height={ROW_H}>
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id={`${id}-edge`} filterUnits="userSpaceOnUse" x={0} y={0} width={160} height={ROW_H}>
+          <feGaussianBlur stdDeviation="1.5" />
         </filter>
         <filter id={`${id}-glow`} x="-20%" y="-50%" width="140%" height="200%">
           <feGaussianBlur stdDeviation="8" />
@@ -416,19 +426,14 @@ export function GuitarBody() {
           <path d="M90 120 C160 116 240 126 350 122" fill="none" stroke="rgba(38,26,18,0.12)" strokeWidth={8} />
         </g>
         <rect width={BODY_W} height={ROW_H} fill={`url(#${id}-satin)`} />
-        {/* The body's thickness inside the cutaways: shadowed in the bass U, lit in the treble scoop. */}
-        <path
-          d="M50 195 C52 188 60 184 70 180 C84 174 90 160 84 144"
-          fill="none"
-          stroke="rgba(0,0,0,0.35)"
-          strokeWidth={5}
-        />
-        <path
-          d="M84 80 C90 64 84 50 70 44 C60 40 52 36 50 29"
-          fill="none"
-          stroke="rgba(255,235,210,0.10)"
-          strokeWidth={5}
-        />
+        {/* The carved top rolls down into both cutaways: a soft lit ridge just inside each edge, then the edge
+            itself falling into shadow. */}
+        {[CUT_TREBLE, CUT_BASS].map((d) => (
+          <g key={d}>
+            <path d={d} fill="none" stroke="rgba(255,240,222,0.11)" strokeWidth={22} filter={`url(#${id}-carve)`} />
+            <path d={d} fill="none" stroke="rgba(0,0,0,0.32)" strokeWidth={6} filter={`url(#${id}-edge)`} />
+          </g>
+        ))}
         {/* Light along the carved upper bass bout and horn. */}
         <path
           d="M58 198 C90 200 130 202 200 208"
@@ -446,7 +451,15 @@ export function GuitarBody() {
       <circle cx={49} cy={200} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
       <circle cx={345} cy={112} r={4} fill={`url(#${id}-post)`} stroke="#3d4245" strokeWidth={0.5} />
       {/* The fretboard runs on over the body almost to the neck pickup, with its last frets. */}
-      <rect x={70} y={NECK_TOP} width={20} height={NECK_H} fill={`url(#${id}-rosewood)`} />
+      {/* The fretboard stands proud of the top, so it casts a soft shadow onto the body. */}
+      <rect
+        x={70}
+        y={NECK_TOP}
+        width={20}
+        height={NECK_H}
+        fill={`url(#${id}-rosewood)`}
+        filter="drop-shadow(0 0 2.5px rgba(0,0,0,0.55))"
+      />
       {[80, 86].map((x) => (
         <rect key={x} x={x} y={NECK_TOP} width={1.2} height={NECK_H} fill="#c9cdcf" opacity={0.8} />
       ))}
