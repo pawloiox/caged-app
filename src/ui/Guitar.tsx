@@ -18,7 +18,7 @@ export const NECK_H = 64;
 /** String positions across the neck, as a share of its height (high e at the top, low E at the bottom). */
 export const STRING_AT = [0.12, 0.28, 0.44, 0.6, 0.76, 0.92] as const;
 const stringY = (i: number) => NECK_TOP + NECK_H * STRING_AT[i]!;
-/** Wound strings (D, A, low E) are bronze; plain ones (e, B, G) steel. Width grows toward low E. */
+/** Electric-guitar strings: wound (D, A, low E) nickel, a touch darker than the plain steel (e, B, G). */
 const STRING_W = [0.9, 1.1, 1.3, 1.6, 1.9, 2.3] as const;
 
 function useGrain(): string | null {
@@ -61,7 +61,7 @@ function Strings({
               x2={to}
               y1={y1}
               y2={y}
-              stroke={wound ? `url(#${id}-bronze)` : `url(#${id}-steel)`}
+              stroke={wound ? `url(#${id}-wound)` : `url(#${id}-steel)`}
               strokeWidth={STRING_W[i]}
             />
           </g>
@@ -78,9 +78,9 @@ function MetalDefs({ id }: { id: string }) {
         <stop offset="0" stopColor="#f4f4f2" />
         <stop offset="1" stopColor="#9da3a6" />
       </linearGradient>
-      <linearGradient id={`${id}-bronze`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#f0d6a6" />
-        <stop offset="1" stopColor="#9c7a47" />
+      <linearGradient id={`${id}-wound`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#d9dbd9" />
+        <stop offset="1" stopColor="#7e8382" />
       </linearGradient>
       <linearGradient id={`${id}-nickel`} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stopColor="#fbfbf9" />
@@ -121,6 +121,15 @@ function CharcoalDefs({ id, grain }: { id: string; grain: string | null }) {
       {/* Greys the rosewood grain, so it reads as stained open-pore wood. */}
       <filter id={`${id}-grey`}>
         <feColorMatrix type="saturate" values="0.4" />
+        <feGaussianBlur stdDeviation="0.5" />
+      </filter>
+      {/* Coarse open-pore streaks along the body's length: noise stretched along x, turned into a brown alpha. */}
+      <filter id={`${id}-streak`} filterUnits="userSpaceOnUse" x={0} y={0} width={400} height={260}>
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.35" numOctaves={3} seed={7} />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.07  0 0 0 -1.4 1.1" />
+      </filter>
+      <filter id={`${id}-bout`} filterUnits="userSpaceOnUse" x={180} y={110} width={240} height={170}>
+        <feGaussianBlur stdDeviation="14" />
       </filter>
       <linearGradient id={`${id}-satin`} x1="0" y1="0" x2="0.3" y2="1">
         <stop offset="0" stopColor="rgba(255,255,255,0.13)" />
@@ -150,21 +159,22 @@ const POSTS_BOTTOM = [
 ] as const;
 /** Key centres: just off the edge, beside their posts. */
 const KEYS_TOP = [
-  { x: 117, y: 42 },
-  { x: 79, y: 51 },
-  { x: 40, y: 58 },
+  { x: 117, y: 39 },
+  { x: 79, y: 48 },
+  { x: 40, y: 55 },
 ] as const;
 const KEYS_BOTTOM = [
-  { x: 117, y: 182 },
-  { x: 79, y: 173 },
-  { x: 40, y: 166 },
+  { x: 117, y: 185 },
+  { x: 79, y: 176 },
+  { x: 40, y: 169 },
 ] as const;
 
 /** A tuner key centred at (x, y); d = 1 when the headstock lies toward +y (treble keys), −1 for bass keys. */
 const kidney = (x: number, y: number, d: number) => {
   const Y = (dy: number) => y + d * dy;
   return (
-    `M${x - 14} ${y} C${x - 14} ${Y(-12)} ${x + 14} ${Y(-12)} ${x + 14} ${y} ` +
+    `M${x - 14} ${y} C${x - 14} ${Y(-8)} ${x - 11} ${Y(-12)} ${x} ${Y(-12)} ` +
+    `C${x + 11} ${Y(-12)} ${x + 14} ${Y(-8)} ${x + 14} ${y} ` +
     `C${x + 14} ${Y(9)} ${x + 7} ${Y(12)} ${x} ${Y(8)} C${x - 7} ${Y(12)} ${x - 14} ${Y(9)} ${x - 14} ${y} Z`
   );
 };
@@ -184,6 +194,11 @@ export function Headstock() {
     <svg className="headstock-art" width={W} height={ROW_H} viewBox={`0 0 ${W} ${ROW_H}`} aria-hidden="true">
       <defs>
         <MetalDefs id={id} />
+        <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="rgba(255,255,255,0.04)" />
+          <stop offset="0.5" stopColor="rgba(255,255,255,0)" />
+          <stop offset="1" stopColor="rgba(255,255,255,0.03)" />
+        </linearGradient>
         <linearGradient id={`${id}-matte`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#393735" />
           <stop offset="1" stopColor="#232120" />
@@ -192,14 +207,18 @@ export function Headstock() {
           <path d={outline} />
         </clipPath>
         <radialGradient id={`${id}-washer`} cx="0.38" cy="0.35" r="0.7">
-          <stop offset="0" stopColor="#d4d8d9" />
-          <stop offset="0.55" stopColor="#8a9093" />
-          <stop offset="1" stopColor="#5d6265" />
+          <stop offset="0" stopColor="#f2f3f3" />
+          <stop offset="0.55" stopColor="#b4b9bb" />
+          <stop offset="1" stopColor="#6f7578" />
         </radialGradient>
+        <linearGradient id={`${id}-stem`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#8a8f91" />
+          <stop offset="1" stopColor="#4a4f52" />
+        </linearGradient>
         <radialGradient id={`${id}-key`} cx="0.38" cy="0.32" r="0.8">
-          <stop offset="0" stopColor="#4a4a4c" />
-          <stop offset="0.45" stopColor="#1b1b1c" />
-          <stop offset="1" stopColor="#050505" />
+          <stop offset="0" stopColor="#3e3e40" />
+          <stop offset="0.5" stopColor="#1e1e1f" />
+          <stop offset="1" stopColor="#0c0c0c" />
         </radialGradient>
       </defs>
       {/* Tuner keys, drawn first so they sit behind the edge: black kidney-shaped buttons on short collars. */}
@@ -207,12 +226,15 @@ export function Headstock() {
         <g key={i}>
           {/* One kidney-shaped button, long axis along the headstock, pinched on the side facing it; its inner
               edge tucks under the face. */}
-          <path d={kidney(k.x, k.y, k.d)} fill={`url(#${id}-key)`} />
-          <ellipse cx={k.x - 5} cy={k.y - 5 * k.d} rx={4} ry={2.5} fill="rgba(255,255,255,0.14)" />
+          {/* A short metal stem between the key and the headstock edge. */}
+          <rect x={k.x - 2} y={k.d > 0 ? k.y + 8 : k.y - 15} width={4} height={7} fill={`url(#${id}-stem)`} />
+          <path d={kidney(k.x, k.y, k.d)} fill={`url(#${id}-key)`} stroke="rgba(0,0,0,0.6)" strokeWidth={0.6} />
+          <ellipse cx={k.x - 5} cy={k.y - 5 * k.d} rx={4} ry={2.5} fill="rgba(255,255,255,0.07)" />
         </g>
       ))}
       <g filter="drop-shadow(0 3px 4px rgba(0,0,0,0.5))">
         <path d={outline} fill={`url(#${id}-matte)`} />
+        <path d={outline} fill={`url(#${id}-sheen)`} />
         <path d={outline} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={1} />
       </g>
       {/* Satin: soft light along the edges. */}
@@ -221,9 +243,10 @@ export function Headstock() {
       {['--c-shape', '--a-shape', '--g-shape', '--e-shape', '--d-shape'].map((v, i) => (
         <circle
           key={v}
-          cx={10 + i * 8}
+          cx={11 + i * 7}
           cy={112}
-          r={3.5}
+          r={3}
+          opacity={0.9}
           fill={`var(${v})`}
           stroke="rgba(0,0,0,0.35)"
           strokeWidth={0.5}
@@ -239,24 +262,23 @@ export function Headstock() {
         width={40}
         height={13}
         rx={6.5}
-        fill="#0b0b0b"
-        stroke="rgba(255,255,255,0.18)"
+        fill="#141414"
+        stroke="rgba(255,255,255,0.14)"
         strokeWidth={0.6}
       />
       <circle cx={127} cy={112} r={1.4} fill="#9aa0a3" />
       <Strings
         id={id}
         from={(i) => (i < 3 ? POSTS_TOP[i]!.x : POSTS_BOTTOM[5 - i]!.x)}
-        fromY={(i) => (i < 3 ? POSTS_TOP[i]!.y : POSTS_BOTTOM[5 - i]!.y)}
+        fromY={(i) => (i < 3 ? POSTS_TOP[i]!.y + 2.5 : POSTS_BOTTOM[5 - i]!.y - 2.5)}
         to={W - 6}
       />
       {[...POSTS_TOP, ...POSTS_BOTTOM].map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={7} fill={`url(#${id}-washer)`} stroke="#2a2d2f" strokeWidth={0.5} />
-          {/* The string wrap round the post. */}
-          <circle cx={p.x} cy={p.y} r={4.5} fill="none" stroke="#4e5457" strokeWidth={0.8} />
-          <circle cx={p.x} cy={p.y} r={3.2} fill="#a9aeb0" />
-          <circle cx={p.x} cy={p.y} r={1.5} fill="#2a2d2f" />
+          <circle cx={p.x} cy={p.y} r={8} fill={`url(#${id}-washer)`} stroke="#2a2d2f" strokeWidth={0.5} />
+          {/* The string coiled round the post. */}
+          <circle cx={p.x} cy={p.y} r={4.6} fill="none" stroke="#3d4245" strokeWidth={1.6} />
+          <circle cx={p.x} cy={p.y} r={2.8} fill="#7d8487" />
         </g>
       ))}
       {/* Bone nut. */}
@@ -284,9 +306,9 @@ export const BODY_OVERLAP = 70;
  * left between the horns (y 80–144).
  */
 const BODY_PATH =
-  'M74 80 C80 66 74 52 62 46 C54 42 48 38 47 31 C46 22 54 17 62 18 C74 19 84 24 96 28 C108 32 116 36 124 36 ' +
-  'C146 35 180 12 224 4 C262 0 302 6 325 27 C342 42 349 76 349 112 C349 150 340 186 318 204 ' +
-  'C300 217 276 222 250 222 C215 222 170 216 131 209 C108 205 82 202 60 201 C40 201 24 202 14 200 ' +
+  'M74 80 C80 66 74 52 62 46 C54 42 48 38 47 31 C46 22 54 17 62 18 C74 18 84 21 96 26 C108 31 118 34 130 34 ' +
+  'C152 33 182 13 224 4 C262 0 302 6 325 27 C342 42 349 76 349 112 C349 150 340 186 318 204 ' +
+  'C302 218 278 222 248 222 C212 222 182 214 152 207 C126 202 96 200 60 200 C40 201 24 202 14 200 ' +
   'C4 197 0 189 1 182 C2 174 8 168 17 169 C30 175 48 172 58 166 C66 161 69 153 70 144 L70 80 Z';
 
 /** An uncovered humbucker: black, two rows of poles (screws and slugs), in a black mounting ring. */
@@ -295,9 +317,15 @@ function Humbucker({ x, id }: { x: number; id: string }) {
   const h = NECK_H + 16;
   return (
     <g>
-      <rect x={x - 5} y={top - 4} width={34} height={h + 8} rx={5} fill="#0e0d0d" stroke="#2c2927" strokeWidth={0.8} />
-      {[top, top + h].map((y) => (
-        <circle key={y} cx={x + 12} cy={y} r={1.3} fill="#5d6265" />
+      <rect x={x - 5} y={top - 4} width={34} height={h + 8} rx={5} fill="#0e0d0d" stroke="#4a4643" strokeWidth={1} />
+      <line x1={x - 2} x2={x + 26} y1={top - 3.2} y2={top - 3.2} stroke="rgba(255,255,255,0.12)" strokeWidth={0.6} />
+      {[
+        [x - 2, top - 1],
+        [x + 26, top - 1],
+        [x - 2, top + h + 1],
+        [x + 26, top + h + 1],
+      ].map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.3} fill="#8d9396" />
       ))}
       <rect x={x} y={top + 2} width={24} height={h - 4} rx={3} fill="#060606" />
       <line x1={x + 12} x2={x + 12} y1={top + 4} y2={top + h - 4} stroke="#1c1a19" strokeWidth={0.8} />
@@ -305,7 +333,7 @@ function Humbucker({ x, id }: { x: number; id: string }) {
         <g key={i}>
           <circle cx={x + 6} cy={stringY(i)} r={2.3} fill={`url(#${id}-post)`} />
           <circle cx={x + 6} cy={stringY(i)} r={0.6} fill="#3d4245" />
-          <circle cx={x + 18} cy={stringY(i)} r={2.3} fill="#3a3a3a" />
+          <circle cx={x + 18} cy={stringY(i)} r={2.3} fill={`url(#${id}-post)`} opacity={0.75} />
         </g>
       ))}
     </g>
@@ -326,9 +354,20 @@ export function GuitarBody() {
         <clipPath id={`${id}-clip`}>
           <path d={BODY_PATH} />
         </clipPath>
+        <filter id={`${id}-band`} filterUnits="userSpaceOnUse" x={-20} y={-20} width={BODY_W + 40} height={ROW_H + 40}>
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
         <filter id={`${id}-glow`} x="-20%" y="-50%" width="140%" height="200%">
           <feGaussianBlur stdDeviation="8" />
         </filter>
+        <linearGradient id={`${id}-saddle`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ece9e2" />
+          <stop offset="1" stopColor="#9d998f" />
+        </linearGradient>
+        <linearGradient id={`${id}-rear`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#b5b1a9" />
+          <stop offset="1" stopColor="#7a766e" />
+        </linearGradient>
         <linearGradient id={`${id}-bridge`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#e4e0d8" />
           <stop offset="0.5" stopColor="#a8a49c" />
@@ -354,11 +393,40 @@ export function GuitarBody() {
             height={ROW_H}
             fill={`url(#${id}-grain)`}
             filter={`url(#${id}-grey)`}
-            opacity={0.6}
+            opacity={0.35}
             style={{ mixBlendMode: 'multiply' }}
           />
         ) : null}
+        <rect
+          width={BODY_W}
+          height={ROW_H}
+          filter={`url(#${id}-streak)`}
+          opacity={0.5}
+          style={{ mixBlendMode: 'multiply' }}
+        />
+        {/* The top darkens toward the lower bass bout and the butt. */}
+        <ellipse cx={300} cy={190} rx={70} ry={40} fill="rgba(30,20,14,0.18)" filter={`url(#${id}-bout)`} />
+        {/* Broad, irregular darker streaks along the grain, beside the pickups and the bridge. */}
+        <g filter={`url(#${id}-band)`}>
+          <rect x={0} y={150} width={BODY_W} height={14} fill="rgba(38,26,18,0.22)" />
+          <rect x={0} y={54} width={BODY_W} height={8} fill="rgba(38,26,18,0.22)" />
+          <rect x={0} y={188} width={BODY_W} height={12} fill="rgba(38,26,18,0.15)" />
+          <path d="M90 120 C160 116 240 126 350 122" fill="none" stroke="rgba(38,26,18,0.12)" strokeWidth={8} />
+        </g>
         <rect width={BODY_W} height={ROW_H} fill={`url(#${id}-satin)`} />
+        {/* The body's thickness inside the cutaways: shadowed in the bass U, lit in the treble scoop. */}
+        <path
+          d="M17 169 C30 175 48 172 58 166 C66 161 69 153 70 144"
+          fill="none"
+          stroke="rgba(0,0,0,0.35)"
+          strokeWidth={5}
+        />
+        <path
+          d="M74 80 C80 66 74 52 62 46 C54 42 48 38 47 31"
+          fill="none"
+          stroke="rgba(255,235,210,0.10)"
+          strokeWidth={5}
+        />
         {/* Light along the carved upper bass bout and horn. */}
         <path
           d="M20 186 C60 192 120 200 200 208"
@@ -380,6 +448,7 @@ export function GuitarBody() {
       {[80, 86].map((x) => (
         <rect key={x} x={x} y={NECK_TOP} width={1.2} height={NECK_H} fill="#c9cdcf" opacity={0.8} />
       ))}
+      <rect x={89} y={NECK_TOP} width={1} height={NECK_H} fill="rgba(0,0,0,0.5)" />
       <Humbucker x={98} id={id} />
       <Humbucker x={162} id={id} />
       {/* Vibrato bridge: a warm nickel base plate with six pivot screws in front and a saddle per string. */}
@@ -394,10 +463,13 @@ export function GuitarBody() {
           stroke="#4e5457"
           strokeWidth={0.6}
         />
+        {/* The saddle channel, so the gaps between saddles read, and a plainer rear plate. */}
+        <rect x={204} y={NECK_TOP - 8} width={12} height={NECK_H + 16} fill="#2a2826" />
+        <rect x={216} y={NECK_TOP - 9} width={13} height={NECK_H + 18} rx={3} fill={`url(#${id}-rear)`} />
         {Array.from({ length: 6 }, (_, k) => (
           <circle
             key={k}
-            cx={plateX + 4}
+            cx={plateX + 1.6}
             cy={NECK_TOP - 4 + ((NECK_H + 8) * k) / 5}
             r={1.8}
             fill="#5d6265"
@@ -408,12 +480,12 @@ export function GuitarBody() {
         {STRING_AT.map((_, i) => (
           <rect
             key={i}
-            x={plateX + 8 + i * 0.8}
-            y={stringY(i) - 2.3}
-            width={8}
-            height={4.6}
+            x={205 + i * 0.6}
+            y={stringY(i) - 2.6}
+            width={9}
+            height={5.2}
             rx={1.3}
-            fill="#b9b5ad"
+            fill={`url(#${id}-saddle)`}
             stroke="#5a574f"
             strokeWidth={0.5}
           />

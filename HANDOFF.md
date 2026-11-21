@@ -538,8 +538,21 @@ beside the photo). The fixes from each round were applied in full. Scores:
 | 1 | 2/10 | 3/10 |
 | 2 | 6/10 | 6/10 |
 | 3 | 7/10 | 7/10 |
+| 4 | 7.5/10 | 7.5/10 |
+| 5 | 8/10 | 7.5/10 |
 
-The third round's fixes were applied after its scoring and have not been re-rated.
+Rounds 4 and 5 were run at the user's request. Round 4 changed the wound strings to nickel (electric), added key
+stems, brighter washers, pickup rings with corner screws, broad grain streaks and cutaway shading, and refined the
+bass side and treble waist. Round 5 changed the washers and stems, gave the keys flatter outer faces, added
+noise-based open-pore streaks, bright individual saddles in a dark channel, light pole slugs, and lower-bout
+shading. Round 5's fixes were applied after its scoring and have not been re-rated.
+
+The critic put the ceiling at about 8.5 for each, given the fixed limits:
+- **Headstock:** the 172 px length makes it stubbier than the photo's, and the app's logo replaces the photo's
+  signature.
+- **Body:** it is compressed to 3.4 neck widths across against the photo's 6, so the bass cutaway is a slot rather
+  than a broad U.
+- **Finish:** a photographic satin finish would need a real wood-texture image clipped to the outline.
 
 - **Headstock:** it is now narrow at a concave, asymmetric tip and widest at the tuners nearest the nut. The posts
   converge, the strings run nearly parallel, and the keys are large black kidneys lying along the head. It has a
