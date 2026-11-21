@@ -636,4 +636,10 @@ headstock 228 px long (was 172), and the grid column grew to match.
   edge on 1x screens. The guard is now three plain fills: its outline (the black middle ply), the outline inset
   0.8 px (the bevel) and inset 2 px (the face). `body.py` emits all three and keeps the guard 6 px inside the traced
   body, so nothing needs clipping. Masks remain only on soft, blurred shading.
+- Sharp at 1x: the `.guitar` padding is rounded to whole pixels (`round(clamp(...), 1px)`), so the headstock and
+  body SVGs land on the pixel grid at any width; a fractional offset blurred every edge. The strings, in the
+  headstock, body and neck CSS alike, sit on whole-pixel rows (`STRING_MID`): 1 px plain, 2 px wound, each with a
+  1 px shadow a pixel below. They are flat colours: a level `<line>` has a zero-height bounding box, and a gradient
+  sized to it paints nothing (the body's strings had been showing only their shadows). Frets, saddles, poles, screws
+  and the nut are snapped too, and the edge, guard and hardware blurs are tighter.
 - The trace bridges the strap buttons' cut-outs with a smooth curve, so the outline has no dent there.

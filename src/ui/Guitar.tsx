@@ -16,42 +16,51 @@ import { useId } from 'react';
 export const ROW_H = 224;
 export const NECK_TOP = 80;
 export const NECK_H = 64;
-/** String positions across the neck, as a share of its height (high e at the top, low E at the bottom). */
-export const STRING_AT = [0.12, 0.28, 0.44, 0.6, 0.76, 0.92] as const;
-const stringY = (i: number) => NECK_TOP + NECK_H * STRING_AT[i]!;
-/** Electric-guitar strings: wound (D, A, low E) nickel, a touch darker than the plain steel (e, B, G). */
-const STRING_W = [0.9, 1.1, 1.3, 1.6, 1.9, 2.3] as const;
+/**
+ * Each string's centre across the neck (high e at the top, low E at the bottom) and its width, on whole pixels: a
+ * 1 px string sits on a pixel row (centre x.5) and a 2 px one on the line between two rows, so at 1x each string is a
+ * crisp line, not a two-row smear. The neck's strings (styles.css .neck) are drawn on the same rows.
+ */
+export const STRING_MID = [7.5, 17.5, 28.5, 39, 49, 59] as const;
+const STRING_W = [1, 1, 1, 2, 2, 2] as const;
+const stringY = (i: number) => NECK_TOP + STRING_MID[i]!;
+/** The centre of the pixel a point falls in: a small round part drawn there sits square on the grid at 1x. */
+const px = (v: number) => Math.floor(v) + 0.5;
 
-/** The six strings from x1 (optionally starting at a tuner post's height) to x2, each with its shadow. */
+/**
+ * The six strings from x1 (optionally starting at a tuner post's height) to x2: plain steel (e, B, G) one pixel
+ * wide, wound nickel (D, A, low E) two, with a bright top row and a darker bottom one; each casts a one-pixel shadow a
+ * pixel below it. Flat colours, not gradients: a level line has a bounding box with no height, and a gradient sized
+ * to that box paints nothing.
+ */
 function Strings({
   from,
   to,
   fromY,
-  id,
 }: {
   from: number | ((i: number) => number);
   to: number;
   fromY?: (i: number) => number;
-  id: string;
 }) {
   return (
     <g>
-      {STRING_AT.map((_, i) => {
+      {STRING_MID.map((_, i) => {
         const x1 = typeof from === 'number' ? from : from(i);
         const y = stringY(i);
         const y1 = fromY ? fromY(i) : y;
-        const wound = i >= 3;
+        const w = STRING_W[i]!;
+        const drop = w / 2 + 1.5;
         return (
           <g key={i}>
-            <line x1={x1} x2={to} y1={y1 + 1.6} y2={y + 1.6} stroke="rgba(0,0,0,0.45)" strokeWidth={STRING_W[i]} />
-            <line
-              x1={x1}
-              x2={to}
-              y1={y1}
-              y2={y}
-              stroke={wound ? `url(#${id}-wound)` : `url(#${id}-steel)`}
-              strokeWidth={STRING_W[i]}
-            />
+            <line x1={x1} x2={to} y1={y1 + drop} y2={y + drop} stroke="rgba(0,0,0,0.5)" strokeWidth={1} />
+            {w === 1 ? (
+              <line x1={x1} x2={to} y1={y1} y2={y} stroke="#cdd1d0" strokeWidth={1} />
+            ) : (
+              <>
+                <line x1={x1} x2={to} y1={y1} y2={y} stroke="#8a8f8f" strokeWidth={2} />
+                <line x1={x1} x2={to} y1={y1 - 0.5} y2={y - 0.5} stroke="#d6d9d7" strokeWidth={1} />
+              </>
+            )}
           </g>
         );
       })}
@@ -62,14 +71,6 @@ function Strings({
 function MetalDefs({ id }: { id: string }) {
   return (
     <>
-      <linearGradient id={`${id}-steel`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#f4f4f2" />
-        <stop offset="1" stopColor="#9da3a6" />
-      </linearGradient>
-      <linearGradient id={`${id}-wound`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#d9dbd9" />
-        <stop offset="1" stopColor="#7e8382" />
-      </linearGradient>
       <linearGradient id={`${id}-nickel`} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stopColor="#fbfbf9" />
         <stop offset="0.45" stopColor="#c9cdcf" />
@@ -240,7 +241,6 @@ export function Headstock() {
       {/* The truss-rod access screw. */}
       <circle cx={156.2} cy={113.4} r={1.9} fill={`url(#${id}-post)`} stroke="rgba(0,0,0,0.6)" strokeWidth={0.4} />
       <Strings
-        id={id}
         from={(i) => (i < 3 ? POSTS_TOP[2 - i]!.x : POSTS_BOTTOM[5 - i]!.x)}
         fromY={(i) => (i < 3 ? POSTS_TOP[2 - i]!.y + 3 : POSTS_BOTTOM[5 - i]!.y - 3)}
         to={W - 7}
@@ -258,17 +258,17 @@ export function Headstock() {
           <circle cx={p.x + 0.4} cy={p.y + 0.3} r={0.9} fill="#151718" />
         </g>
       ))}
-      {/* A dark nut. */}
+      {/* A dark nut, its one-pixel rim inset half a pixel so it lands on whole pixels. */}
       <rect
-        x={W - 8}
-        y={NECK_TOP - 1}
-        width={8}
-        height={NECK_H + 2}
+        x={W - 7.5}
+        y={NECK_TOP - 0.5}
+        width={7}
+        height={NECK_H + 1}
         fill="#2b2b2c"
         stroke="#5c5d5f"
-        strokeWidth={0.6}
+        strokeWidth={1}
       />
-      <rect x={W - 7} y={NECK_TOP} width={1.4} height={NECK_H} fill="rgba(255,255,255,0.18)" />
+      <rect x={W - 6} y={NECK_TOP} width={1} height={NECK_H} fill="rgba(255,255,255,0.18)" />
     </svg>
   );
 }
@@ -282,7 +282,7 @@ export const BODY_H = 304;
  * drawn here, so the nav's last fret items can sit between the horns. */
 export const BODY_OVERLAP = 58;
 const BODY_NECK_TOP = BODY_H / 2 - NECK_H / 2;
-const bodyStringY = (i: number) => BODY_NECK_TOP + NECK_H * STRING_AT[i]!;
+const bodyStringY = (i: number) => BODY_NECK_TOP + STRING_MID[i]!;
 
 /**
  * Traced from the reference photo by scripts/guitar-trace/body.py: the silhouette and pickguard come off the photo's
@@ -347,11 +347,11 @@ function SingleCoil({ x1, y1, x2, y2, id }: { x1: number; y1: number; x2: number
           <Screw key={sy} x={cx} y={sy} id={id} r={2} />
         ))}
       </g>
-      {STRING_AT.map((_, i) => (
+      {STRING_MID.map((_, i) => (
         <circle
           key={i}
-          cx={along(x1, y1, x2, y2, bodyStringY(i)) + 0.1}
-          cy={bodyStringY(i) + 0.5}
+          cx={px(along(x1, y1, x2, y2, bodyStringY(i)))}
+          cy={px(bodyStringY(i))}
           r={2.15}
           fill={`url(#${id}-pole)`}
           stroke="#2c2d2d"
@@ -366,8 +366,15 @@ function SingleCoil({ x1, y1, x2, y2, id }: { x1: number; y1: number; x2: number
 function Screw({ x, y, id, r = 2.2 }: { x: number; y: number; id: string; r?: number }) {
   return (
     <g>
-      <circle cx={x} cy={y} r={r} fill={`url(#${id}-post)`} stroke="rgba(0,0,0,0.45)" strokeWidth={0.45} />
-      <line x1={x - r * 0.65} x2={x + r * 0.65} y1={y + r * 0.2} y2={y - r * 0.2} stroke="#4a4f52" strokeWidth={0.5} />
+      <circle cx={px(x)} cy={px(y)} r={r} fill={`url(#${id}-post)`} stroke="rgba(0,0,0,0.45)" strokeWidth={0.45} />
+      <line
+        x1={px(x) - r * 0.65}
+        x2={px(x) + r * 0.65}
+        y1={px(y) + r * 0.2}
+        y2={px(y) - r * 0.2}
+        stroke="#4a4f52"
+        strokeWidth={0.5}
+      />
     </g>
   );
 }
@@ -465,7 +472,7 @@ const BRIDGE = {
   ],
   arm_hole: [289.6, 112.5],
 } as const;
-const FRETBOARD = { x0: 53.5, x1: 116.9, frets: [59.3, 71.6, 82.4, 92.9, 102.8, 112.2], dots: [77.0, 98.1] } as const;
+const FRETBOARD = { x0: 53, x1: 117, frets: [59.3, 71.6, 82.4, 92.9, 102.8, 112.2], dots: [77.0, 98.1] } as const;
 const STRAPS = [
   [0.8, 245.8],
   [407.8, 154.5],
@@ -593,7 +600,7 @@ export function GuitarBody() {
           width={BODY_W + 20}
           height={BODY_H + 20}
         >
-          <feGaussianBlur stdDeviation="2.6" />
+          <feGaussianBlur stdDeviation="2" />
         </filter>
         <filter
           id={`${id}-rim`}
@@ -604,13 +611,13 @@ export function GuitarBody() {
           width={BODY_W + 20}
           height={BODY_H + 20}
         >
-          <feGaussianBlur stdDeviation="0.9" />
+          <feGaussianBlur stdDeviation="0.6" />
         </filter>
         <filter id={`${id}-soft`} colorInterpolationFilters="sRGB" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="2.4" />
         </filter>
         <filter id={`${id}-lift`} colorInterpolationFilters="sRGB" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0.4" dy="1.1" stdDeviation="0.9" floodColor="#000" floodOpacity="0.45" />
+          <feDropShadow dx="0.4" dy="1" stdDeviation="0.6" floodColor="#000" floodOpacity="0.5" />
         </filter>
       </defs>
       <g filter="drop-shadow(0 7px 9px rgba(0,0,0,0.55))">
@@ -640,7 +647,7 @@ export function GuitarBody() {
       {/* The pickguard: its black middle ply shows as a thin line round the edge, then the white bevel, then the face.
           Plain fills of inset outlines rather than strokes clipped to the guard: Chrome draws clipped or masked
           content without anti-aliasing, which stair-steps along the edge on a 1x screen. */}
-      <g filter="drop-shadow(0 1px 1.4px rgba(0,0,0,0.7))">
+      <g filter="drop-shadow(0 1px 0.9px rgba(0,0,0,0.7))">
         <path d={GUARD_PATH} fill="#2b2b2b" />
       </g>
       <path d={GUARD_PLY} fill={`url(#${id}-bevel)`} />
@@ -700,14 +707,18 @@ export function GuitarBody() {
         height={NECK_H}
         rx={3}
         fill={`url(#${id}-rosewood)`}
-        filter="drop-shadow(0.8px 0 1.6px rgba(0,0,0,0.6))"
+        filter="drop-shadow(0.8px 0 1px rgba(0,0,0,0.6))"
       />
       <rect x={FRETBOARD.x0} y={NT} width={6} height={NECK_H} fill={`url(#${id}-rosewood)`} />
+      {/* Frets two pixels wide on whole pixels: a bright row and a darker one, like the neck's wire. */}
       {FRETBOARD.frets.map((x) => (
-        <rect key={x} x={x} y={NT} width={1.3} height={NECK_H} fill="#c9cdcf" opacity={0.85} />
+        <g key={x}>
+          <rect x={Math.round(x)} y={NT} width={2} height={NECK_H} fill="#6c7275" />
+          <rect x={Math.round(x)} y={NT} width={1} height={NECK_H} fill="#b9bdbe" />
+        </g>
       ))}
       {FRETBOARD.dots.map((x) => (
-        <circle key={x} cx={x} cy={NT + NECK_H / 2} r={3.6} fill={`url(#${id}-pearl)`} stroke="rgba(28,14,6,0.5)" />
+        <circle key={x} cx={px(x)} cy={NT + NECK_H / 2} r={3.6} fill={`url(#${id}-pearl)`} stroke="rgba(28,14,6,0.5)" />
       ))}
       {PICKUPS.map(([[x1, y1], [x2, y2]]) => (
         <SingleCoil key={x1} x1={x1} y1={y1} x2={x2} y2={y2} id={id} />
@@ -725,36 +736,39 @@ export function GuitarBody() {
           <circle cx={x} cy={y} r={1.3} fill="none" stroke="#5b6164" strokeWidth={0.5} />
         </g>
       ))}
-      {STRING_AT.map((_, i) => {
+      {STRING_MID.map((_, i) => {
         const y = bodyStringY(i);
-        const [s0, s1] = B.saddles;
+        // Whole-pixel saddle edges round the string's row, so the saddles stay crisp at 1x.
+        const [s0, s1] = B.saddles.map(Math.round) as [number, number];
+        const top = Math.round(y - 4.5);
+        const sx = px(s0 + (s1 - s0) * 0.6);
         return (
           <g key={i}>
             <rect
-              x={s0}
-              y={y - 4.4}
-              width={s1 - s0}
-              height={8.8}
+              x={s0 + 0.25}
+              y={top + 0.25}
+              width={s1 - s0 - 0.5}
+              height={8.5}
               rx={1.2}
               fill={`url(#${id}-saddle)`}
               stroke="#4c5255"
               strokeWidth={0.5}
             />
-            <rect x={s0 + 2} y={y - 0.9} width={s1 - s0 - 4} height={1.8} fill="rgba(40,44,46,0.5)" />
-            <circle cx={s0 + (s1 - s0) * 0.6} cy={y - 2.6} r={1} fill="#25292b" />
-            <circle cx={s0 + (s1 - s0) * 0.6} cy={y + 2.6} r={1} fill="#25292b" />
+            <rect x={s0 + 2} y={Math.round(y - 1)} width={s1 - s0 - 4} height={2} fill="rgba(40,44,46,0.5)" />
+            <circle cx={sx} cy={top + 1.5} r={1} fill="#25292b" />
+            <circle cx={sx} cy={top + 7.5} r={1} fill="#25292b" />
             <path
               d={`M${s1 + 0.6} ${y - 1.5} l1.3 3 l1.3 -3 l1.3 3 l1.3 -3 l1.3 3`}
               fill="none"
               stroke="#3b3f41"
               strokeWidth={0.75}
             />
-            <rect x={anchorX - 2.6} y={y - 2.3} width={3.6} height={4.6} rx={0.8} fill="#2a2d2f" />
+            <rect x={Math.round(anchorX - 2.6)} y={Math.round(y - 2.5)} width={4} height={5} rx={0.8} fill="#2a2d2f" />
           </g>
         );
       })}
       <g transform={`translate(0 ${NT - NECK_TOP})`}>
-        <Strings id={id} from={FRETBOARD.x0} to={anchorX} />
+        <Strings from={FRETBOARD.x0} to={anchorX} />
       </g>
     </svg>
   );
