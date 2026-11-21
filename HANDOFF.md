@@ -528,3 +528,25 @@ Afterwards the guitar was redrawn to resemble the user's reference photo (a mode
 satin charcoal): a larger body (224 px row) with a long bass horn, black open-pole humbuckers, a vibrato bridge and
 arm, two dark knobs on the treble side, an unbound neck with upper frets closing toward the body, and a gloss
 black 3 + 3 headstock. The maker's logo, bird inlays and exact outlines were deliberately not copied.
+
+**Critic pass on the guitar (3 rounds).** At the user's request, a critic agent compared the headstock and body
+with the reference photo using upright side-by-side images (`compare.mjs`: shoot the guitar, rotate it 90°, lay it
+beside the photo). The fixes from each round were applied in full. Scores:
+
+| Round | Headstock | Body |
+|---|---|---|
+| 1 | 2/10 | 3/10 |
+| 2 | 6/10 | 6/10 |
+| 3 | 7/10 | 7/10 |
+
+The third round's fixes were applied after its scoring and have not been re-rated.
+
+- **Headstock:** it is now narrow at a concave, asymmetric tip and widest at the tuners nearest the nut. The posts
+  converge, the strings run nearly parallel, and the keys are large black kidneys lying along the head. It has a
+  matte satin finish, a long truss-rod cover, and a quiet logo on the centreline.
+- **Body:** it is pear-shaped, with a thick bass horn and deep U cutaway, a blunt short treble horn, and a wide
+  lower bout. The finish is warm brown satin. Hardware: the pickups and vibrato sit where the photo has them, the
+  knobs are on the photo's diagonal (black, with metal centres), and there is a brass mini switch.
+
+What remains different by design: the body is compressed across the strings (3.5× the neck width rather than
+about 6×) so it fits a header, and there are no maker's logo or inlays.
