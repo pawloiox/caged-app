@@ -111,13 +111,30 @@ for i in range(len(rot)+1):
         s = None
 _, a, b = best
 chain = rot[b:] + rot[:a]
+# Bridge the strap buttons' cut-outs: replace the outline across each with a cubic Hermite curve between the points just
+# outside it, following the edge's direction on either side, so no dent or step is left.
+def bridge(P, sel):
+    idx = [i for i, p in enumerate(P) if sel(p)]
+    if not idx: return P
+    i0, i1 = max(idx[0] - 6, 3), min(idx[-1] + 6, len(P) - 4)
+    a, b = P[i0], P[i1]
+    ta = ((a[0] - P[i0 - 3][0]) / 3, (a[1] - P[i0 - 3][1]) / 3)
+    tb = ((P[i1 + 3][0] - b[0]) / 3, (P[i1 + 3][1] - b[1]) / 3)
+    n = i1 - i0
+    out = []
+    for k in range(1, n):
+        t = k / n; h00, h10, h01, h11 = 2*t**3 - 3*t**2 + 1, t**3 - 2*t**2 + t, -2*t**3 + 3*t**2, t**3 - t**2
+        out.append(tuple(h00*a[j] + h10*n*ta[j] + h01*b[j] + h11*n*tb[j] for j in (0, 1)))
+    return P[:i0 + 1] + out + P[i1:]
+chain = bridge(chain, lambda p: p[0] > 900 and 290 <= p[1] <= 346)
+chain = bridge(chain, lambda p: p[0] < 70 and 464 <= p[1] <= 526)
 chain = smooth(chain, 2.2, False)
 # ---- guard
 bright = bytearray(1 if (not bg[i] and min(PX[3*i:3*i+3]) >= 196) else 0 for i in range(W*H))
 for y in range(130, 240):
     for x in range(280, 440): bright[y*W+x] = 1          # the sticker: ignored, the guard runs under it
-for y in range(BAND[0], BAND[1]+1):
-    for x in range(160, 300): bright[y*W+x] = 1          # under the fretboard
+for y in range(BAND[0] + 2, BAND[1] - 1):
+    for x in range(200, 300): bright[y*W+x] = 1          # under the fretboard, kept inside it
 def morph(m, r, op):
     t = bytearray(W*H)
     for y in range(H):
@@ -133,7 +150,16 @@ def morph(m, r, op):
     return o
 # Close the thin dark lines the strings draw across the guard and the notches the screws near its edge leave.
 bright = morph(morph(bright, 6, max), 6, min)
-guard = fill_holes(comp(bright, (450, 200)))
+# Keep the guard 6 px inside the traced body (the closing can bridge the black strip at the treble cutaway to the light
+# rolled edge beyond it), except under the fretboard, where it runs on under the neck.
+inner = bytearray(body)
+for y in range(BAND[0], BAND[1] + 1):
+    for x in range(160, 300): inner[y*W+x] = 1           # the neck counts as body here
+inner = morph(inner, 6, min)
+bright = bytearray(a & b for a, b in zip(bright, inner))
+# An opening then drops the thin strands the bright bridge saddles leave hanging off the guard's edge.
+guard = morph(morph(fill_holes(comp(bright, (450, 200))), 3, min), 3, max)
+guard = fill_holes(comp(guard, (450, 200)))
 gp = smooth(trace(guard), 6.0, True)
 
 # ---- mapping onto the guitar: the fretboard (photo rows 265-363 at the body) becomes our 64 px neck; away from it the
@@ -171,11 +197,11 @@ def cr2bez(Pts, closed=False):
         d += f" C{c1[0]:.1f} {c1[1]:.1f} {c2[0]:.1f} {c2[1]:.1f} {p2[0]:.1f} {p2[1]:.1f}"
     return d + (' Z' if closed else '')
 
-def simplify(Pts, closed, eps=0.45):
+def simplify(Pts, closed, eps=0.45, gap=18):
     if closed:
         k = len(Pts) // 2
         a = dp(Pts[:k + 1], eps); b = dp(Pts[k:] + [Pts[0]], eps)
-        return maxgap(a[:-1] + b[:-1], 18)
+        return maxgap(a[:-1] + b[:-1], gap)
     return maxgap(dp(Pts, eps), 16)
 
 cp = simplify(chain, False)
@@ -185,7 +211,22 @@ FB_START = 160          # photo x where our fretboard drawing starts: left of bo
 NT, NB = MID - 32, MID + 32
 mapped = [P(p) for p in cp]
 body = cr2bez(mapped) + f" L{X(FB_START) + 2:.1f} {NB:.1f} L{X(FB_START) + 2:.1f} {NT:.1f} Z"
-gp = simplify(smooth(gp, 1.5, True), True, 0.7)
+gp = smooth(gp, 1.5, True)
+# The guard's bevel is drawn as plain fills of the outline inset 0.8 and 2 px (the black middle ply, then the bevel,
+# then the face), not as strokes clipped to the outline: Chrome draws clipped or masked content without anti-aliasing.
+def inset(Q, d):
+    n = len(Q); area = sum(Q[i][0]*Q[(i+1)%n][1] - Q[(i+1)%n][0]*Q[i][1] for i in range(n))
+    sgn = 1 if area > 0 else -1
+    out = []
+    for i in range(n):
+        a, b = Q[i-1], Q[(i+1)%n]; tx, ty = b[0]-a[0], b[1]-a[1]; L = math.hypot(tx, ty) or 1e-9
+        out.append((Q[i][0] - sgn*ty/L*d, Q[i][1] + sgn*tx/L*d))
+    return out
+gq = [(X(x), Y(y)) for x, y in gp]
+def guard_path(d):
+    Q = simplify(inset(gq, d) if d else gq, True, 0.25, 8)
+    return cr2bez([(round(x, 1), round(y, 1)) for x, y in Q], True)
+gp = simplify(gp, True, 0.7)
 HW = {
     'strap': [(48, 497), (914, 318)],
     # neck, middle, bridge pickups by their mounting screws (top, bottom)
@@ -226,6 +267,7 @@ hw['pickup_w'] = round(HW['pickup_w'] * KX, 1)
 hw['cover'] = [round(Y(v), 1) for v in HW['cover']]
 hw['knob_r'] = round(HW['knob_r'] * (KX + KY) / 2, 1)
 print(json.dumps({'W': BW, 'H': BH, 'mid': MID, 'body': body, 'cut_t': cr2bez(mapped[:tre_tip + 1]),
-                  'cut_b': cr2bez(mapped[bass_tip:]), 'guard': cr2bez([P(p) for p in gp], True),
+                  'cut_b': cr2bez(mapped[bass_tip:]), 'guard': guard_path(0), 'guard_ply': guard_path(0.8),
+                  'guard_face': guard_path(2.0),
                   'joints': [P(chain[0]), P(chain[-1])], 'tips': [mapped[tre_tip], mapped[bass_tip]], 'hw': hw,
                   'npts': [len(cp), len(gp)]}, indent=1))

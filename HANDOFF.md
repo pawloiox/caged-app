@@ -628,8 +628,12 @@ headstock 228 px long (was 172), and the grid column grew to match.
   morphologically so strings and screw notches do not dent it, then smoothed), and maps both at 0.47 px per photo
   pixel along the neck and 0.441 across it. Across the neck a tanh eases the photo's fretboard band to our 64 px,
   so there is no kink at the joint. The script also maps the hardware points read off zoomed crops.
-- Drawing: the pickguard is clipped to the body, since its traced edge runs on under the fretboard past the
-  joint. The bridge is a two-point vibrato with no arm (the photo has none), with three cream hat knobs, a
+- Drawing: the bridge is a two-point vibrato with no arm (the photo has none), with three cream hat knobs, a
   five-way switch with a white tip, an oval jack plate and a long reflection across the lower bout.
 - Not drawn: the photo's model sticker on the guard (the guard runs on under where it was), and the maker's logo.
 - The photo has a maple neck; ours stays rosewood to match the navigation neck.
+- Crisp at 1x: Chrome draws clipped or masked SVG content without anti-aliasing, which stair-stepped the guard's
+  edge on 1x screens. The guard is now three plain fills: its outline (the black middle ply), the outline inset
+  0.8 px (the bevel) and inset 2 px (the face). `body.py` emits all three and keeps the guard 6 px inside the traced
+  body, so nothing needs clipping. Masks remain only on soft, blurred shading.
+- The trace bridges the strap buttons' cut-outs with a smooth curve, so the outline has no dent there.
