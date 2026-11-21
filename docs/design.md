@@ -27,12 +27,13 @@ often a phone. The interface has one job: show the neck and what to play next, r
      fill only the space the items leave).
    - The body is gloss black, with a band of light along its rolled edge. It has a long bass horn, a shorter
      treble horn and deep cutaways. On it sit a white pickguard with a thin dark bevel line, three white
-     single-coil pickups (the bridge one slanted), a vintage vibrato with bent-steel saddles and its arm, a
+     single-coil pickups (the bridge one slanted), a two-point vibrato bridge with six saddles, a
      five-way switch, an oval jack plate on the face and strap buttons. The volume and first tone knobs (white
      hats on the guard) are the controls: Sound (the pointer turns between 0 and 10) and View, with dark labels.
      The third knob is decoration. XP and the live-mic light sit on the black lower bout.
-   - Everything is drawn on one 224 px row with the 64 px neck centred, so the strings run unbroken from the
-     tuners to the bridge.
+   - The guitar's row is 304 px tall with the 64 px neck centred, so the strings run unbroken from the tuners to
+     the bridge. The body fills the row, so it keeps a guitar's proportions to the neck, and the neck runs on
+     under it between the horns.
    - Every item fits from 1280 px up (fret labels tighten below 1536 and again below 1366). Narrower, the neck scrolls sideways
      between headstock and body; at 860 px and below the brand and knobs share a top row and the neck runs full
      width below.

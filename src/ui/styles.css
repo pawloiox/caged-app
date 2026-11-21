@@ -234,18 +234,20 @@ kbd {
 }
 
 /* ===== Shell: the navigation is a guitar lying across the top =====
-   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 224 px row; the
-   neck is 64 px tall and centred, so the strings drawn in the headstock and body SVGs (ui/Guitar.tsx) line up
-   with the strings across the neck. The guitar keeps its own materials in both themes. */
+   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 304 px row, the
+   body's height (the headstock is 224 px tall and centred); the neck is 64 px tall and centred, so the strings
+   drawn in the headstock and body SVGs (ui/Guitar.tsx) line up with the strings across the neck. The guitar keeps
+   its own materials in both themes. */
 .guitar {
   position: relative;
   z-index: 30;
   display: grid;
-  grid-template-columns: 228px minmax(0, 1fr) 280px;
+  grid-template-columns: 228px minmax(0, 1fr) 356px;
   align-items: center;
-  height: 224px;
+  height: 304px;
   box-sizing: content-box;
-  padding: 10px clamp(10px, 2vw, 28px) 4px;
+  /* The body's end sits nearer the edge than the headstock's tip: it gives the neck the room. */
+  padding: 6px clamp(8px, 1vw, 20px) 2px clamp(10px, 2vw, 28px);
 }
 .headstock {
   display: block;
@@ -279,11 +281,13 @@ kbd {
 }
 .gbody {
   position: relative;
-  width: 350px;
-  height: 224px;
-  /* The body reaches back over the end of the neck: the neck pocket. */
-  margin-left: -70px;
+  width: 414px;
+  height: 304px;
+  /* The body reaches back over the end of the neck (Guitar.tsx BODY_OVERLAP): the neck runs on between the horns,
+     and the last fret items may sit there, so only the controls take the pointer. */
+  margin-left: -58px;
   z-index: 2;
+  pointer-events: none;
 }
 .body-art {
   position: absolute;
@@ -293,13 +297,17 @@ kbd {
 .controls {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   color: #f1ebe1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
+.controls > * {
+  pointer-events: auto;
+}
 .controls .xp {
   position: absolute;
-  left: 258px;
-  top: 158px;
+  left: 284px;
+  top: 214px;
   font-size: 12px;
   color: rgba(233, 225, 211, 0.75);
   font-variant-numeric: tabular-nums;
@@ -310,8 +318,8 @@ kbd {
 }
 .mic-led {
   position: absolute;
-  left: 254px;
-  top: 184px;
+  left: 280px;
+  top: 240px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -346,23 +354,23 @@ kbd {
   cursor: pointer;
   white-space: nowrap;
 }
-/* Sound is the volume knob (centre 221, 62): its label reads to its left, along the guard above the pickups, and
-   the button is placed by its right edge so the knob stays put when the label changes. */
+/* Sound is the volume knob (Guitar.tsx KNOB_AT, centre 245.7, 94.8): its label reads to its left, along the guard
+   above the pickups, and the button is placed by its right edge so the knob stays put when the label changes. */
 .controls .knob-btn.sound {
   position: absolute;
-  right: 117px;
-  top: 51px;
+  right: 154.3px;
+  top: 81.8px;
   display: flex;
   align-items: center;
   gap: 5px;
   width: auto;
   padding: 3px 4px;
 }
-/* View is the tone knob (centre 238.5, 40.4), labelled above, clear of the switch and the arm. */
+/* View is the first tone knob (centre 265, 62.8), labelled above, between the switch and the second tone knob. */
 .controls .knob-btn.view {
   position: absolute;
-  left: 209.5px;
-  top: 15.75px;
+  left: 236px;
+  top: 36.15px;
 }
 .controls .knob-btn .knob-label {
   order: -1;
@@ -374,11 +382,13 @@ kbd {
 .knob-face {
   position: relative;
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  /* A white hat knob: a flared skirt round a domed cap. */
-  background: radial-gradient(circle at 42% 38%, #f4f2ec, #dcd9d0 70%, #c4c0b5);
+  /* A white hat knob: a cream skirt printed with its scale, round a domed cap. */
+  background:
+    repeating-conic-gradient(rgba(70, 66, 58, 0.55) 0 3deg, transparent 3deg 30deg),
+    radial-gradient(circle at 42% 38%, #f4f1e8, #e2ddcf 70%, #c9c3b3);
   box-shadow:
     0.4px 1.2px 1.8px rgba(0, 0, 0, 0.5),
     0 0 0 0.6px rgba(60, 58, 52, 0.6);
@@ -386,9 +396,9 @@ kbd {
 .knob-face::before {
   content: '';
   position: absolute;
-  inset: 2.4px;
+  inset: 3.2px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #ffffff, #f1efe8 60%, #d3d0c6);
+  background: radial-gradient(circle at 40% 35%, #ffffff, #f3f0e7 60%, #d6d1c4);
   box-shadow: 0 0 0 0.5px rgba(120, 116, 106, 0.6);
 }
 .knob-pointer {
@@ -400,10 +410,10 @@ kbd {
   content: '';
   position: absolute;
   left: 50%;
-  top: 3px;
-  width: 1.3px;
-  height: 4px;
-  margin-left: -0.65px;
+  top: 3.8px;
+  width: 1.5px;
+  height: 5px;
+  margin-left: -0.75px;
   border-radius: 1px;
   background: #3a3833;
 }
@@ -495,8 +505,8 @@ kbd {
   height: 100%;
   /* Min-content, not max-content: the upper frets (the tail) can shrink away; the items never do. */
   min-width: min-content;
-  /* The end of the neck runs under the body. */
-  padding-right: 74px;
+  /* The end of the neck runs under the body; the items stop just short of the fretboard drawn on it. */
+  padding-right: 10px;
 }
 /* The upper frets, toward the body: no items, just wire closing up and pearl dots. They give way first when
    the screen is narrow. */

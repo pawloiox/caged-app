@@ -572,8 +572,8 @@ casts a soft shadow on the body.
 
 **Traced body outline.** The body outline is now traced from the reference photo's silhouette instead of drawn by
 hand (`scripts/guitar-trace/`):
-- `rows.mjs` reads each pixel row's dark runs on the white background.
-- `outline.py` follows the horn and outer edges, then maps them onto this guitar. Along the neck it uses
+- `rows.mjs` read each pixel row's dark runs on the white background (since removed; see below).
+- `outline.py` followed the horn and outer edges, then maps them onto this guitar. Along the neck it uses
   1.257 px per photo pixel. Across the neck, the photo's 32 px neck becomes 64 px; outside the neck band the body
   keeps the photo's proportions (0.96×). The result is fitted with Catmull-Rom curves.
 - The hardware was placed from the photo too: the dark pickups, the bright bridge, and the knob and switch
@@ -586,7 +586,7 @@ two cutaways have similar depth and both roll into the neck.
 
 **S-style body (replaces the traced charcoal body).** At the user's request the body now follows a second
 reference photo: a gloss black triple single-coil body. The headstock (3 + 3) and the rosewood neck were kept.
-- Outline: `scripts/guitar-trace/pixels.mjs` dumps the photo's pixels and `outline_h.py` traces the horizontal
+- Outline: `scripts/guitar-trace/pixels.mjs` dumps the photo's pixels and `outline_h.py` (since removed) traced the horizontal
   photo column by column (flood-filling the white background), then maps it with 1.637 px per photo pixel along
   the neck, the photo's 25 px neck band stretched to 64 px, and 1.28× outside it. The Catmull-Rom fit scales its
   tangents by chord length, so the stretched neck band does not make the curves overshoot. The same script maps
@@ -615,3 +615,21 @@ headstock 228 px long (was 172), and the grid column grew to match.
 - To make room, the neck's fret labels use the laptop sizing (13 px, 6 px padding) up to 1535 px, and 12.5 px with
   4 px padding below 1366 px. Every item fits without scrolling from 1280 px up (checked on /, /learn/3 and
   /practice).
+
+**Larger S-style body traced from a new photo.** At the user's request the body was matched to a third reference
+(a gloss black S-style, 936×626, neck on the left) and made bigger, so the neck and headstock are in proportion.
+- Size: the body is 414×304 (was 349×224), and the guitar row is 304 px tall. The headstock and nav neck stay
+  64 px and sit centred in it, so the body now reaches well above and below the neck, like the real thing.
+- Neck under the body: the body overlaps the neck by 58 px (`BODY_OVERLAP`). The nav neck runs on under the body
+  between the horns, with a drawn rosewood fretboard end on top from x 53.5. The neck's right padding is 10 px, so
+  the last fret item ends just before the drawn fretboard. Every item still fits without scrolling from 1280 px.
+- Tracing: `scripts/guitar-trace/body.py` replaces `outline.py`, `outline_h.py` and `rows.mjs`, which were
+  deleted. It flood-fills the grey background, traces the silhouette and the pickguard (bright pixels, closed
+  morphologically so strings and screw notches do not dent it, then smoothed), and maps both at 0.47 px per photo
+  pixel along the neck and 0.441 across it. Across the neck a tanh eases the photo's fretboard band to our 64 px,
+  so there is no kink at the joint. The script also maps the hardware points read off zoomed crops.
+- Drawing: the pickguard is clipped to the body, since its traced edge runs on under the fretboard past the
+  joint. The bridge is a two-point vibrato with no arm (the photo has none), with three cream hat knobs, a
+  five-way switch with a white tip, an oval jack plate and a long reflection across the lower bout.
+- Not drawn: the photo's model sticker on the guard (the guard runs on under where it was), and the maker's logo.
+- The photo has a maple neck; ours stays rosewood to match the navigation neck.
