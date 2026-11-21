@@ -20,7 +20,15 @@ often a phone. The interface has one job: show the neck and what to play next, r
    the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the
    neck, and a dark seam where pearl meets wood. It is the only ambient motion in the app and stops entirely
    with reduced motion (tested). The coloured note dots never shimmer: they carry information.
-6. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case), and
+6. **A real fretboard.** Every board is built like the instrument:
+   - Frets close up toward the body (equal-temperament spacing, softened and floored at 40 px, or 44 px on
+     phones, so notes and touch targets still fit).
+   - Rosewood grain with open pores, generated once when the browser is idle and shared by every board.
+   - The board darkens toward its edges.
+   - Nickel-silver fret wire with a lit crown and a shadow, and a bone nut.
+   - Phosphor-bronze wound strings (low E, A, D, G) with visible winding, and plain steel B and e, each casting
+     a shadow on the wood.
+7. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case), and
    supporting notes sit in margin columns under nickel rules. There are no boxed cards and no drop shadows; the
    one shadow is on floating menus, which do float.
 

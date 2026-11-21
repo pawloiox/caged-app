@@ -1437,16 +1437,6 @@ table.shapes button.rowbtn {
 }
 
 /* ===== Fretboard SVG ===== */
-.fb .wire {
-  stroke: #c9c2b3;
-  stroke-width: 2.2;
-}
-.fb .nut {
-  fill: #efe7d4;
-}
-.fb .string {
-  stroke: #e2ddd1;
-}
 .fb .slabel {
   fill: var(--muted);
   font: 600 12px var(--font-mono);

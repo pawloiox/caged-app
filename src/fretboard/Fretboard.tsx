@@ -3,6 +3,8 @@ import { engine } from '../audio/engine';
 import { BOTH_NAMES, MAX_FRET, STRING_LABEL, pcAt, posName } from '../theory/tuning';
 import { usePrefs } from '../store/app';
 import { useMediaQuery, useVertical } from '../ui/hooks';
+import { fretSpacing } from './geometry';
+import { GRAIN_H, GRAIN_W, grainReady, loadGrain } from './materials';
 
 export interface DotSpec {
   s: number;
@@ -84,6 +86,11 @@ export interface FretboardProps {
 }
 
 const SW = [2.7, 2.2, 1.8, 1.4, 1.05, 0.85];
+/** Gradient vectors: along the neck (across a fret wire) and across the strings (across a string's width). */
+const along = (vertical: boolean) =>
+  vertical ? { x1: '0', y1: '0', x2: '0', y2: '1' } : { x1: '0', y1: '0', x2: '1', y2: '0' };
+const across = (vertical: boolean) =>
+  vertical ? { x1: '0', y1: '0', x2: '1', y2: '0' } : { x1: '0', y1: '0', x2: '0', y2: '1' };
 /** Iridescent bands of nacre: pastel pink, mint, lavender, sky and cream, half transparent over the base. */
 const IRIS: ReadonlyArray<readonly [string, string, number]> = [
   ['0', '#c7e9ff', 0.42],
@@ -117,6 +124,16 @@ export function Fretboard(props: FretboardProps) {
   const narrow = useMediaQuery('(max-width: 600px)');
   // Reduced motion: the pearl keeps its colours but stays still.
   const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
+  // The wood grain arrives a moment after first paint (made when the browser is idle), then every board shares it.
+  const [grain, setGrain] = useState<string | null>(grainReady);
+  useEffect(() => {
+    if (grain) return;
+    let live = true;
+    void loadGrain().then((u) => live && setGrain(u));
+    return () => {
+      live = false;
+    };
+  }, [grain]);
   const [gid] = useState(() => 'fbw' + ++seq);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -129,7 +146,11 @@ export function Fretboard(props: FretboardProps) {
       const left = 64;
       const sp = coarse ? 44 : narrow ? 36 : 28;
       const top = 26 + (hasZones ? 36 : 0) + (band ? 8 : 0);
-      const W = left + cells * cw + 14;
+      // Frets close up toward the body, as on a real neck (softened, never narrower than a note needs).
+      const fs = fretSpacing(first, to, cw, 0.6, Math.min(cw, coarse ? 44 : 40));
+      const cs = (f: number) => left + fs.starts[f - first]!;
+      const ce = (f: number) => cs(f) + fs.widths[f - first]!;
+      const W = left + fs.total + 14;
       const H = top + 5 * sp + 34;
       const B = (s: number) => top + (lowTop ? s : 5 - s) * sp;
       return {
@@ -137,56 +158,57 @@ export function Fretboard(props: FretboardProps) {
         H,
         sp,
         vertical: false,
-        A: (f: number) => (f === 0 ? left - 24 : left + (f - first + 0.5) * cw),
-        cellA: (f: number): [number, number] =>
-          f === 0 ? [left - 44, left - 5] : [left + (f - first) * cw, left + (f - first + 1) * cw],
-        wireA: (f: number) => left + (f - first + 1) * cw,
+        A: (f: number) => (f === 0 ? left - 24 : (cs(f) + ce(f)) / 2),
+        cellA: (f: number): [number, number] => (f === 0 ? [left - 44, left - 5] : [cs(f), ce(f)]),
+        wireA: (f: number) => ce(f),
         nutA: left,
         openA: left - 44,
-        endA: left + cells * cw,
+        endA: left + fs.total,
         B,
         bLo: Math.min(B(0), B(5)),
         bHi: Math.max(B(0), B(5)),
         zoneB: (i: number): [number, number] => [6 + (i % 2) * 18, 21 + (i % 2) * 18],
         zonePad: 3,
         slabel: (s: number) => [12, B(s) + 4] as [number, number],
-        fnum: (f: number) => [left + (f - first + 0.5) * cw, Math.max(B(0), B(5)) + 30] as [number, number],
+        fnum: (f: number) => [(cs(f) + ce(f)) / 2, Math.max(B(0), B(5)) + 30] as [number, number],
         bandLabel: (a0: number, a1: number) => [(a0 + a1) / 2, Math.min(B(0), B(5)) - 22] as [number, number],
       };
     }
-    const fh = 46;
     const ss = 50;
+    // Upright neck on phones: the same taper, kept at or above the 44 px touch target.
+    const fs = fretSpacing(first, to, 50, 0.45, 44);
     // Upright neck: zone bars are thin and decorative; MapBench shows 44 px jump buttons instead.
     const zoneW = hasZones ? 22 : 0;
     const leftPad = zoneW + 40;
     const rightPad = band ? 34 : 18;
     const openTop = 20;
     const nutY = 70;
+    const cs = (f: number) => nutY + fs.starts[f - first]!;
+    const ce = (f: number) => cs(f) + fs.widths[f - first]!;
     const W = leftPad + 5 * ss + rightPad;
-    const H = nutY + cells * fh + 16;
+    const H = nutY + fs.total + 16;
     const B = (s: number) => leftPad + (lefty ? 5 - s : s) * ss;
     return {
       W,
       H,
       sp: ss,
       vertical: true,
-      A: (f: number) => (f === 0 ? (openTop + nutY - 4) / 2 : nutY + (f - first + 0.5) * fh),
-      cellA: (f: number): [number, number] =>
-        f === 0 ? [openTop, nutY - 4] : [nutY + (f - first) * fh, nutY + (f - first + 1) * fh],
-      wireA: (f: number) => nutY + (f - first + 1) * fh,
+      A: (f: number) => (f === 0 ? (openTop + nutY - 4) / 2 : (cs(f) + ce(f)) / 2),
+      cellA: (f: number): [number, number] => (f === 0 ? [openTop, nutY - 4] : [cs(f), ce(f)]),
+      wireA: (f: number) => ce(f),
       nutA: nutY,
       openA: openTop,
-      endA: nutY + cells * fh,
+      endA: nutY + fs.total,
       B,
       bLo: leftPad,
       bHi: leftPad + 5 * ss,
       zoneB: (i: number): [number, number] => [3 + (i % 2) * 9, 10 + (i % 2) * 9],
       zonePad: 3,
       slabel: (s: number) => [B(s), 14] as [number, number],
-      fnum: (f: number) => [leftPad - 26, nutY + (f - first + 0.5) * fh + 4] as [number, number],
+      fnum: (f: number) => [leftPad - 26, (cs(f) + ce(f)) / 2 + 4] as [number, number],
       bandLabel: (a0: number, a1: number) => [(a0 + a1) / 2, leftPad + 5 * ss + 26] as [number, number],
     };
-  }, [vertical, coarse, narrow, lowTop, lefty, cells, first, props.cw, zones?.length, band]);
+  }, [vertical, coarse, narrow, lowTop, lefty, first, to, props.cw, zones?.length, band]);
 
   const flipA = !g.vertical && lefty;
   const ma = (a: number) => (flipA ? g.W - a : a);
@@ -344,7 +366,11 @@ export function Fretboard(props: FretboardProps) {
     );
   });
 
-  out.push(<rect key="wood" {...box(g.nutA, g.endA, g.bLo - 13, g.bHi + 13)} rx={3} fill={`url(#${gid})`} />);
+  const woodBox = box(g.nutA, g.endA, g.bLo - 13, g.bHi + 13);
+  out.push(<rect key="wood" {...woodBox} rx={3} fill={`url(#${gid})`} />);
+  if (grain) out.push(<rect key="grain" {...woodBox} rx={3} fill={`url(#${gid}-grain)`} aria-hidden="true" />);
+  // The board's edges fall away: darker toward both sides, as on a radiused fingerboard.
+  out.push(<rect key="edges" {...woodBox} rx={3} fill={`url(#${gid}-edges)`} aria-hidden="true" />);
   // Position markers as mother-of-pearl inlays: a nacre base, an iridescent sheen that slowly turns (as if the
   // guitar were tilted in the light), a glint that travels up the neck, and the dark seam where pearl meets wood.
   const inlayR = g.vertical ? 7.5 : Math.min(7.5, g.sp * 0.25);
@@ -399,22 +425,66 @@ export function Fretboard(props: FretboardProps) {
       </text>,
     );
   }
-  for (let f = first; f <= to; f++) {
-    const [x1, y1] = pt(g.wireA(f), g.bLo - 13);
-    const [x2, y2] = pt(g.wireA(f), g.bHi + 13);
-    out.push(<line key={`w${f}`} x1={x1} y1={y1} x2={x2} y2={y2} className="wire" />);
-  }
-  if (from === 0)
-    out.push(<rect key="nut" className="nut" {...box(g.nutA - 5, g.nutA + 2, g.bLo - 15, g.bHi + 15)} rx={2} />);
-  else {
-    const [x1, y1] = pt(g.nutA, g.bLo - 13);
-    const [x2, y2] = pt(g.nutA, g.bHi + 13);
-    out.push(<line key="w0" x1={x1} y1={y1} x2={x2} y2={y2} className="wire" />);
-  }
+  // Fret wire: a nickel-silver crown with a highlight, casting a soft shadow onto the wood toward the body.
+  const fretWire = (key: string, a: number, shadow = true) => {
+    if (shadow)
+      out.push(
+        <rect
+          key={`${key}sh`}
+          {...box(a + 1.2, a + 4.2, g.bLo - 13, g.bHi + 13)}
+          fill="rgba(10, 4, 1, 0.38)"
+          aria-hidden="true"
+        />,
+      );
+    out.push(
+      <rect
+        key={key}
+        {...box(a - 1.9, a + 1.9, g.bLo - 13.5, g.bHi + 13.5)}
+        rx={1.3}
+        fill={`url(#${gid}-fret)`}
+        aria-hidden="true"
+      />,
+    );
+  };
+  // The last wire sits at the end of the board, so its shadow would fall on the page: leave it out.
+  for (let f = first; f <= to; f++) fretWire(`w${f}`, g.wireA(f), f < to);
+  if (from === 0) {
+    // Bone nut, with its shadow on the board.
+    out.push(
+      <rect
+        key="nutsh"
+        {...box(g.nutA + 2, g.nutA + 6, g.bLo - 13, g.bHi + 13)}
+        fill="rgba(10, 4, 1, 0.4)"
+        aria-hidden="true"
+      />,
+    );
+    out.push(
+      <rect
+        key="nut"
+        {...box(g.nutA - 6, g.nutA + 2.5, g.bLo - 15, g.bHi + 15)}
+        rx={2}
+        fill={`url(#${gid}-nut)`}
+        aria-hidden="true"
+      />,
+    );
+  } else fretWire('w0', g.nutA);
   for (let s = 0; s < 6; s++) {
-    const [x1, y1] = pt(from === 0 ? g.openA : g.nutA, g.B(s));
-    const [x2, y2] = pt(g.endA, g.B(s));
-    out.push(<line key={`s${s}`} x1={x1} y1={y1} x2={x2} y2={y2} className="string" style={{ strokeWidth: SW[s] }} />);
+    // Strings: phosphor-bronze wound (low E, A, D, G) and plain steel (B, high e), each with a shadow on the wood.
+    const a0 = from === 0 ? g.openA : g.nutA;
+    const t = SW[s]! * 1.3 + 0.5;
+    const wound = s <= 3;
+    // Shadows fall only on the wood (from the nut on), never on the page around the open strings.
+    out.push(
+      <rect
+        key={`ssh${s}`}
+        {...box(g.nutA + 2.5, g.endA, g.B(s) + 1.2, g.B(s) + 1.2 + t + 1.2)}
+        fill="rgba(8, 3, 0, 0.34)"
+        aria-hidden="true"
+      />,
+    );
+    const sb = box(a0, g.endA, g.B(s) - t / 2, g.B(s) + t / 2);
+    out.push(<rect key={`s${s}`} {...sb} fill={`url(#${gid}-${wound ? 'bronze' : 'steel'})`} aria-hidden="true" />);
+    if (wound) out.push(<rect key={`sw${s}`} {...sb} fill={`url(#${gid}-wind)`} aria-hidden="true" />);
     const [la, lb] = g.slabel(s);
     const [lx, ly] = g.vertical ? [la, lb] : [ma(la), lb];
     out.push(
@@ -595,6 +665,60 @@ export function Fretboard(props: FretboardProps) {
             <stop offset=".5" stopColor="#3a2216" />
             <stop offset="1" stopColor="#2c1910" />
           </linearGradient>
+          {grain ? (
+            <pattern
+              id={`${gid}-grain`}
+              patternUnits="userSpaceOnUse"
+              width={GRAIN_W}
+              height={GRAIN_H}
+              patternTransform={g.vertical ? 'rotate(90)' : undefined}
+            >
+              <image href={grain} width={GRAIN_W} height={GRAIN_H} preserveAspectRatio="none" />
+            </pattern>
+          ) : null}
+          <linearGradient id={`${gid}-edges`} {...across(g.vertical)}>
+            <stop offset="0" stopColor="#000" stopOpacity=".42" />
+            <stop offset=".12" stopColor="#000" stopOpacity=".06" />
+            <stop offset=".5" stopColor="#fff" stopOpacity=".035" />
+            <stop offset=".88" stopColor="#000" stopOpacity=".06" />
+            <stop offset="1" stopColor="#000" stopOpacity=".42" />
+          </linearGradient>
+          {/* Nickel-silver fret crown, lit from above. */}
+          <linearGradient id={`${gid}-fret`} {...along(g.vertical)}>
+            <stop offset="0" stopColor="#5f6366" />
+            <stop offset=".3" stopColor="#c9cfd1" />
+            <stop offset=".46" stopColor="#ffffff" />
+            <stop offset=".62" stopColor="#d4d9db" />
+            <stop offset="1" stopColor="#6b7074" />
+          </linearGradient>
+          <linearGradient id={`${gid}-nut`} {...along(g.vertical)}>
+            <stop offset="0" stopColor="#d6c6a2" />
+            <stop offset=".35" stopColor="#fbf6ea" />
+            <stop offset=".7" stopColor="#ece0c6" />
+            <stop offset="1" stopColor="#bfae88" />
+          </linearGradient>
+          <linearGradient id={`${gid}-bronze`} {...across(g.vertical)}>
+            <stop offset="0" stopColor="#4d3112" />
+            <stop offset=".32" stopColor="#f2d8a3" />
+            <stop offset=".55" stopColor="#c8985a" />
+            <stop offset="1" stopColor="#3f270d" />
+          </linearGradient>
+          <linearGradient id={`${gid}-steel`} {...across(g.vertical)}>
+            <stop offset="0" stopColor="#4a5054" />
+            <stop offset=".34" stopColor="#ffffff" />
+            <stop offset=".58" stopColor="#bec5c8" />
+            <stop offset="1" stopColor="#3d4245" />
+          </linearGradient>
+          {/* Winding on the wound strings: fine dark turns across the string. */}
+          <pattern
+            id={`${gid}-wind`}
+            patternUnits="userSpaceOnUse"
+            width="1.8"
+            height="12"
+            patternTransform={g.vertical ? 'rotate(90) skewX(-14)' : 'skewX(-14)'}
+          >
+            <rect width=".6" height="12" fill="rgba(40, 24, 6, 0.55)" />
+          </pattern>
           {/* Mother-of-pearl: nacre base, two iridescent sheens turning at different speeds, and a glint. */}
           <radialGradient id={`${gid}-nacre`} cx=".38" cy=".32" r=".78">
             <stop offset="0" stopColor="#ffffff" />
