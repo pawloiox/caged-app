@@ -241,7 +241,7 @@ kbd {
   position: relative;
   z-index: 30;
   display: grid;
-  grid-template-columns: 172px minmax(0, 1fr) 280px;
+  grid-template-columns: 228px minmax(0, 1fr) 280px;
   align-items: center;
   height: 224px;
   box-sizing: content-box;
@@ -1948,10 +1948,16 @@ table.shapes button.rowbtn {
 }
 
 /* Laptop widths: tighter fret labels so every item still fits between the headstock and the body. */
-@media (min-width: 861px) and (max-width: 1439px) {
+@media (min-width: 861px) and (max-width: 1535px) {
   .fret {
     font-size: 13px;
     padding-inline: 6px;
+  }
+}
+@media (min-width: 861px) and (max-width: 1365px) {
+  .fret {
+    font-size: 12.5px;
+    padding-inline: 4px;
   }
 }
 @media (max-width: 860px) {

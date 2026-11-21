@@ -84,156 +84,180 @@ function MetalDefs({ id }: { id: string }) {
 }
 
 /* ---------------- Headstock ---------------- */
-export const HEADSTOCK_W = 172;
+export const HEADSTOCK_W = 228;
 
 /**
- * Tuner posts. The rows converge toward the tip, so the strings run almost parallel to the nut (low E and high e
- * take the posts nearest the nut, so no string crosses a post).
+ * Traced from the user's 3 + 3 reference photo at 0.8 px per photo pixel, so its neck matches our 64 px neck
+ * (scripts/guitar-trace/headstock.py). Two pointed ears flare from the nut; the top and bottom edges run back to a
+ * blunt tip that is concave above and nearly straight below.
  */
+const HEAD_PATH =
+  'M222.4 80.0 C221.1 80.1 219.7 80.4 218.4 80.2 C215.7 79.8 212.9 79.0 210.4 78.0 C207.6 76.8 204.9 75.3 202.4 73.6 C199.3 71.5 196.2 69.1 193.6 66.4 C191.1 63.8 189.2 60.6 187.2 57.6 C185.3 54.8 183.8 51.7 182.0 48.8 C180.9 47.1 179.6 45.6 178.4 44.0 C177.1 44.3 175.7 44.6 174.4 45.0 C170.4 46.1 166.3 47.0 162.4 48.4 C155.6 50.8 149.2 54.1 142.4 56.4 C137.2 58.2 131.8 59.5 126.4 60.8 C118.4 62.7 110.5 64.6 102.4 66.0 C94.5 67.4 86.4 68.3 78.4 69.2 C70.4 70.1 62.4 70.7 54.4 71.2 C46.4 71.7 38.4 71.9 30.4 72.2 C23.7 72.4 17.1 72.4 10.4 72.6 C7.7 72.7 5.0 72.6 2.4 73.0 C1.6 73.1 1.0 73.7 0.3 74.0 C1.5 75.7 2.8 77.5 4.0 79.2 C5.9 81.9 7.7 84.6 9.6 87.2 C11.6 89.9 13.9 92.4 15.7 95.2 C17.3 97.7 18.8 100.4 20.0 103.2 C21.1 105.8 21.8 108.5 22.4 111.2 C23.0 113.8 23.4 116.5 23.7 119.2 C24.0 121.9 24.0 124.5 24.0 127.2 C24.0 129.9 23.8 132.6 23.5 135.2 C23.1 137.9 22.5 140.5 21.9 143.2 C21.5 145.1 20.8 146.9 20.4 148.8 C20.1 150.0 19.9 151.2 19.7 152.4 C20.6 152.5 21.5 152.8 22.4 152.8 C27.7 153.1 33.1 153.1 38.4 153.3 C43.7 153.5 49.1 153.7 54.4 154.1 C62.4 154.6 70.4 155.2 78.4 156.0 C86.4 156.8 94.4 157.7 102.4 158.8 C110.4 159.9 118.5 161.1 126.4 162.8 C131.8 163.9 137.1 165.6 142.4 167.2 C147.8 168.8 153.1 170.6 158.4 172.4 C162.4 173.8 166.4 175.2 170.4 176.8 C173.1 177.9 175.7 179.2 178.4 180.4 C179.5 178.1 180.6 175.9 181.6 173.6 C183.0 170.2 183.9 166.5 185.6 163.2 C187.5 159.3 189.5 155.1 192.4 152.0 C195.1 149.1 198.8 146.9 202.4 145.2 C205.5 143.8 209.0 143.0 212.4 142.8 C215.7 142.6 219.1 143.6 222.4 144.0 L228 144 L228 80 Z';
+/** Tuner posts: the rows converge toward the tip, and each string takes the post that keeps it clear of the others. */
 const POSTS_TOP = [
-  { x: 117, y: 73 },
-  { x: 79, y: 85 },
-  { x: 41, y: 95 },
+  { x: 54.4, y: 96.6 },
+  { x: 105.0, y: 87.2 },
+  { x: 156.2, y: 77.8 },
 ] as const;
 const POSTS_BOTTOM = [
-  { x: 117, y: 149 },
-  { x: 79, y: 139 },
-  { x: 41, y: 130 },
+  { x: 155.8, y: 146.4 },
+  { x: 105.0, y: 137.8 },
+  { x: 53.8, y: 129.0 },
 ] as const;
-/** Key centres: just off the edge, beside their posts. */
-const KEYS_TOP = [
-  { x: 117, y: 39 },
-  { x: 79, y: 48 },
-  { x: 40, y: 55 },
+/** Tuner keys as boxes (x0, y0, x1, y1), top row then bottom row, each from the tip toward the nut. */
+const KEYS = [
+  [40.6, 44.6, 71.8, 65.8],
+  [90.4, 36.6, 122.4, 58.4],
+  [140.8, 27.2, 172.0, 49.6],
+  [39.2, 153.6, 71.2, 179.2],
+  [89.6, 159.2, 121.6, 186.4],
+  [140.0, 171.2, 172.0, 196.0],
 ] as const;
-const KEYS_BOTTOM = [
-  { x: 117, y: 185 },
-  { x: 79, y: 176 },
-  { x: 40, y: 169 },
-] as const;
-
-/** A tuner key centred at (x, y); d = 1 when the headstock lies toward +y (treble keys), −1 for bass keys. */
-const kidney = (x: number, y: number, d: number) => {
-  const Y = (dy: number) => y + d * dy;
-  return (
-    `M${x - 14} ${y} C${x - 14} ${Y(-8)} ${x - 11} ${Y(-12)} ${x} ${Y(-12)} ` +
-    `C${x + 11} ${Y(-12)} ${x + 14} ${Y(-8)} ${x + 14} ${y} ` +
-    `C${x + 14} ${Y(9)} ${x + 7} ${Y(12)} ${x} ${Y(8)} C${x - 7} ${Y(12)} ${x - 14} ${Y(9)} ${x - 14} ${y} Z`
-  );
-};
 
 /**
- * A matte charcoal 3 + 3 headstock: widest at the tuners nearest the nut, narrowing to an asymmetric concave tip
- * (a sharp point on the bass side, a rounded corner on the treble side), with concave flares into the neck.
+ * A gloss black 3 + 3 headstock with chrome tuners: boxy keys on short stems, big round bushings, a dark nut and
+ * the CAGED Lab logo where a maker's signature would go.
  */
 export function Headstock() {
   const id = useId().replace(/:/g, '');
-  const outline =
-    'M172 80 C165 74 154 64 140 57 C130 53 120 51 110 52 C88 55 52 66 26 69 C19 70 12 71 12 75 ' +
-    'C17 90 22 104 15 120 C11 132 6 142 0 152 C10 153 30 154 50 157 C78 161 100 168 114 172 ' +
-    'C126 174 138 168 148 160 C157 153 164 147 172 144 Z';
   const W = HEADSTOCK_W;
+  const posts = [...POSTS_TOP, ...POSTS_BOTTOM];
   return (
     <svg className="headstock-art" width={W} height={ROW_H} viewBox={`0 0 ${W} ${ROW_H}`} aria-hidden="true">
       <defs>
         <MetalDefs id={id} />
-        <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(255,255,255,0.04)" />
-          <stop offset="0.5" stopColor="rgba(255,255,255,0)" />
-          <stop offset="1" stopColor="rgba(255,255,255,0.03)" />
-        </linearGradient>
-        <linearGradient id={`${id}-matte`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#393735" />
-          <stop offset="1" stopColor="#232120" />
+        <linearGradient id={`${id}-gloss`} x1="0" y1="0" x2="0.25" y2="1">
+          <stop offset="0" stopColor="#2c2c2e" />
+          <stop offset="0.45" stopColor="#1d1d1f" />
+          <stop offset="1" stopColor="#141415" />
         </linearGradient>
         <clipPath id={`${id}-hclip`}>
-          <path d={outline} />
+          <path d={HEAD_PATH} />
         </clipPath>
-        <radialGradient id={`${id}-washer`} cx="0.38" cy="0.35" r="0.7">
-          <stop offset="0" stopColor="#f2f3f3" />
-          <stop offset="0.55" stopColor="#b4b9bb" />
-          <stop offset="1" stopColor="#6f7578" />
+        <radialGradient id={`${id}-bush`} cx="0.36" cy="0.3" r="0.75">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.35" stopColor="#d5d9da" />
+          <stop offset="0.75" stopColor="#7d8386" />
+          <stop offset="1" stopColor="#3c4143" />
+        </radialGradient>
+        <linearGradient id={`${id}-keyface`} x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0" stopColor="#e4e3e0" />
+          <stop offset="0.25" stopColor="#c9c7c3" />
+          <stop offset="0.85" stopColor="#b3b1ad" />
+          <stop offset="1" stopColor="#8d8b87" />
+        </linearGradient>
+        <radialGradient id={`${id}-recess`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#2a2c2d" />
+          <stop offset="0.8" stopColor="#3c3f41" />
+          <stop offset="1" stopColor="#151617" />
         </radialGradient>
         <linearGradient id={`${id}-stem`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#8a8f91" />
-          <stop offset="1" stopColor="#4a4f52" />
+          <stop offset="0" stopColor="#9a9278" />
+          <stop offset="0.45" stopColor="#e6dfc6" />
+          <stop offset="1" stopColor="#6f6a58" />
         </linearGradient>
-        <radialGradient id={`${id}-key`} cx="0.38" cy="0.32" r="0.8">
-          <stop offset="0" stopColor="#3e3e40" />
-          <stop offset="0.5" stopColor="#1e1e1f" />
-          <stop offset="1" stopColor="#0c0c0c" />
-        </radialGradient>
+        <filter id={`${id}-hsoft`} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
       </defs>
-      {/* Tuner keys, drawn first so they sit behind the edge: black kidney-shaped buttons on short collars. */}
-      {[...KEYS_TOP.map((k) => ({ ...k, d: 1 })), ...KEYS_BOTTOM.map((k) => ({ ...k, d: -1 }))].map((k, i) => (
-        <g key={i}>
-          {/* One kidney-shaped button, long axis along the headstock, pinched on the side facing it; its inner
-              edge tucks under the face. */}
-          {/* A short metal stem between the key and the headstock edge. */}
-          <rect x={k.x - 2} y={k.d > 0 ? k.y + 8 : k.y - 15} width={4} height={7} fill={`url(#${id}-stem)`} />
-          <path d={kidney(k.x, k.y, k.d)} fill={`url(#${id}-key)`} stroke="rgba(0,0,0,0.6)" strokeWidth={0.6} />
-          <ellipse cx={k.x - 5} cy={k.y - 5 * k.d} rx={4} ry={2.5} fill="rgba(255,255,255,0.07)" />
-        </g>
-      ))}
+      {/* Tuner keys, drawn first so their stems run in under the edge: polished chrome boxes whose inner end comes
+          to a shallow point at the stem. The face toward the tip catches the light, the face toward the nut
+          reflects the black, and a bright rim runs over the top and down the outer corner. */}
+      {KEYS.map(([x0, y0, x1, y1], i) => {
+        const top = i < 3;
+        const apex = x0 + (x1 - x0) * 0.52;
+        // Outer edge (away from the headstock) and inner edge (toward it), and the point at the stem.
+        const yo = top ? y0 : y1;
+        const yi = top ? y1 - 4 : y0 + 4;
+        const yp = top ? y1 : y0;
+        const r = 4;
+        const ro = top ? r : -r;
+        const outline =
+          `M${x0} ${yi} V${yo + ro} Q${x0} ${yo} ${x0 + r} ${yo} H${x1 - r} Q${x1} ${yo} ${x1} ${yo + ro} ` +
+          `V${yi} L${apex} ${yp} Z`;
+        const light = `M${x0} ${yi} V${yo + ro} Q${x0} ${yo} ${x0 + r} ${yo} H${apex} V${yp} Z`;
+        return (
+          <g key={i} filter="drop-shadow(0 1.5px 1.5px rgba(0,0,0,0.6))">
+            <rect x={apex - 2.6} y={top ? y1 - 1 : y0 - 7} width={5.2} height={8} fill={`url(#${id}-stem)`} />
+            <rect
+              x={apex - 3.6}
+              y={top ? y1 + 0.6 : y0 - 3.4}
+              width={7.2}
+              height={2.8}
+              rx={1}
+              fill={`url(#${id}-stem)`}
+            />
+            <path d={outline} fill="#0d0d0e" />
+            <path d={light} fill={`url(#${id}-keyface)`} />
+            <path d={outline} fill="none" stroke="rgba(235,236,236,0.85)" strokeWidth={0.9} />
+            <path d={`M${x0} ${yi} L${apex} ${yp} L${x1} ${yi}`} fill="none" stroke="#c9a56c" strokeWidth={0.9} />
+          </g>
+        );
+      })}
       <g filter="drop-shadow(0 3px 4px rgba(0,0,0,0.5))">
-        <path d={outline} fill={`url(#${id}-matte)`} />
-        <path d={outline} fill={`url(#${id}-sheen)`} />
-        <path d={outline} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={1} />
+        <path d={HEAD_PATH} fill={`url(#${id}-gloss)`} />
       </g>
-      {/* Satin: soft light along the edges. */}
-      <path d={outline} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={6} clipPath={`url(#${id}-hclip)`} />
+      <g clipPath={`url(#${id}-hclip)`}>
+        {/* Gloss: a broad soft reflection across the face, and the bevelled edge catching the light. */}
+        <ellipse cx={120} cy={104} rx={70} ry={20} fill="rgba(255,255,255,0.05)" filter={`url(#${id}-hsoft)`} />
+        <path d={HEAD_PATH} fill="none" stroke="rgba(150,150,154,0.35)" strokeWidth={2.4} />
+      </g>
+      {/* The top edge and the treble ear catch a thin line of light; the bass ear a warmer glint. */}
+      <path
+        d="M0.6 73.8 C30 72.2 80 69.5 126 60.8 C150 55 165 48 178.4 44 C186 55 196 70 212 78.6"
+        fill="none"
+        stroke="rgba(225,225,228,0.75)"
+        strokeWidth={0.8}
+      />
+      <path d="M178.4 180.4 C181 175 183.5 168 186 162.5" fill="none" stroke="rgba(214,150,86,0.8)" strokeWidth={1} />
       {/* Logo along the centre line, between the strings: the five shape colours, then the name. */}
       {['--c-shape', '--a-shape', '--g-shape', '--e-shape', '--d-shape'].map((v, i) => (
         <circle
           key={v}
-          cx={11 + i * 7}
-          cy={112}
-          r={3}
+          cx={66 + i * 6.5}
+          cy={112.6}
+          r={2.6}
           opacity={0.9}
           fill={`var(${v})`}
           stroke="rgba(0,0,0,0.35)"
           strokeWidth={0.5}
         />
       ))}
-      <text x={50} y={117} className="headstock-name" textLength={66} lengthAdjust="spacingAndGlyphs">
+      <text x={98} y={117} className="headstock-name" textLength={52} lengthAdjust="spacingAndGlyphs">
         CAGED Lab
       </text>
-      {/* Truss-rod cover, just behind the nut. */}
-      <rect
-        x={122}
-        y={105.5}
-        width={40}
-        height={13}
-        rx={6.5}
-        fill="#141414"
-        stroke="rgba(255,255,255,0.14)"
-        strokeWidth={0.6}
-      />
-      <circle cx={127} cy={112} r={1.4} fill="#9aa0a3" />
+      {/* The truss-rod access screw. */}
+      <circle cx={156.2} cy={113.4} r={1.9} fill={`url(#${id}-post)`} stroke="rgba(0,0,0,0.6)" strokeWidth={0.4} />
       <Strings
         id={id}
-        from={(i) => (i < 3 ? POSTS_TOP[i]!.x : POSTS_BOTTOM[5 - i]!.x)}
-        fromY={(i) => (i < 3 ? POSTS_TOP[i]!.y + 2.5 : POSTS_BOTTOM[5 - i]!.y - 2.5)}
-        to={W - 6}
+        from={(i) => (i < 3 ? POSTS_TOP[2 - i]!.x : POSTS_BOTTOM[5 - i]!.x)}
+        fromY={(i) => (i < 3 ? POSTS_TOP[2 - i]!.y + 3 : POSTS_BOTTOM[5 - i]!.y - 3)}
+        to={W - 7}
       />
-      {[...POSTS_TOP, ...POSTS_BOTTOM].map((p, i) => (
+      {/* Tuner bushings: a bright chrome collar round a dark recess, a ring of light inside it, and the post with
+          the string wound on. */}
+      {posts.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={8} fill={`url(#${id}-washer)`} stroke="#2a2d2f" strokeWidth={0.5} />
-          {/* The string coiled round the post. */}
-          <circle cx={p.x} cy={p.y} r={4.6} fill="none" stroke="#3d4245" strokeWidth={1.6} />
-          <circle cx={p.x} cy={p.y} r={2.8} fill="#7d8487" />
+          <circle cx={p.x} cy={p.y + 0.9} r={10.5} fill="rgba(0,0,0,0.5)" />
+          <circle cx={p.x} cy={p.y} r={10.2} fill={`url(#${id}-bush)`} />
+          <circle cx={p.x} cy={p.y} r={8.1} fill={`url(#${id}-recess)`} />
+          <circle cx={p.x} cy={p.y} r={5.6} fill="none" stroke="rgba(225,228,229,0.85)" strokeWidth={1.1} />
+          <circle cx={p.x} cy={p.y} r={3.9} fill="none" stroke="#6b7174" strokeWidth={1.4} />
+          <circle cx={p.x} cy={p.y} r={2.5} fill={`url(#${id}-post)`} />
+          <circle cx={p.x + 0.4} cy={p.y + 0.3} r={0.9} fill="#151718" />
         </g>
       ))}
-      {/* Bone nut. */}
+      {/* A dark nut. */}
       <rect
-        x={W - 7}
+        x={W - 8}
         y={NECK_TOP - 1}
-        width={7}
+        width={8}
         height={NECK_H + 2}
-        fill="#efe7d4"
-        stroke="#b8ad95"
+        fill="#2b2b2c"
+        stroke="#5c5d5f"
         strokeWidth={0.6}
       />
+      <rect x={W - 7} y={NECK_TOP} width={1.4} height={NECK_H} fill="rgba(255,255,255,0.18)" />
     </svg>
   );
 }

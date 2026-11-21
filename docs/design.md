@@ -16,8 +16,10 @@ often a phone. The interface has one job: show the neck and what to play next, r
    (`src/ui/Guitar.tsx`, `Layout.tsx`). The body follows the user's reference photo of a classic triple
    single-coil solid body in gloss black; the headstock and neck are our own. The outlines are our own tracings,
    and there is no maker's logo or inlays.
-   - The headstock is the home link: gloss black, 3 + 3, flaring from the nut, with chrome tuner shafts and dark
-     keys, a small truss-rod cover, a bone nut and the CAGED Lab logo.
+   - The headstock is the home link, traced from the user's second reference photo: gloss black, 3 + 3, with two
+     pointed ears flaring from the nut and a blunt tip that is concave above and nearly straight below. It has
+     polished chrome box keys, big chrome bushings, a truss-rod screw, a dark nut, and the CAGED Lab logo where a
+     maker's signature would go.
    - The neck is unbound rosewood holding the steps and tools. Steps 1–5 are fret positions with inlay dots (a
      pearl inlay means the step is done), and a 12th-fret double inlay separates the lessons from the tools
      beyond them. Status sits on the frets: "Next up" under the next step, "3 due" under Train, and the routine
@@ -31,7 +33,7 @@ often a phone. The interface has one job: show the neck and what to play next, r
      The third knob is decoration. XP and the live-mic light sit on the black lower bout.
    - Everything is drawn on one 224 px row with the 64 px neck centred, so the strings run unbroken from the
      tuners to the bridge.
-   - Every item fits from 1280 px up (fret labels tighten below 1440). Narrower, the neck scrolls sideways
+   - Every item fits from 1280 px up (fret labels tighten below 1536 and again below 1366). Narrower, the neck scrolls sideways
      between headstock and body; at 860 px and below the brand and knobs share a top row and the neck runs full
      width below.
 5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step

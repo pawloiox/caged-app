@@ -600,3 +600,18 @@ reference photo: a gloss black triple single-coil body. The headstock (3 + 3) an
   XP and the mic light moved to the black lower bout. `KNOB_AT` in Guitar.tsx records the knob centres used by
   the CSS.
 - The photo has a maple neck; ours stays rosewood to match the navigation neck.
+
+**Headstock traced from a photo.** At the user's request the headstock now follows a 3 + 3 reference photo
+(330×264, nut on the right). `scripts/guitar-trace/headstock.py` holds the outline points, read off brightened
+crops, and maps them at 0.8 px per photo pixel, so the photo's 80 px neck becomes our 64 px. That makes the
+headstock 228 px long (was 172), and the grid column grew to match.
+- The headstock has two pointed ears at the nut, a long tapering top and bottom edge, and a blunt tip that is
+  concave above and straight below.
+- Tuners: chrome box keys whose inner end comes to a point at the stem (a light outer face, a dark face toward
+  the nut, a bright rim and a brass line), on brass stems. The bushings are chrome round a dark recess.
+- Finish and fittings: gloss black with a light line along the top edge, a truss-rod screw, and a dark nut.
+- Not copied: the photo's signature, the "SE" and the "CE". The CAGED Lab logo sits where the signature is. The
+  photo is mirrored (its lettering reads backwards), which does not affect the outline.
+- To make room, the neck's fret labels use the laptop sizing (13 px, 6 px padding) up to 1535 px, and 12.5 px with
+  4 px padding below 1366 px. Every item fits without scrolling from 1280 px up (checked on /, /learn/3 and
+  /practice).
