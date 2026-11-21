@@ -51,11 +51,17 @@ function drawGrain(): HTMLCanvasElement | null {
   const rnd = mulberry32(1981);
   const r = (a: number, b: number) => a + (b - a) * rnd();
 
+  // The texture tiles seamlessly (the page background repeats it): every wave divides the tile width, and
+  // each line is also drawn one tile above and below, so lines leaving one edge enter at the other.
+  const periods = (n: number) => GRAIN_W / n;
+  const line = (y: number, amp: number, wave: number, phase: number) => {
+    for (const dy of [-GRAIN_H, 0, GRAIN_H]) wavyLine(ctx, y + dy, amp, wave, phase);
+  };
   // Wide, soft figure bands: darker and lighter runs in the wood.
   for (let i = 0; i < 12; i++) {
     ctx.strokeStyle = rnd() < 0.6 ? `rgba(18, 8, 3, ${r(0.08, 0.16)})` : `rgba(150, 92, 58, ${r(0.05, 0.1)})`;
     ctx.lineWidth = r(6, 20);
-    wavyLine(ctx, r(0, GRAIN_H), r(0.8, 3.5), r(500, 1300), r(0, Math.PI * 2));
+    line(r(0, GRAIN_H), r(0.8, 3.5), periods(1 + Math.floor(r(0, 2))), r(0, Math.PI * 2));
   }
   // Fine grain lines, batched by tone so there are only a few strokes.
   const tones = [
@@ -67,7 +73,7 @@ function drawGrain(): HTMLCanvasElement | null {
     ctx.strokeStyle = t.style;
     for (let i = 0; i < t.n; i++) {
       ctx.lineWidth = r(t.w[0]!, t.w[1]!);
-      wavyLine(ctx, r(-4, GRAIN_H + 4), r(0.4, 2.6), r(280, 900), r(0, Math.PI * 2));
+      line(r(0, GRAIN_H), r(0.4, 2.6), periods(1 + Math.floor(r(0, 4))), r(0, Math.PI * 2));
     }
   }
   // Open pores: short dark dashes along the grain, filled in two batches.
@@ -79,8 +85,16 @@ function drawGrain(): HTMLCanvasElement | null {
       const y = r(0, GRAIN_H);
       const rx = r(1, 4.5);
       const ry = r(0.35, 0.75);
-      ctx.moveTo(x + rx, y);
-      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      // Pores near an edge are drawn again on the opposite side, so they continue across the seam.
+      const wrapX = x < 6 ? GRAIN_W : x > GRAIN_W - 6 ? -GRAIN_W : 0;
+      const wrapY = y < 2 ? GRAIN_H : y > GRAIN_H - 2 ? -GRAIN_H : 0;
+      const copies: Array<[number, number]> = [[0, 0]];
+      if (wrapX) copies.push([wrapX, 0]);
+      if (wrapY) copies.push([0, wrapY]);
+      for (const [dx, dy] of copies) {
+        ctx.moveTo(x + dx + rx, y + dy);
+        ctx.ellipse(x + dx, y + dy, rx, ry, 0, 0, Math.PI * 2);
+      }
     }
     ctx.fill();
   }
@@ -90,8 +104,9 @@ function drawGrain(): HTMLCanvasElement | null {
 function wavyLine(ctx: CanvasRenderingContext2D, y: number, amp: number, wave: number, phase: number) {
   ctx.beginPath();
   for (let x = -10; x <= GRAIN_W + 10; x += 16) {
+    // Both terms complete whole cycles across the tile width, so the line meets itself at the seam.
     const yy =
-      y + amp * Math.sin((x / wave) * Math.PI * 2 + phase) + (amp / 3) * Math.sin((x / (wave / 3.7)) * Math.PI * 2);
+      y + amp * Math.sin((x / wave) * Math.PI * 2 + phase) + (amp / 3) * Math.sin((x / (wave / 3)) * Math.PI * 2);
     if (x === -10) ctx.moveTo(x, yy);
     else ctx.lineTo(x, yy);
   }

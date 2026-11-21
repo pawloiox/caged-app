@@ -157,3 +157,26 @@ test('pearl inlays shimmer, and stay still with reduced motion', async ({ page }
   await expect(page.locator('svg.fb g.pearl').first()).toBeAttached();
   expect(await page.locator('svg.fb animate, svg.fb animateTransform').count()).toBe(0);
 });
+
+test('the wood theme is the default, and the light page stays available and accessible', async ({ page }) => {
+  await page.goto('/learn/3');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByRole('button', { name: 'View and sound settings' }).click();
+  await page.getByRole('radio', { name: 'Light' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.keyboard.press('Escape');
+  await noSeriousA11y(page, 'light /learn/3');
+  // The choice holds on the next visit, from the very first paint.
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
+
+test('printing is on white paper without the navigation, whatever the theme', async ({ page }) => {
+  await page.goto('/print?key=7');
+  await expect(page.locator('h1')).toBeVisible();
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('nav.neck')).toBeHidden();
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).toBe(
+    'rgb(255, 255, 255)',
+  );
+});

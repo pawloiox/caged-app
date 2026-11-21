@@ -43,6 +43,8 @@ export interface Prefs {
   lowTop: boolean;
   welcomed: boolean;
   theme: Theme;
+  /** The player picked a theme themselves; until then the app shows its default, the wood theme. */
+  themeChosen: boolean;
   neck: NeckOrientation;
   muted: boolean;
   guitarVol: number;
@@ -74,7 +76,8 @@ export const defaultPrefs = (): Prefs => ({
   lefty: false,
   lowTop: false,
   welcomed: false,
-  theme: 'system',
+  theme: 'dark',
+  themeChosen: false,
   neck: 'auto',
   muted: false,
   guitarVol: 0.9,

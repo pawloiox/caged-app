@@ -97,6 +97,8 @@ export function normalizePrefs(raw: unknown): Prefs {
   if (!raw || typeof raw !== 'object') return base;
   const merged = { ...base, ...(raw as Partial<Prefs>) };
   if (!['iv', 'note', 'finger', 'shape', 'none'].includes(merged.labels)) merged.labels = 'iv';
+  // The wood theme is the default: anyone who never picked a theme (including older saves) gets it.
+  if (!merged.themeChosen || !['system', 'light', 'dark'].includes(merged.theme)) merged.theme = 'dark';
   return merged;
 }
 

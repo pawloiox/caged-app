@@ -67,16 +67,16 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #21160f;
-    --surface: #2a1c13;
-    --surface-2: #342318;
+    --bg: #2b1a10;
+    --surface: #23150d;
+    --surface-2: #170d07;
     --ink: #eef1f0;
-    --muted: #c3b6ab;
-    --line: #4d382a;
-    --rule: #7a6555;
+    --muted: #cbbdb1;
+    --line: #5a4231;
+    --rule: #8b7363;
     --accent: #eef1f0;
     --accent-ink: #21160f;
-    --accent-soft: #3a281c;
+    --accent-soft: #3d2a1d;
     --good: #5fcf8d;
     --bad: #f07a69;
     --warn: #e8b05a;
@@ -86,16 +86,16 @@
   }
 }
 :root[data-theme='dark'] {
-  --bg: #21160f;
-  --surface: #2a1c13;
-  --surface-2: #342318;
+  --bg: #2b1a10;
+  --surface: #23150d;
+  --surface-2: #170d07;
   --ink: #eef1f0;
-  --muted: #c3b6ab;
-  --line: #4d382a;
-  --rule: #7a6555;
+  --muted: #cbbdb1;
+  --line: #5a4231;
+  --rule: #8b7363;
   --accent: #eef1f0;
   --accent-ink: #21160f;
-  --accent-soft: #3a281c;
+  --accent-soft: #3d2a1d;
   --good: #5fcf8d;
   --bad: #f07a69;
   --warn: #e8b05a;
@@ -114,8 +114,41 @@ body {
   margin: 0;
   min-height: 100%;
 }
-body {
+html {
   background: var(--bg);
+}
+/* Wood theme: the page is rosewood too. The grain (generated once, shared with every fretboard) sits on a
+   fixed layer behind the content, with a soft fall-off from top to bottom like a lit board. */
+:root[data-theme='dark'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(255, 214, 170, 0.05), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.28)),
+    var(--page-grain, none);
+  background-size:
+    100% 100%,
+    1200px 240px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(180deg, rgba(255, 214, 170, 0.05), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.28)),
+      var(--page-grain, none);
+    background-size:
+      100% 100%,
+      1200px 240px;
+  }
+}
+body {
+  background: transparent;
   color: var(--ink);
   font: 16px/1.55 var(--font-body);
   font-variant-numeric: tabular-nums;
@@ -210,7 +243,8 @@ kbd {
   justify-content: space-between;
   gap: 12px;
   padding: 6px clamp(12px, 3vw, 28px);
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
 .brand {
@@ -1082,7 +1116,8 @@ table.shapes button.rowbtn {
   position: static;
   bottom: 0;
   z-index: 6;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
   border-top: 1px solid var(--line);
   padding: 10px 0;
   display: flex;
@@ -1726,8 +1761,22 @@ table.shapes button.rowbtn {
   height: auto;
 }
 @media print {
+  :root,
+  :root[data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f2f4f3;
+    --ink: #1f2a33;
+    --muted: #4c5861;
+    --line: #c9d0d3;
+    --rule: #a7b0b5;
+    color-scheme: light;
+  }
+  body::before {
+    display: none !important;
+  }
   .topbar,
-  .side,
+  .neck,
   .mini,
   .toast,
   .no-print {

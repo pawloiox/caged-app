@@ -10,6 +10,7 @@ import { announce, setPrefs, toast, usePrefs, useProgress, useUi } from '../stor
 import { dueKeys } from '../train/leitner';
 import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
+import { loadGrain } from '../fretboard/materials';
 
 /** Steps are fret positions on the neck; the tools sit past the 12th-fret inlay. */
 const STEPS = [
@@ -83,11 +84,11 @@ function ViewMenu() {
           <Seg
             value={p.theme}
             options={[
-              ['system', 'System'],
+              ['dark', 'Wood'],
               ['light', 'Light'],
-              ['dark', 'Dark'],
+              ['system', 'Match device'],
             ]}
-            onChange={(v) => setPrefs({ theme: v })}
+            onChange={(v) => setPrefs({ theme: v, themeChosen: true })}
             label="Theme"
           />
           <Seg
@@ -142,6 +143,10 @@ export function Layout() {
   const loc = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const neckRef = useRef<HTMLElement>(null);
+  // The rosewood grain is shared by the fretboards and, in the wood theme, the page behind everything.
+  useEffect(() => {
+    void loadGrain().then((u) => u && document.documentElement.style.setProperty('--page-grain', `url("${u}")`));
+  }, []);
   // On a narrow screen the neck scrolls sideways: keep the current position in view.
   useEffect(() => {
     const cur = neckRef.current?.querySelector<HTMLElement>('.fret[aria-current="page"]');
@@ -161,6 +166,13 @@ export function Layout() {
   useEffect(() => {
     if (theme === 'system') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.dataset.theme = theme;
+    // Mirrored for the first paint: index.html reads it before the app (and IndexedDB) loads, so the wood
+    // or light page appears at once, with no flash of the other.
+    try {
+      localStorage.setItem('caged-lab:theme', theme);
+    } catch {
+      /* private mode: the default (wood) shows first */
+    }
   }, [theme]);
 
   // Route change: stop playback, scroll up, move focus to the new heading.

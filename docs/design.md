@@ -34,12 +34,17 @@ often a phone. The interface has one job: show the neck and what to play next, r
 
 ## Tokens (`src/ui/styles.css`)
 
-| Token | Light | Dark | Use |
+The default theme is **wood**: the page is rosewood with the same grain as the fretboards (a seamless tile on
+a fixed layer behind the content), and the fretboard sits in a darker recessed tray. **Light** (the pearl page)
+and **Match device** are under View. Printing always uses the light tokens on white paper.
+
+| Token | Light | Wood | Use |
 |---|---|---|---|
-| Pearl `--bg` | `#f2f4f3` | rosewood `#21160f` | page |
+| Pearl `--bg` | `#f2f4f3` | rosewood `#2b1a10` + grain | page |
 | Case ink `--ink` | `#1f2a33` | pearl `#eef1f0` | text, primary buttons, focus ring |
-| Graphite `--muted` | `#5b6770` | `#c3b6ab` | secondary text, group names |
-| Nickel `--rule` | `#a7b0b5` | `#7a6555` | rules and underlines only, like fret wire (never text) |
+| Graphite `--muted` | `#5b6770` | `#cbbdb1` | secondary text, group names |
+| Nickel `--rule` | `#a7b0b5` | `#8b7363` | rules and underlines only, like fret wire (never text) |
+| Tray `--surface-2` | `#e7ebec` | `#170d07` | the recess the fretboard sits in |
 | Rosewood | `#3a2317` | `#120b07` | the neck strip and the board |
 
 `--accent` is an alias of ink, kept so that existing components follow the identity.

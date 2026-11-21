@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DexieRepository } from '../src/store/dexieRepository';
-import { MemoryRepository, normalizeProgress, readLegacyLocalStorage } from '../src/store/repository';
+import { MemoryRepository, normalizePrefs, normalizeProgress, readLegacyLocalStorage } from '../src/store/repository';
 import { drillKeysOtherThanC, newlyComplete, STEP_CRITERIA } from '../src/store/criteria';
 import { defaultProgress } from '../src/store/types';
 import { BOX_DAYS, DAY, isDue, pickWeighted, record, weightOf } from '../src/train/leitner';
@@ -190,5 +190,14 @@ describe('Build a shape', () => {
       expect(q.optional!.length).toBe(3);
       for (const k of q.optional!) expect(q.want).not.toContain(k);
     }
+  });
+});
+
+describe('theme', () => {
+  it('defaults to wood, including saves from before it existed, but keeps a theme the player chose', () => {
+    expect(normalizePrefs(undefined).theme).toBe('dark');
+    expect(normalizePrefs({ theme: 'system' }).theme).toBe('dark');
+    expect(normalizePrefs({ theme: 'light', themeChosen: true }).theme).toBe('light');
+    expect(normalizePrefs({ theme: 'system', themeChosen: true }).theme).toBe('system');
   });
 });
