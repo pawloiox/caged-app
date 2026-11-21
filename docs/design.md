@@ -15,7 +15,12 @@ often a phone. The interface has one job: show the neck and what to play next, r
 4. **One bold element: the neck.** The navigation is a rosewood neck. Steps 1–5 are fret positions with inlay
    dots (a pearl inlay means the step is done), and a 12th-fret double inlay separates the lessons from the tools
    beyond them. Everything else stays quiet.
-5. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case), and
+5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step
+   inlays are mother-of-pearl: a cool nacre base, soft pastel iridescent bands that slowly slide across (as when
+   the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the
+   neck, and a dark seam where pearl meets wood. It is the only ambient motion in the app and stops entirely
+   with reduced motion (tested). The coloured note dots never shimmer: they carry information.
+6. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case), and
    supporting notes sit in margin columns under nickel rules. There are no boxed cards and no drop shadows; the
    one shadow is on floating menus, which do float.
 

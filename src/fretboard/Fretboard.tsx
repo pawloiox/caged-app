@@ -84,6 +84,15 @@ export interface FretboardProps {
 }
 
 const SW = [2.7, 2.2, 1.8, 1.4, 1.05, 0.85];
+/** Iridescent bands of nacre: pastel pink, mint, lavender, sky and cream, half transparent over the base. */
+const IRIS: ReadonlyArray<readonly [string, string, number]> = [
+  ['0', '#c7e9ff', 0.42],
+  ['.2', '#ffcde4', 0.5],
+  ['.4', '#c3f2dd', 0.42],
+  ['.6', '#d8cfff', 0.5],
+  ['.8', '#fff0c9', 0.38],
+  ['1', '#c7e9ff', 0.42],
+];
 const DARK = '#2a1b00';
 const NEUTRAL_BAR = '#ece5d6';
 let seq = 0;
@@ -106,6 +115,8 @@ export function Fretboard(props: FretboardProps) {
   const vertical = useVertical();
   const coarse = useMediaQuery('(pointer: coarse), (max-width: 600px)');
   const narrow = useMediaQuery('(max-width: 600px)');
+  // Reduced motion: the pearl keeps its colours but stays still.
+  const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [gid] = useState(() => 'fbw' + ++seq);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -334,15 +345,47 @@ export function Fretboard(props: FretboardProps) {
   });
 
   out.push(<rect key="wood" {...box(g.nutA, g.endA, g.bLo - 13, g.bHi + 13)} rx={3} fill={`url(#${gid})`} />);
-  for (const f of [3, 5, 7, 9, 15, 17])
-    if (f >= first && f <= to)
-      out.push(<circle key={`in${f}`} cx={pt(g.A(f), mid)[0]} cy={pt(g.A(f), mid)[1]} r={4} className="inlay" />);
-  if (12 >= first && 12 <= to) {
-    const off = (g.bHi - g.bLo) / 5;
-    for (const b of [mid - off, mid + off]) {
-      const [x, y] = pt(g.A(12), b);
-      out.push(<circle key={`in12${b}`} cx={x} cy={y} r={4} className="inlay" />);
-    }
+  // Position markers as mother-of-pearl inlays: a nacre base, an iridescent sheen that slowly turns (as if the
+  // guitar were tilted in the light), a glint that travels up the neck, and the dark seam where pearl meets wood.
+  const inlayR = g.vertical ? 7.5 : Math.min(7.5, g.sp * 0.25);
+  let inlayN = 0;
+  const pearl = (key: string, x: number, y: number) => {
+    const i = inlayN++;
+    const r = inlayR;
+    out.push(
+      <g key={key} className="pearl" aria-hidden="true" pointerEvents="none">
+        <circle cx={x} cy={y} r={r} fill={`url(#${gid}-nacre)`} />
+        <circle cx={x} cy={y} r={r} fill={`url(#${gid}-iris-${i % 2 ? 'b' : 'a'})`} />
+        <ellipse
+          cx={x - r * 0.3}
+          cy={y - r * 0.32}
+          rx={r * 0.5}
+          ry={r * 0.3}
+          transform={`rotate(-32 ${x - r * 0.3} ${y - r * 0.32})`}
+          fill={`url(#${gid}-glint)`}
+          opacity={0.75}
+        >
+          {calm ? null : (
+            <animate
+              attributeName="opacity"
+              values="0.45;1;0.45"
+              keyTimes="0;0.5;1"
+              dur="6s"
+              begin={`-${(6 - i * 0.55).toFixed(2)}s`}
+              repeatCount="indefinite"
+            />
+          )}
+        </ellipse>
+        <circle cx={x} cy={y} r={r} fill="none" stroke="rgba(28, 14, 6, 0.6)" strokeWidth={0.9} />
+      </g>,
+    );
+  };
+  for (const f of [3, 5, 7, 9, 12, 15, 17]) {
+    if (f < first || f > to) continue;
+    if (f === 12) {
+      const off = (g.bHi - g.bLo) / 5;
+      for (const b of [mid - off, mid + off]) pearl(`in12${b}`, ...pt(g.A(12), b));
+    } else pearl(`in${f}`, ...pt(g.A(f), mid));
   }
   if (band) {
     const a0 = band.lo === 0 ? g.openA : g.cellA(Math.max(band.lo, first))[0];
@@ -552,6 +595,56 @@ export function Fretboard(props: FretboardProps) {
             <stop offset=".5" stopColor="#3a2216" />
             <stop offset="1" stopColor="#2c1910" />
           </linearGradient>
+          {/* Mother-of-pearl: nacre base, two iridescent sheens turning at different speeds, and a glint. */}
+          <radialGradient id={`${gid}-nacre`} cx=".38" cy=".32" r=".78">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset=".32" stopColor="#f3f5f4" />
+            <stop offset=".64" stopColor="#dfe5e6" />
+            <stop offset=".86" stopColor="#c5cecc" />
+            <stop offset="1" stopColor="#a7b2b0" />
+          </radialGradient>
+          {/* Sheen a: narrow bands that slide across the pearl and back, as when the guitar tilts in the light.
+              Sheen b: the same bands across the other diagonal, slower. Inlays alternate, so they never shimmer in step. */}
+          <linearGradient id={`${gid}-iris-a`} x1="0" y1="0" x2=".38" y2=".38" spreadMethod="reflect">
+            {IRIS.map(([o, c, op]) => (
+              <stop key={o} offset={o} stopColor={c} stopOpacity={op} />
+            ))}
+            {calm ? null : (
+              <animateTransform
+                attributeName="gradientTransform"
+                type="translate"
+                values="0 0;.76 .76;0 0"
+                keyTimes="0;.5;1"
+                calcMode="spline"
+                keySplines=".45 0 .55 1;.45 0 .55 1"
+                dur="9s"
+                repeatCount="indefinite"
+              />
+            )}
+          </linearGradient>
+          <linearGradient id={`${gid}-iris-b`} x1=".38" y1="0" x2="0" y2=".38" spreadMethod="reflect">
+            {/* Colours in reverse order, offsets still ascending (SVG clamps out-of-order stops). */}
+            {IRIS.map(([o], i) => {
+              const [, c, op] = IRIS[IRIS.length - 1 - i]!;
+              return <stop key={o} offset={o} stopColor={c} stopOpacity={op} />;
+            })}
+            {calm ? null : (
+              <animateTransform
+                attributeName="gradientTransform"
+                type="translate"
+                values="0 0;-.76 .76;0 0"
+                keyTimes="0;.5;1"
+                calcMode="spline"
+                keySplines=".45 0 .55 1;.45 0 .55 1"
+                dur="13s"
+                repeatCount="indefinite"
+              />
+            )}
+          </linearGradient>
+          <radialGradient id={`${gid}-glint`}>
+            <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
+            <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
         </defs>
         {out}
       </svg>

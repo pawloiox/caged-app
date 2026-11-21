@@ -290,6 +290,18 @@ a.chip:hover {
   color: var(--ink);
 }
 
+/* The pearl sheen turns by animating this angle (registered so it can interpolate). */
+@property --pearl-turn {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes pearl-turn {
+  to {
+    --pearl-turn: 360deg;
+  }
+}
+
 /* ===== The neck: navigation as a guitar neck =====
    Steps 1–5 are fret positions with inlay dots (a pearl inlay = step done), the 12th-fret double inlay
    separates the lessons from the tools beyond them. The board is always rosewood, in both themes. */
@@ -385,7 +397,21 @@ a.chip:hover {
 .inlay.done {
   border-color: transparent;
   color: #3a2216;
-  background: radial-gradient(circle at 35% 30%, #ffffff, #e8eef0 45%, #c9d4d8 80%, #dfe6e2);
+  /* Mother-of-pearl: a glint, an iridescent sheen that slowly turns, over a nacre base. */
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.95) 0 14%, rgba(255, 255, 255, 0) 46%),
+    conic-gradient(
+      from var(--pearl-turn),
+      rgba(255, 198, 222, 0.55),
+      rgba(196, 240, 222, 0.45),
+      rgba(215, 205, 255, 0.5),
+      rgba(198, 228, 255, 0.45),
+      rgba(255, 240, 194, 0.5),
+      rgba(255, 198, 222, 0.55)
+    ),
+    radial-gradient(circle at 38% 32%, #ffffff, #f6f3ea 32%, #e1e6e3 64%, #c5cecc 86%, #a7b2b0);
+  box-shadow: inset 0 0 0 0.75px rgba(28, 14, 6, 0.5);
+  animation: pearl-turn 11s linear infinite;
 }
 .fret.tool {
   font-weight: 500;
@@ -408,10 +434,28 @@ a.chip:hover {
 .twelfth::before,
 .twelfth::after {
   content: '';
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff, #e8eef0 45%, #c9d4d8);
+  /* Mother-of-pearl: a glint, an iridescent sheen that slowly turns, over a nacre base. */
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.95) 0 14%, rgba(255, 255, 255, 0) 46%),
+    conic-gradient(
+      from var(--pearl-turn),
+      rgba(255, 198, 222, 0.55),
+      rgba(196, 240, 222, 0.45),
+      rgba(215, 205, 255, 0.5),
+      rgba(198, 228, 255, 0.45),
+      rgba(255, 240, 194, 0.5),
+      rgba(255, 198, 222, 0.55)
+    ),
+    radial-gradient(circle at 38% 32%, #ffffff, #f6f3ea 32%, #e1e6e3 64%, #c5cecc 86%, #a7b2b0);
+  box-shadow: inset 0 0 0 0.75px rgba(28, 14, 6, 0.5);
+  animation: pearl-turn 11s linear infinite;
+}
+.twelfth::after {
+  animation-direction: reverse;
+  animation-duration: 17s;
 }
 
 .app {
@@ -1402,10 +1446,6 @@ table.shapes button.rowbtn {
 }
 .fb .string {
   stroke: #e2ddd1;
-}
-.fb .inlay {
-  fill: #e8dfcb;
-  opacity: 0.45;
 }
 .fb .slabel {
   fill: var(--muted);

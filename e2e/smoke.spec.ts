@@ -147,3 +147,13 @@ test('no fret-cell label ends with a stray comma', async ({ page }) => {
     expect(bad, r).toEqual([]);
   }
 });
+
+test('pearl inlays shimmer, and stay still with reduced motion', async ({ page }) => {
+  await page.goto('/learn/3');
+  await expect(page.locator('svg.fb g.pearl').first()).toBeAttached();
+  expect(await page.locator('svg.fb animate, svg.fb animateTransform').count()).toBeGreaterThan(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await expect(page.locator('svg.fb g.pearl').first()).toBeAttached();
+  expect(await page.locator('svg.fb animate, svg.fb animateTransform').count()).toBe(0);
+});
