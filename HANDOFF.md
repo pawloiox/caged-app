@@ -669,7 +669,7 @@ headstock 228 px long (was 172), and the grid column grew to match.
   window's top edge crops the neck and 48 px of it stays in view. A 29 px cut (just below the top row's tuner
   bushings, headstock y 108) was tried and dropped: the neck looked too slim for the menu items. The top row's
   tuners are cut by the edge; the user accepted that. The headstock
-  art hangs at `top: -80px` and the body at `top: -120px`, out of a 64 px row (the neck). A 50 px margin below
+  art hangs at `top: -80px` and the body at `top: -120px`, out of a 64 px row (the neck). A 38 px margin below
   the row starts the page just under the controls strip (it was 120 px, clearing the body's whole hang, which left
   the page too far from the nav). Headings stay left of the body, so no text sits under it at 1024–1440 px. `--nav-clear` (174 px desktop, 72 px phone) drives `scroll-padding-top` and the
   routine timer's sticky top.

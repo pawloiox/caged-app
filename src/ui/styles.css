@@ -238,7 +238,7 @@ kbd {
    window's top edge cuts across the neck, --neck-cut below its top, and the headstock and body hang below the neck
    (the headstock's art is 224 px tall, the body's 304, both centred on the 64 px neck, so the strings drawn in their
    SVGs, ui/Guitar.tsx, line up with the neck's). The row is the neck's height; the art hangs out of it. The
-   margin below is small (50 px): page headings start beside the body's lower curve, not under it, since they keep
+   margin below is small (38 px): page headings start beside the body's lower curve, not under it, since they keep
    to the left of the column. The guitar stays pinned while the page scrolls
    under its hanging parts. It keeps its own materials in both themes. */
 :root {
@@ -255,7 +255,7 @@ kbd {
   grid-template-columns: 228px minmax(0, 1fr) 356px;
   align-items: start;
   height: 64px;
-  margin: calc(-1 * var(--neck-cut)) 0 50px;
+  margin: calc(-1 * var(--neck-cut)) 0 38px;
   /* The body's end sits nearer the edge than the headstock's tip: it gives the neck the room. */
   /* Rounded to whole pixels so the art lands on the pixel grid: a fractional offset blurs every edge at 1x. */
   padding: 0 round(clamp(8px, 1vw, 20px), 1px) 0 round(clamp(10px, 2vw, 28px), 1px);
