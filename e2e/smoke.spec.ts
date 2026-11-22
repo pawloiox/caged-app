@@ -202,8 +202,15 @@ test('the navigation is a pinned guitar cut by the window: headstock home, steps
   const controls = await banner.locator('.controls').boundingBox();
   expect(controls!.y).toBeGreaterThanOrEqual(neck!.y + neck!.height);
   // The guitar stays pinned while the page scrolls.
-  await page.evaluate(() => window.scrollTo(0, 600));
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  // Retry the scroll: the page may still be growing (fretboards draw after load) when it is first asked.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        window.scrollTo(0, 600);
+        return window.scrollY;
+      }),
+    )
+    .toBeGreaterThan(300);
   expect((await page.locator('nav.neck').boundingBox())!.y).toBeCloseTo(-16, 0);
   // Every fret is visible on a wide screen (nothing hidden under the body).
   const tuner = await page.locator('nav.neck').getByRole('link', { name: 'Tuner' }).boundingBox();
