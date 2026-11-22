@@ -1,8 +1,8 @@
 /**
  * The navigation is a guitar lying across the top of the page: the headstock is the home link, the neck holds
  * the steps and tools on its frets (ui/Layout.tsx). Only the guitar's lower part shows: the window's top edge cuts
- * across the neck (styles.css, --neck-cut), so the upper art (tuners, knobs, switch) sits above the window, and the
- * controls are plain buttons in a strip below the neck.
+ * the headstock at the spike of its tip (styles.css, --neck-cut), so the upper art (tuners, knobs, switch)
+ * sits above the window, and the controls are plain buttons in a strip below the neck.
  *
  * The body is modelled on a classic triple single-coil solid body in gloss black: white pickguard, three white
  * single-coil pickups (the bridge one slanted), a two-point vibrato bridge, three cream hat knobs, a five-way switch

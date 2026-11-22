@@ -30,8 +30,9 @@ often a phone. The interface has one job: show the neck and what to play next, r
      single-coil pickups (the bridge one slanted), a two-point vibrato bridge with six saddles, a
      five-way switch and an oval jack plate on the face (no strap buttons).
    - Only the guitar's lower part shows, and it stays pinned while the page scrolls under it: the window's top
-     edge cuts across the neck 16 px below its top, leaving 48 px of neck for the frets' pearls and labels. The
-     top row's tuners are cut by the edge (accepted), and the knobs and switch are above the window. XP, the live-mic light, Sound and View sit in a small dark
+     edge touches the spike at the headstock's tip (its upper corner), 6 px above the neck, so the whole neck
+     shows. The tuners above the spike are cut by the edge, and the knobs and switch are above the window. The strip
+     between the edge and the neck is the page's wood, so scrolled text never shows above the neck. XP, the live-mic light, Sound and View sit in a small dark
      strip below the neck, left of the body, not on the art.
    - The guitar's row is 304 px tall with the 64 px neck centred, so the strings run unbroken from the tuners to
      the bridge. The body fills the row, so it keeps a guitar's proportions to the neck, and the neck runs on

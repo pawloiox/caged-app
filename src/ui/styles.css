@@ -235,19 +235,21 @@ kbd {
 
 /* ===== Shell: the navigation is a guitar lying across the top, pinned there =====
    Headstock (home link) | neck (steps and tools on the frets) | body. Only the guitar's lower part shows: the
-   window's top edge cuts across the neck, --neck-cut below its top, and the headstock and body hang below the neck
+   window's top edge cuts the headstock at the spike of its tip, 6 px above the neck (--neck-cut is
+   negative: the edge is above the neck, which shows whole), and the headstock and body hang below the edge
    (the headstock's art is 224 px tall, the body's 304, both centred on the 64 px neck, so the strings drawn in their
    SVGs, ui/Guitar.tsx, line up with the neck's). The row is the neck's height; the art hangs out of it. The
    margin below is small (38 px): page headings start beside the body's lower curve, not under it, since they keep
    to the left of the column. The guitar stays pinned while the page scrolls
    under its hanging parts. It keeps its own materials in both themes. */
 :root {
-  /* Where the pinned guitar ends: the body hangs to 168 px. Focused or scrolled-to content stops below it. */
-  --nav-clear: 174px;
+  /* Where the pinned guitar ends: the body hangs to 190 px. Focused or scrolled-to content stops below it. */
+  --nav-clear: 196px;
 }
 .guitar {
-  /* 48 px of the neck stays in view: room for the frets' pearls and labels. The top row's tuners are cut. */
-  --neck-cut: 16px;
+  /* The window's edge touches the spike at the headstock's tip (its upper corner, headstock y 74, 6 px above the
+     neck's top): the whole neck shows, and everything above the spike is cut. */
+  --neck-cut: -6px;
   position: sticky;
   top: calc(-1 * var(--neck-cut));
   z-index: 30;
@@ -259,6 +261,38 @@ kbd {
   /* The body's end sits nearer the edge than the headstock's tip: it gives the neck the room. */
   /* Rounded to whole pixels so the art lands on the pixel grid: a fractional offset blurs every edge at 1x. */
   padding: 0 round(clamp(8px, 1vw, 20px), 1px) 0 round(clamp(10px, 2vw, 28px), 1px);
+}
+/* The strip between the window's edge and the neck is the page's own wood, so text scrolling under the pinned
+   guitar never shows above the neck. It sits behind the art (the headstock, the body's horn). */
+.guitar::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: var(--neck-cut);
+  height: calc(-1 * var(--neck-cut));
+  background: var(--bg);
+}
+:root[data-theme='dark'] .guitar::before {
+  background-image:
+    linear-gradient(180deg, rgba(255, 214, 170, 0.05), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.28)),
+    var(--page-grain, none);
+  background-size:
+    100% 100%,
+    1200px 240px;
+  background-attachment: fixed;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .guitar::before {
+    background-image:
+      linear-gradient(180deg, rgba(255, 214, 170, 0.05), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.28)),
+      var(--page-grain, none);
+    background-size:
+      100% 100%,
+      1200px 240px;
+    background-attachment: fixed;
+  }
 }
 .headstock {
   position: relative;
@@ -543,7 +577,7 @@ kbd {
 .fret-deco.dot::before {
   content: '';
   position: absolute;
-  top: calc(50% + var(--neck-cut, 0px) / 2);
+  top: calc(50% + max(0px, var(--neck-cut, 0px)) / 2);
   left: calc(50% - 1.5px);
   width: 9px;
   height: 9px;
@@ -567,7 +601,7 @@ kbd {
   justify-items: center;
   align-items: center;
   gap: 2px 5px;
-  padding: var(--neck-cut, 0px) clamp(8px, 0.8vw, 15px) 3px;
+  padding: max(0px, var(--neck-cut, 0px)) clamp(8px, 0.8vw, 15px) 3px;
   color: #f6f1e8;
   text-decoration: none;
   font: 650 14px/1.15 var(--font-body);
@@ -681,7 +715,7 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding-top: var(--neck-cut, 0px);
+  padding-top: max(0px, var(--neck-cut, 0px));
   background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
   background-size: 3px 100%;
   background-position: right center;

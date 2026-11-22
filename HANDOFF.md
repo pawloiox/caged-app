@@ -681,6 +681,12 @@ headstock 228 px long (was 172), and the grid column grew to match.
   scrolls under them by design.
 - The E2E nav test now checks the cut, the art offsets, the strip's place below the neck and that the guitar stays
   put on scroll.
+- Later, at the user's request, the cut moved up to the spike at the headstock's tip (its upper corner, headstock
+  y 74), so the window's edge touches its point: `--neck-cut` is now -6 px (negative: the edge is above the neck,
+  and the whole 64 px neck shows). The frets' layout padding uses `max(0px, --neck-cut)`. A `.guitar::before` strip fills
+  the 6 px between the edge and the neck with the page's own background (the wood grain with a fixed attachment,
+  so it lines up with the page's), so text scrolling under the pinned guitar never shows above the neck.
+  `--nav-clear` is now 196 px (the body hangs to 190 px).
 - No strap buttons, and no guard screw under the bridge: the user found those dots on the body's edge ugly. The
   trace script still reads the strap points (`body.py`) to smooth the outline there.
 
