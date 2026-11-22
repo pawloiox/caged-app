@@ -681,3 +681,5 @@ headstock 228 px long (was 172), and the grid column grew to match.
   scrolls under them by design.
 - The E2E nav test now checks the cut, the art offsets, the strip's place below the neck and that the guitar stays
   put on scroll.
+- No strap buttons, and no guard screw under the bridge: the user found those dots on the body's edge ugly. The
+  trace script still reads the strap points (`body.py`) to smooth the outline there.

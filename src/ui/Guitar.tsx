@@ -415,7 +415,6 @@ const GUARD_SCREWS = [
   [255.1, 34.8],
   [306.6, 26.4],
   [271.3, 105.3],
-  [274.8, 207.8],
   [223.8, 221.4],
   [178.3, 206.9],
   [89.9, 202.5],
@@ -475,14 +474,10 @@ const BRIDGE = {
   arm_hole: [289.6, 112.5],
 } as const;
 const FRETBOARD = { x0: 53, x1: 117, frets: [59.3, 71.6, 82.4, 92.9, 102.8, 112.2], dots: [77.0, 98.1] } as const;
-const STRAPS = [
-  [0.8, 245.8],
-  [407.8, 154.5],
-] as const;
 
 /**
  * The body: gloss black with a white pickguard, three single-coil pickups, a two-point vibrato bridge, three hat knobs,
- * a five-way switch, an oval jack plate on the face and two strap buttons.
+ * a five-way switch and an oval jack plate on the face. No strap buttons: as dots on the outline they read as noise.
  */
 export function GuitarBody() {
   const id = useId().replace(/:/g, '');
@@ -639,13 +634,6 @@ export function GuitarBody() {
         ))}
       </g>
       <path d={BODY_PATH} fill="none" stroke="rgba(70,70,74,0.9)" strokeWidth={0.7} />
-      {/* Strap buttons: the tip of the bass horn and the end of the body. */}
-      {STRAPS.map(([cx, cy]) => (
-        <g key={cx}>
-          <circle cx={cx} cy={cy} r={3.9} fill="#1b1b1c" />
-          <circle cx={cx} cy={cy} r={3} fill={`url(#${id}-post)`} />
-        </g>
-      ))}
       {/* The pickguard: its black middle ply shows as a thin line round the edge, then the white bevel, then the face.
           Plain fills of inset outlines rather than strokes clipped to the guard: Chrome draws clipped or masked
           content without anti-aliasing, which stair-steps along the edge on a 1x screen. */}
