@@ -106,7 +106,7 @@
 
 html {
   /* Keep focused or scrolled-to content clear of the sticky header and the floating mini-player. */
-  scroll-padding-top: 72px;
+  scroll-padding-top: var(--nav-clear, 72px);
   scroll-padding-bottom: 80px;
 }
 html,
@@ -233,25 +233,36 @@ kbd {
   top: 8px;
 }
 
-/* ===== Shell: the navigation is a guitar lying across the top =====
-   Headstock (home link) | neck (steps and tools on the frets) | body (controls as knobs). One 304 px row, the
-   body's height (the headstock is 224 px tall and centred); the neck is 64 px tall and centred, so the strings
-   drawn in the headstock and body SVGs (ui/Guitar.tsx) line up with the strings across the neck. The guitar keeps
-   its own materials in both themes. */
+/* ===== Shell: the navigation is a guitar lying across the top, pinned there =====
+   Headstock (home link) | neck (steps and tools on the frets) | body. Only the guitar's lower part shows: the
+   window's top edge cuts across the neck, --neck-cut below its top, and the headstock and body hang below the neck
+   (the headstock's art is 224 px tall, the body's 304, both centred on the 64 px neck, so the strings drawn in their
+   SVGs, ui/Guitar.tsx, line up with the neck's). The row is the neck's height; the art hangs out of it, and the
+   margin below keeps the page clear of the body until it scrolls. The guitar stays pinned while the page scrolls
+   under its hanging parts. It keeps its own materials in both themes. */
+:root {
+  /* Where the pinned guitar ends: the body hangs to 168 px. Focused or scrolled-to content stops below it. */
+  --nav-clear: 174px;
+}
 .guitar {
-  position: relative;
+  /* 48 px of the neck stays in view: room for the frets' pearls and labels. The top row's tuners are cut. */
+  --neck-cut: 16px;
+  position: sticky;
+  top: calc(-1 * var(--neck-cut));
   z-index: 30;
   display: grid;
   grid-template-columns: 228px minmax(0, 1fr) 356px;
-  align-items: center;
-  height: 304px;
-  box-sizing: content-box;
+  align-items: start;
+  height: 64px;
+  margin: calc(-1 * var(--neck-cut)) 0 120px;
   /* The body's end sits nearer the edge than the headstock's tip: it gives the neck the room. */
   /* Rounded to whole pixels so the art lands on the pixel grid: a fractional offset blurs every edge at 1x. */
-  padding: 6px round(clamp(8px, 1vw, 20px), 1px) 2px round(clamp(10px, 2vw, 28px), 1px);
+  padding: 0 round(clamp(8px, 1vw, 20px), 1px) 0 round(clamp(10px, 2vw, 28px), 1px);
 }
 .headstock {
+  position: relative;
   display: block;
+  height: 64px;
   line-height: 0;
   border-radius: 14px;
   text-decoration: none;
@@ -262,8 +273,16 @@ kbd {
   outline-offset: 2px;
 }
 .headstock-art {
+  position: absolute;
+  left: 0;
+  top: -80px;
   display: block;
   overflow: visible;
+  /* Only the painted headstock is the link: the page under its transparent corners stays clickable. */
+  pointer-events: none;
+}
+.headstock-art > * {
+  pointer-events: visiblePainted;
 }
 .headstock-name {
   font: 700 12.5px var(--font-display);
@@ -283,7 +302,7 @@ kbd {
 .gbody {
   position: relative;
   width: 414px;
-  height: 304px;
+  height: 64px;
   /* The body reaches back over the end of the neck (Guitar.tsx BODY_OVERLAP): the neck runs on between the horns,
      and the last fret items may sit there, so only the controls take the pointer. */
   margin-left: -58px;
@@ -292,23 +311,29 @@ kbd {
 }
 .body-art {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: -120px;
   overflow: visible;
 }
 .controls {
+  /* Off the guitar: a small strip on the wood just under the neck, tucked into the body's lower cutaway, so it hangs
+     and stays pinned with the guitar. */
   position: absolute;
-  inset: 0;
-  pointer-events: none;
+  top: 72px;
+  right: 358px;
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 3px 6px 3px 12px;
+  border-radius: 999px;
+  background: rgba(16, 10, 6, 0.72);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   color: #f1ebe1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-}
-.controls > * {
+  white-space: nowrap;
   pointer-events: auto;
 }
 .controls .xp {
-  position: absolute;
-  left: 284px;
-  top: 214px;
   font-size: 12px;
   color: rgba(233, 225, 211, 0.75);
   font-variant-numeric: tabular-nums;
@@ -316,11 +341,9 @@ kbd {
 .controls .xp b {
   font: 800 0.85rem var(--font-display);
   font-stretch: var(--condensed);
+  color: #f1ebe1;
 }
 .mic-led {
-  position: absolute;
-  left: 280px;
-  top: 240px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -339,45 +362,29 @@ kbd {
   background: #6fe39a;
   box-shadow: 0 0 6px #6fe39a;
 }
-/* Knobs: the two working controls are the volume and first tone knobs on the white pickguard (Guitar.tsx
-   KNOB_AT), so their labels are dark. Sound turns the pointer between "0" and "10". */
+/* Knobs: Sound turns the pointer between "0" and "10"; View opens the settings. */
 .knob-btn {
-  display: grid;
-  justify-items: center;
-  gap: 1px;
-  width: 58px;
-  padding: 3px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 2px 2px;
   background: none;
   border: 0;
-  border-radius: 8px;
-  color: #22211e;
-  font: 650 11.5px/1.1 var(--font-body);
+  border-radius: 999px;
+  color: #f1ebe1;
+  font: 650 12.5px/1.1 var(--font-body);
   cursor: pointer;
   white-space: nowrap;
 }
-/* Sound is the volume knob (Guitar.tsx KNOB_AT, centre 245.7, 94.8): its label reads to its left, along the guard
-   above the pickups, and the button is placed by its right edge so the knob stays put when the label changes. */
-.controls .knob-btn.sound {
-  position: absolute;
-  right: 154.3px;
-  top: 81.8px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  width: auto;
-  padding: 3px 4px;
+.knob-btn:hover {
+  background: rgba(255, 244, 228, 0.1);
 }
-/* View is the first tone knob (centre 265, 62.8), labelled above, between the switch and the second tone knob. */
-.controls .knob-btn.view {
-  position: absolute;
-  left: 236px;
-  top: 36.15px;
-}
-.controls .knob-btn .knob-label {
-  order: -1;
+/* Room for "Sound off", so the strip keeps its width when the sound is switched. */
+.knob-btn.sound .knob-label {
+  min-width: 4.4em;
 }
 .knob-btn:focus-visible {
-  outline: 2.5px solid #1a1916;
+  outline: 2.5px solid #ffd27a;
   outline-offset: 0;
 }
 .knob-face {
@@ -535,7 +542,7 @@ kbd {
 .fret-deco.dot::before {
   content: '';
   position: absolute;
-  top: 50%;
+  top: calc(50% + var(--neck-cut, 0px) / 2);
   left: calc(50% - 1.5px);
   width: 9px;
   height: 9px;
@@ -549,12 +556,17 @@ kbd {
 .fret {
   flex: 1 0 auto;
   position: relative;
-  display: flex;
-  flex-direction: column;
+  /* Laid out in the part of the neck below the window's edge (--neck-cut): a step's number pearl with its note
+     ("Next up") beside it, then the label; a tool's label, then its note. */
+  display: grid;
+  grid-template-areas:
+    'inlay sub'
+    'label label';
+  place-content: center;
+  justify-items: center;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 3px clamp(8px, 0.8vw, 15px);
+  gap: 2px 5px;
+  padding: var(--neck-cut, 0px) clamp(8px, 0.8vw, 15px) 3px;
   color: #f6f1e8;
   text-decoration: none;
   font: 650 14px/1.15 var(--font-body);
@@ -588,6 +600,25 @@ kbd {
   outline: 2.5px solid #ffd27a;
   outline-offset: -4px;
 }
+.fret:not(:has(.fret-sub)) {
+  grid-template-areas:
+    'inlay'
+    'label';
+}
+.fret.tool {
+  grid-template-areas:
+    'label'
+    'sub';
+}
+.fret .inlay {
+  grid-area: inlay;
+}
+.fret .fret-label {
+  grid-area: label;
+}
+.fret .fret-sub {
+  grid-area: sub;
+}
 .fret-sub {
   font: 600 11px/1.1 var(--font-body);
   color: #f0dfc4;
@@ -597,11 +628,12 @@ kbd {
   flex: none;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
   border-radius: 50%;
-  border: 2px solid rgba(241, 235, 225, 0.75);
-  font: 750 12px var(--font-body);
+  border: 1.5px solid rgba(241, 235, 225, 0.75);
+  font: 750 10.5px var(--font-body);
   color: #f1ebe1;
   text-shadow: none;
 }
@@ -647,7 +679,8 @@ kbd {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 8px;
+  padding-top: var(--neck-cut, 0px);
   background-image: linear-gradient(90deg, #7d8487, #f4f5f3 45%, #9aa0a3);
   background-size: 3px 100%;
   background-position: right center;
@@ -1337,7 +1370,7 @@ table.shapes button.rowbtn {
   flex-direction: column;
   gap: 12px;
   position: sticky;
-  top: 76px;
+  top: var(--nav-clear, 76px);
 }
 .big-time {
   font: 840 4.6rem/0.95 var(--font-display);
@@ -1981,17 +2014,26 @@ table.shapes button.rowbtn {
   }
   /* No room for a whole guitar: the brand and the knobs share a top row, and the neck runs full width below,
      scrolling sideways. */
+  :root {
+    --nav-clear: 72px;
+  }
   .guitar {
+    --neck-cut: 0px;
+    position: relative;
+    top: auto;
     grid-template-columns: auto 1fr;
     grid-template-areas:
       'head controls'
       'neck neck';
+    align-items: center;
     height: auto;
+    margin: 0;
     padding: 4px 0 0;
     row-gap: 4px;
   }
   .headstock {
     grid-area: head;
+    height: auto;
     padding-left: 12px;
   }
   .headstock-art,
@@ -2020,35 +2062,25 @@ table.shapes button.rowbtn {
   }
   .controls {
     position: static;
-    display: flex;
-    align-items: center;
     gap: 4px 10px;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
     color: var(--ink);
-    text-shadow: none;
   }
   .controls .xp,
-  .controls .knob-btn.sound,
-  .controls .knob-btn.view,
-  .mic-led {
-    position: static;
+  .controls .xp b {
+    color: var(--ink);
   }
   .knob-btn {
-    display: inline-flex;
-    align-items: center;
-    width: auto;
     min-height: var(--tap);
-    gap: 6px;
     padding: 0 6px;
     color: var(--ink);
-    text-shadow: none;
     font-size: 13px;
   }
-  .controls .knob-btn .knob-label {
-    order: 0;
-  }
-  .controls .knob-btn.sound {
-    gap: 6px;
-    padding: 0 6px;
+  .knob-btn:focus-visible {
+    outline-color: var(--ink);
   }
   .knob-face {
     width: 26px;

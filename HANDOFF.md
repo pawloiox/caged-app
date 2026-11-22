@@ -24,18 +24,18 @@ Around the steps sit a **fretboard explorer** (all 24 major/minor chords, five s
 
 It went through three independent review rounds. Each was scored 1–10 by a critic agent.
 
-| Version | Music | Pedagogy | UX | A11y | Engineering | Overall |
-|---|---|---|---|---|---|---|
-| v2 | 8 | 7 | 7 | 6 | 7 | 7 |
-| v3 | 8 | 7 | 7 | 7 | 7 | 7 |
-| **v4/v5 (reference)** | 8.5 | 8 | 7.5 | 7 | 7.5 | **8** |
-| Rebuild `round-1.1` (critic 1) | 9 | 8.5 | 7.5 | 7.5 | 8 | 8 |
-| Rebuild `round-2` (critic 2) | 9 | 8.5 | 8 | 8 | 8.5 | 8.5 |
-| Rebuild `round-3` (critic 3) | 9 | 8.5 | 8 | 8 | 8 | 8.5 |
-| Rebuild `round-4` (critic 4) | 9.5 | 8.5 | 8.5 | 8 | 8 | 8.5 |
-| Rebuild `round-5` (critic 5) | 9.5 | 8.5 | 8.5 | 8.5 | 8.5 | 8.5 |
-| **Rebuild `round-6` (critic 6)** | 9.5 | 9 | 9 | 8.5 | 9 | **9** |
-| Rebuild `round-6.1` | not reviewed (round-6 + fixes for critic 6's findings; no 7th round by request) | | | | | |
+| Version                          | Music                                                                           | Pedagogy | UX  | A11y | Engineering | Overall |
+| -------------------------------- | ------------------------------------------------------------------------------- | -------- | --- | ---- | ----------- | ------- |
+| v2                               | 8                                                                               | 7        | 7   | 6    | 7           | 7       |
+| v3                               | 8                                                                               | 7        | 7   | 7    | 7           | 7       |
+| **v4/v5 (reference)**            | 8.5                                                                             | 8        | 7.5 | 7    | 7.5         | **8**   |
+| Rebuild `round-1.1` (critic 1)   | 9                                                                               | 8.5      | 7.5 | 7.5  | 8           | 8       |
+| Rebuild `round-2` (critic 2)     | 9                                                                               | 8.5      | 8   | 8    | 8.5         | 8.5     |
+| Rebuild `round-3` (critic 3)     | 9                                                                               | 8.5      | 8   | 8    | 8           | 8.5     |
+| Rebuild `round-4` (critic 4)     | 9.5                                                                             | 8.5      | 8.5 | 8    | 8           | 8.5     |
+| Rebuild `round-5` (critic 5)     | 9.5                                                                             | 8.5      | 8.5 | 8.5  | 8.5         | 8.5     |
+| **Rebuild `round-6` (critic 6)** | 9.5                                                                             | 9        | 9   | 8.5  | 9           | **9**   |
+| Rebuild `round-6.1`              | not reviewed (round-6 + fixes for critic 6's findings; no 7th round by request) |          |     |      |             |         |
 
 **The bar for the rebuild is 9+ overall, with no area below 8.** Reaching parity with the reference is phase 1, not the goal.
 
@@ -43,23 +43,23 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 
 The goals are a fast interactive SVG UI, sample-accurate audio, real-time microphone analysis, offline use on a phone, and strong testing. Use current stable versions, check them when you install, and commit the lockfile.
 
-| Concern | Choice | Why |
-|---|---|---|
-| App | **Vite + React + TypeScript (strict)** | An SPA is enough (no SEO or SSR needs). It has the largest ecosystem and fast HMR. |
-| Routing | TanStack Router (or React Router) | Typed routes: `/learn/1…5`, `/explore`, `/practice`, `/train/:mode`. |
-| State | **Zustand** for UI and session state; domain logic stays pure | Small and testable, with no provider sprawl. |
-| Persistence | **Dexie (IndexedDB)** behind a `ProgressRepository` interface | Offline-first. An optional sync backend can replace it later without UI changes. |
-| UI primitives | **Radix UI** (radio group, toggle group, dialog, tooltip, tabs) | Correct keyboard and ARIA behaviour for free. The reference hand-rolled this. |
-| Styling | Tailwind CSS for layout plus **CSS-variable design tokens** (port the reference `:root` palette, with light and dark themes) | Tokens keep the fretboard, shapes and themes consistent. |
-| Fretboard | Custom **React SVG components** (no canvas) | Accessible, crisp, easy to animate. Port `board()` from the reference. |
-| Audio engine | **Tone.js** (Transport for scheduling, Sampler for playback) | Replaces the hand-written lookahead clock. Gives tempo changes, count-ins and swing for free. |
-| Guitar sound | Multisampled steel-string guitar (properly licensed or CC0), one sample per string per few frets, with round-robin. **Keep Karplus-Strong as an AudioWorklet fallback.** | The reference's synthesised string is good but not commercial quality. |
-| Microphone | getUserMedia → **AudioWorklet** → pitch detection (**pitchy** / McLeod) for single notes; **chroma** (Meyda or your own FFT) for chord checks | This unlocks real "play it and the app checks you" drills (section 7). |
-| PWA | vite-plugin-pwa | Installable on a phone, works offline, practise anywhere. |
-| Tests | **Vitest** (theory golden tests, store logic), **Playwright** (E2E flows), **@axe-core/playwright** (a11y) | The music data must never regress (section 6). |
-| Quality | ESLint + Prettier, `tsc --noEmit` in CI, GitHub Actions | |
-| Hosting | Vercel (or Cloudflare Pages), static deploy | The user already has a Vercel connection available. |
-| Later, optional | Supabase (auth + Postgres) behind the same repository interface | Cross-device progress. **Not in v1.** Ask the user before adding accounts. |
+| Concern         | Choice                                                                                                                                                                   | Why                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| App             | **Vite + React + TypeScript (strict)**                                                                                                                                   | An SPA is enough (no SEO or SSR needs). It has the largest ecosystem and fast HMR.            |
+| Routing         | TanStack Router (or React Router)                                                                                                                                        | Typed routes: `/learn/1…5`, `/explore`, `/practice`, `/train/:mode`.                          |
+| State           | **Zustand** for UI and session state; domain logic stays pure                                                                                                            | Small and testable, with no provider sprawl.                                                  |
+| Persistence     | **Dexie (IndexedDB)** behind a `ProgressRepository` interface                                                                                                            | Offline-first. An optional sync backend can replace it later without UI changes.              |
+| UI primitives   | **Radix UI** (radio group, toggle group, dialog, tooltip, tabs)                                                                                                          | Correct keyboard and ARIA behaviour for free. The reference hand-rolled this.                 |
+| Styling         | Tailwind CSS for layout plus **CSS-variable design tokens** (port the reference `:root` palette, with light and dark themes)                                             | Tokens keep the fretboard, shapes and themes consistent.                                      |
+| Fretboard       | Custom **React SVG components** (no canvas)                                                                                                                              | Accessible, crisp, easy to animate. Port `board()` from the reference.                        |
+| Audio engine    | **Tone.js** (Transport for scheduling, Sampler for playback)                                                                                                             | Replaces the hand-written lookahead clock. Gives tempo changes, count-ins and swing for free. |
+| Guitar sound    | Multisampled steel-string guitar (properly licensed or CC0), one sample per string per few frets, with round-robin. **Keep Karplus-Strong as an AudioWorklet fallback.** | The reference's synthesised string is good but not commercial quality.                        |
+| Microphone      | getUserMedia → **AudioWorklet** → pitch detection (**pitchy** / McLeod) for single notes; **chroma** (Meyda or your own FFT) for chord checks                            | This unlocks real "play it and the app checks you" drills (section 7).                        |
+| PWA             | vite-plugin-pwa                                                                                                                                                          | Installable on a phone, works offline, practise anywhere.                                     |
+| Tests           | **Vitest** (theory golden tests, store logic), **Playwright** (E2E flows), **@axe-core/playwright** (a11y)                                                               | The music data must never regress (section 6).                                                |
+| Quality         | ESLint + Prettier, `tsc --noEmit` in CI, GitHub Actions                                                                                                                  |                                                                                               |
+| Hosting         | Vercel (or Cloudflare Pages), static deploy                                                                                                                              | The user already has a Vercel connection available.                                           |
+| Later, optional | Supabase (auth + Postgres) behind the same repository interface                                                                                                          | Cross-device progress. **Not in v1.** Ask the user before adding accounts.                    |
 
 If you have a strong, evidence-based reason to deviate (for example SvelteKit), write a short ADR in `docs/adr/` and continue. Don't stall on it.
 
@@ -131,11 +131,12 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 - `pentBox(inst)`: on each string, take the pair of neighbouring scale notes closest to the shape's centre. On an exact tie, pick the pair that keeps the box narrowest. **All 60 boxes in the explorer's range match the five standard boxes.** A minor's G-shape box must come out as B string 3/5, not 1/3.
 - `planProgression(chords, zone, voicing)`: a **cyclic DP**. Fix the first chord's candidate, walk forward, close the loop. Each candidate's cost is:
   - out-of-zone frets × 2,
-  - + 3 × max(0, fretted span − 3),
-  - + a shape difficulty penalty `DIFF` (full: E 0, A 0, C .4, D .5, G 4; easy: 0, 0, .25, .2, .3; top4: 0, 0, .15, .15, .2; tri: 0, 0, 0, 0, .1; open chords 0),
-  - + 0.05 × distance from the zone centre.
+  - - 3 × max(0, fretted span − 3),
+  - - a shape difficulty penalty `DIFF` (full: E 0, A 0, C .4, D .5, G 4; easy: 0, 0, .25, .2, .3; top4: 0, 0, .15, .15, .2; tri: 0, 0, 0, 0, .1; open chords 0),
+  - - 0.05 × distance from the zone centre.
 
   Movement between neighbouring chords costs 0.25 × the distance between their centres, computed **from fretted notes only**.
+
 - Zones: open 0–3, 3–7, 5–9, 7–11, 10–14. Progressions:
   - I–IV–V; I–V–vi–IV; I–vi–IV–V; ii–V–I.
   - 12-bar: I I I I | IV IV I I | V IV I V.
@@ -158,6 +159,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 ## 7. What the sandbox blocked: build these
 
 **7.1 Listening mode (the headline feature).**
+
 - One permission prompt with a clear explanation, plus an input-level meter and a tuner screen. That screen doubles as calibration: measure the input latency once and store it.
 - **Single-note recognition** using McLeod pitch with a confidence gate and about 60 ms stability. Map the detected MIDI note to every fret where it can be played; octave-aware where the drill needs it.
 - **Chord recognition for strums:** take a chroma vector over about 150 ms after the onset and compare it with the expected pitch-class set. Tolerate a missing 5th and warn about a wrong 3rd.
@@ -171,6 +173,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 **7.2 Real guitar sound:** sampler with round-robin, strum direction, string damping when chords change, a separate metronome bus, and a count-in.
 
 **7.3 Proper mobile experience:**
+
 - A PWA with a vertical fretboard option on phones (headstock at the top).
 - A sticky mini-player.
 - 44 px minimum touch targets.
@@ -180,7 +183,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 
 ## 8. Behaviour to preserve (the critics said "must keep")
 
-- **Steps 3 and 4 default to the Full voicing.** In partial voicings, roots the voicing leaves out stay visible as solid-ring "R" anchors. Dashed rings mean only shared root / keep this finger down. *(v3 regressed by hiding the anchors. Don't repeat that.)*
+- **Steps 3 and 4 default to the Full voicing.** In partial voicings, roots the voicing leaves out stay visible as solid-ring "R" anchors. Dashed rings mean only shared root / keep this finger down. _(v3 regressed by hiding the anchors. Don't repeat that.)_
 - Step 1 completes only through the no-labels root test, and the answer is never shown on the same screen. Step 2 counts a challenge only after the shape rests on the target for about 650 ms or is strummed there; "Show me" doesn't count. The major/minor flip keeps the root.
 - Step 3: a balanced 10-question shape check (pick the shape first, then its position; pass at 8/10), plus a linking drill with a tempo ladder of 50/60/80/100 BPM. Beat 4 pulses the shared root, and shape changes are announced.
 - Step 4: predict the **starting shape and its fret** before the reveal. The rule is shown for the first key only, then collapses. Finish = 3 correct predictions + 1 clean drill in a key other than C.
@@ -199,6 +202,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
   - major or minor by ear, shape order.
 
   Plus mastery bars and a "due for review" count.
+
 - View settings: **left-handed mirror** and **low E on top**. Arrow keys, button labels and sliders must follow both.
 - Accessibility:
   - Fret cells are focusable with a roving tabindex. Arrow keys walk frets and strings, and Enter plays.
@@ -230,6 +234,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 - **Phase 4: optional.** Accounts and sync, **only after asking the user**.
 
 **Done means:**
+
 - Golden tests and E2E flows for every step pass in CI.
 - axe reports zero serious or critical issues.
 - Lighthouse scores 95+ on PWA, accessibility and best practices.
@@ -238,6 +243,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 - Single-note mic recognition is at least 95% accurate on clean guitar input, and the app works without the mic.
 
 **Working agreement (this is how the reference got from 6 to 8):**
+
 - After each phase, run an **independent critic pass**: a fresh agent with no build context reviews the app with the same rubric (music correctness, pedagogy, UX, accessibility, engineering, overall) and compares it with the previous version. Fix its findings before moving on.
 - Keep a snapshot or tag per round, and ship the best one, never just the latest.
 - Never mark a step done on untested music data.
@@ -354,6 +360,7 @@ fixed every finding, added a test for it where possible, re-ran `npm run check` 
 next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 
 **Round 1 (`round-1.1`): 8 overall.** Findings fixed in `round-2`:
+
 - Broken card-list CSS (streak calendar 4,500 px tall, chip rows stacked).
 - Focus dropped to `<body>` after starting the Step 1 test and in Ear + hand.
 - Step 5 plain-arpeggio loops could never be confirmed with the mic.
@@ -369,6 +376,7 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - Small targets, h1→h3 jumps, no error screen, Leitner promoting early, public source maps, smaller nits.
 
 **Round 2 (`round-2`): 8.5 overall, every area ≥ 8.** Findings fixed in `round-3`:
+
 - ii–V–I treated ii as the home chord in ear checks and labels. The tonic is now the I, and is tested.
 - The phone layout shifted on load (CLS 0.31): the grid stretched the nav while a page chunk loaded.
 - Step 5 lost its Stop control when scrolled; the mini-player now appears when the page's bar is off screen.
@@ -383,6 +391,7 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - Explorer note on why open-position pentatonic boxes bend.
 
 **Round 3 (`round-3`): 8.5 overall, every area ≥ 8.** Findings fixed in `round-4`:
+
 - Lighthouse profile folders had been committed in `round-3`. They were removed from that commit (amended
   before any push; the tag moved), and `.gitignore` now excludes them.
 - "Step N complete" was overwritten by the answer's own feedback. It is now announced just after it, and the step
@@ -400,6 +409,7 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
   DSP isn't only tested against the app's own synth.
 
 **Round 4 (`round-4`): 8.5 overall (Music 9.5).** Findings fixed in `round-5`:
+
 - Focus fell to `<body>` after "Yes, clean" / "Not yet" (Steps 3–4) and "Yes, I did" / "Not yet" (Step 5). Focus
   now goes to the question when the drill ends and to the reply after answering (tested).
 - Outcome-only toasts (routine finished, import, erase, v5 import) are now also announced.
@@ -413,6 +423,7 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 - The 5-minute timing test now runs the app's own beat handler (count-in, beats, UI events), not just Tone.
 
 **Round 5 (`round-5`): 8.5 overall, every area ≥ 8.5 (Music 9.5).** Findings fixed in `round-6`:
+
 - With the mic on, a linking drill could hold forever on a change with no shared root (7th-chord forms). Pivots
   without a shared root no longer hold, the drill is only offered when every change has one, and leaving the
   drill stops it (tested).
@@ -428,6 +439,7 @@ next round. Critics' screenshots and Lighthouse JSON are not kept in the repo.
 
 **Round 6 (`round-6`): 9 overall, no area below 8.5. Bar met; the critic phase stopped here.** No critical or
 high findings. Fixed afterwards in `round-6.1` (tested, not critic-reviewed):
+
 - M1. Step 5: when a loop completes, focus moves to the question, and Tab reaches "Yes, I did" (tested).
 - M2. Step 1 mic test: only roots are marked; any other note heard is "not a root", never marked and never named,
   so checking a string first can't fail the test (tested with a fake-mic WAV that plays E3 before the Cs).
@@ -438,6 +450,7 @@ high findings. Fixed afterwards in `round-6.1` (tested, not critic-reviewed):
   "the coloured shape bars"; Step 3 level-1 root hints are labelled "root (hint)" (tested).
 
 Still open from critic 6 (deliberately not changed):
+
 - The planner can voice the same chord two ways in one loop (12-bar 7ths in G, frets 7–11: D7 as a G-shape in
   bar 9 and an E-shape in bar 12). It is legitimate voice leading; a penalty for re-voicing would change the
   golden planner outputs, so it needs a decision first.
@@ -450,7 +463,6 @@ checks pass (61 unit, 52 E2E tests, including axe in light and dark).
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
 instrument, sampled guitar sound, and screen-reader output on a real device.
-
 
 ## 14. Learning-method upgrades (after the visual identity; not critic-reviewed, by request)
 
@@ -489,6 +501,7 @@ but no 7th critic round was run, by request.
    4. Your own song if you saved one, else the next zone you haven't played, with a rotating progression.
 
    The plan is fixed when the routine starts, so answering review items mid-routine doesn't reshuffle it.
+
 6. **Your own song** (Step 5 → Progression → "Your own song"; `src/theory/song.ts`).
    - Type chords as on a chord chart: "G D Em C", "| Bb | F/A | Gm7 |", with % to repeat.
    - Major, minor and 7th chords play as typed. Richer chords play as the nearest of those, and the page says so.
@@ -506,6 +519,7 @@ but no 7th critic round was run, by request.
 All of them are validated field by field on load and import; older saves load unchanged.
 
 **Tests.**
+
 - `tests/learning.test.ts`: 24 unit tests covering the scheduler with timing, retention buckets, step re-tests,
   the recall judge, the chord parser and song planning, drill links, the routine planner and the learning record.
 - `e2e/learning.spec.ts`: 5 tests covering play from memory, your own song (saved across a reload), fading, a due
@@ -533,13 +547,13 @@ black 3 + 3 headstock. The maker's logo, bird inlays and exact outlines were del
 with the reference photo using upright side-by-side images (`compare.mjs`: shoot the guitar, rotate it 90°, lay it
 beside the photo). The fixes from each round were applied in full. Scores:
 
-| Round | Headstock | Body |
-|---|---|---|
-| 1 | 2/10 | 3/10 |
-| 2 | 6/10 | 6/10 |
-| 3 | 7/10 | 7/10 |
-| 4 | 7.5/10 | 7.5/10 |
-| 5 | 8/10 | 7.5/10 |
+| Round | Headstock | Body   |
+| ----- | --------- | ------ |
+| 1     | 2/10      | 3/10   |
+| 2     | 6/10      | 6/10   |
+| 3     | 7/10      | 7/10   |
+| 4     | 7.5/10    | 7.5/10 |
+| 5     | 8/10      | 7.5/10 |
 
 Rounds 4 and 5 were run at the user's request. Round 4 changed the wound strings to nickel (electric), added key
 stems, brighter washers, pickup rings with corner screws, broad grain streaks and cutaway shading, and refined the
@@ -548,6 +562,7 @@ noise-based open-pore streaks, bright individual saddles in a dark channel, ligh
 shading. Round 5's fixes were applied after its scoring and have not been re-rated.
 
 The critic put the ceiling at about 8.5 for each, given the fixed limits:
+
 - **Headstock:** the 172 px length makes it stubbier than the photo's, and the app's logo replaces the photo's
   signature.
 - **Body:** it is compressed to 3.4 neck widths across against the photo's 6, so the bass cutaway is a slot rather
@@ -572,6 +587,7 @@ casts a soft shadow on the body.
 
 **Traced body outline.** The body outline is now traced from the reference photo's silhouette instead of drawn by
 hand (`scripts/guitar-trace/`):
+
 - `rows.mjs` read each pixel row's dark runs on the white background (since removed; see below).
 - `outline.py` followed the horn and outer edges, then maps them onto this guitar. Along the neck it uses
   1.257 px per photo pixel. Across the neck, the photo's 32 px neck becomes 64 px; outside the neck band the body
@@ -586,6 +602,7 @@ two cutaways have similar depth and both roll into the neck.
 
 **S-style body (replaces the traced charcoal body).** At the user's request the body now follows a second
 reference photo: a gloss black triple single-coil body. The headstock (3 + 3) and the rosewood neck were kept.
+
 - Outline: `scripts/guitar-trace/pixels.mjs` dumps the photo's pixels and `outline_h.py` (since removed) traced the horizontal
   photo column by column (flood-filling the white background), then maps it with 1.637 px per photo pixel along
   the neck, the photo's 25 px neck band stretched to 64 px, and 1.28× outside it. The Catmull-Rom fit scales its
@@ -605,6 +622,7 @@ reference photo: a gloss black triple single-coil body. The headstock (3 + 3) an
 (330×264, nut on the right). `scripts/guitar-trace/headstock.py` holds the outline points, read off brightened
 crops, and maps them at 0.8 px per photo pixel, so the photo's 80 px neck becomes our 64 px. That makes the
 headstock 228 px long (was 172), and the grid column grew to match.
+
 - The headstock has two pointed ears at the nut, a long tapering top and bottom edge, and a blunt tip that is
   concave above and straight below.
 - Tuners: chrome box keys whose inner end comes to a point at the stem (a light outer face, a dark face toward
@@ -618,6 +636,7 @@ headstock 228 px long (was 172), and the grid column grew to match.
 
 **Larger S-style body traced from a new photo.** At the user's request the body was matched to a third reference
 (a gloss black S-style, 936×626, neck on the left) and made bigger, so the neck and headstock are in proportion.
+
 - Size: the body is 414×304 (was 349×224), and the guitar row is 304 px tall. The headstock and nav neck stay
   64 px and sit centred in it, so the body now reaches well above and below the neck, like the real thing.
 - Neck under the body: the body overlaps the neck by 58 px (`BODY_OVERLAP`). The nav neck runs on under the body
@@ -643,3 +662,21 @@ headstock 228 px long (was 172), and the grid column grew to match.
   sized to it paints nothing (the body's strings had been showing only their shadows). Frets, saddles, poles, screws
   and the nut are snapped too, and the edge, guard and hardware blurs are tighter.
 - The trace bridges the strap buttons' cut-outs with a smooth curve, so the outline has no dent there.
+
+**Cropped and pinned.** At the user's request only the guitar's lower part shows, and the whole guitar is pinned.
+
+- Cut: the header is `position: sticky` with `top` and `margin-top` both `-var(--neck-cut)` (16 px), so the
+  window's top edge crops the neck and 48 px of it stays in view. A 29 px cut (just below the top row's tuner
+  bushings, headstock y 108) was tried and dropped: the neck looked too slim for the menu items. The top row's
+  tuners are cut by the edge; the user accepted that. The headstock
+  art hangs at `top: -80px` and the body at `top: -120px`, out of a 64 px row (the neck). A 120 px margin below
+  the row clears the body's hang. `--nav-clear` (174 px desktop, 72 px phone) drives `scroll-padding-top` and the
+  routine timer's sticky top.
+- Controls off the guitar: XP, the mic light, Sound and View are plain buttons in a dark pill under the neck, left
+  of the body, not knobs on the art. On phones they stay in the top row as before (no cut, no pin).
+- Frets: a step's 18 px pearl with its note beside it, and the label below (stacked, since the neck has no spare
+  width for a single row).
+- Pinned parts cover some page content near the top at narrower desktop widths while scrolling; the content
+  scrolls under them by design.
+- The E2E nav test now checks the cut, the art offsets, the strip's place below the neck and that the guitar stays
+  put on scroll.

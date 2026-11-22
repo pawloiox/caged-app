@@ -1,6 +1,8 @@
 /**
  * The navigation is a guitar lying across the top of the page: the headstock is the home link, the neck holds
- * the steps and tools on its frets (ui/Layout.tsx), and the body carries the controls as knobs.
+ * the steps and tools on its frets (ui/Layout.tsx). Only the guitar's lower part shows: the window's top edge cuts
+ * across the neck (styles.css, --neck-cut), so the upper art (tuners, knobs, switch) sits above the window, and the
+ * controls are plain buttons in a strip below the neck.
  *
  * The body is modelled on a classic triple single-coil solid body in gloss black: white pickguard, three white
  * single-coil pickups (the bridge one slanted), a two-point vibrato bridge, three cream hat knobs, a five-way switch
@@ -434,8 +436,8 @@ const PICKUPS = [
     [233.0, 197.0],
   ],
 ] as const;
-/** Where the knobs sit, read off the photo: Volume and the first Tone are the two working controls (styles.css places
- * the buttons over them); the second Tone is only drawn. */
+/** Where the knobs sit, read off the photo. Only the second Tone is drawn as a knob; the other two positions are
+ * kept for reference (the controls are buttons in a strip under the neck now, not on the body). */
 export const KNOB_AT = {
   sound: [245.7, 94.8],
   view: [265.0, 62.8],

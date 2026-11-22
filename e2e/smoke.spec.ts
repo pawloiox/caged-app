@@ -182,25 +182,34 @@ test('printing is on white paper without the navigation, whatever the theme', as
   );
 });
 
-test('the navigation is a guitar: headstock home, steps and tools on the frets, knobs on the body', async ({
+test('the navigation is a pinned guitar cut by the window: headstock home, steps and tools on the frets', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/learn/3');
   const banner = page.getByRole('banner');
-  // Headstock, neck and body sit on one line, the neck between the other two.
+  // Headstock, neck and body sit on one line, the neck between the other two. The window's top edge cuts across
+  // the neck (16 px below its top), and the headstock and body art hang from the neck's line.
   const head = await banner.locator('.headstock-art').boundingBox();
   const neck = await page.locator('nav.neck').boundingBox();
   const body = await banner.locator('.body-art').boundingBox();
   expect(head!.x + head!.width).toBeLessThanOrEqual(neck!.x + 1);
   expect(body!.x).toBeLessThan(neck!.x + neck!.width);
-  expect(Math.abs(head!.y + head!.height / 2 - (neck!.y + neck!.height / 2))).toBeLessThan(2);
-  expect(Math.abs(body!.y + body!.height / 2 - (neck!.y + neck!.height / 2))).toBeLessThan(2);
+  expect(neck!.y).toBeCloseTo(-16, 0);
+  expect(head!.y).toBeCloseTo(neck!.y - 80, 0);
+  expect(body!.y).toBeCloseTo(neck!.y - 120, 0);
+  // The controls sit off the art, in a strip below the neck.
+  const controls = await banner.locator('.controls').boundingBox();
+  expect(controls!.y).toBeGreaterThanOrEqual(neck!.y + neck!.height);
+  // The guitar stays pinned while the page scrolls.
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  expect((await page.locator('nav.neck').boundingBox())!.y).toBeCloseTo(-16, 0);
   // Every fret is visible on a wide screen (nothing hidden under the body).
   const tuner = await page.locator('nav.neck').getByRole('link', { name: 'Tuner' }).boundingBox();
   expect(tuner!.x + tuner!.width).toBeLessThanOrEqual(body!.x + 60);
   await expect(page.locator('nav.neck').getByRole('link', { name: /Open chords/ })).toContainText('Next up');
-  // The Sound knob turns, and the View knob opens the settings.
+  // Sound toggles, and View opens the settings.
   const sound = banner.getByRole('button', { name: /Sound (on|off)/ });
   const before = await sound.getAttribute('aria-pressed');
   await sound.click();
