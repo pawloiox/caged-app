@@ -159,6 +159,34 @@ test('pearl inlays shimmer, and stay still with reduced motion', async ({ page }
   expect(await page.locator('svg.fb animate, svg.fb animateTransform').count()).toBe(0);
 });
 
+test('the guitar drops in once when the site opens, not on page changes, and not with reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/learn/3');
+  const banner = page.getByRole('banner');
+  const drops = () => banner.evaluate((el) => el.getAnimations().length);
+  // It starts above the window: pause at the start and the neck is out of sight.
+  await banner.evaluate((el) => {
+    const a = el.getAnimations()[0]!;
+    a.pause();
+    a.currentTime = 100;
+  });
+  expect((await page.locator('nav.neck').boundingBox())!.y).toBeLessThan(-150);
+  await banner.evaluate((el) => el.getAnimations()[0]!.finish());
+  expect((await page.locator('nav.neck').boundingBox())!.y).toBeCloseTo(6, 0);
+  // At rest the header has no transform (the fixed wood behind it depends on that).
+  expect(await banner.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  // Moving between pages keeps the guitar in place.
+  await page.locator('nav.neck').getByRole('link', { name: 'Explorer' }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+  expect(await drops()).toBe(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await expect(page.locator('h1')).toBeVisible();
+  expect(await drops()).toBe(0);
+});
+
 test('the wood theme is the default, and the light page stays available and accessible', async ({ page }) => {
   await page.goto('/learn/3');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -188,6 +216,8 @@ test('the navigation is a pinned guitar cut by the window: headstock home, steps
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/learn/3');
   const banner = page.getByRole('banner');
+  // Measure the guitar at rest, after it has dropped in.
+  await banner.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
   // Headstock, neck and body sit on one line, the neck between the other two. The window's top edge cuts the
   // headstock at the spike of its tip, 6 px above the neck, and the headstock and body art hang from the neck's line.
   const head = await banner.locator('.headstock-art').boundingBox();

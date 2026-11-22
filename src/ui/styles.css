@@ -261,6 +261,36 @@ kbd {
   /* The body's end sits nearer the edge than the headstock's tip: it gives the neck the room. */
   /* Rounded to whole pixels so the art lands on the pixel grid: a fractional offset blurs every edge at 1x. */
   padding: 0 round(clamp(8px, 1vw, 20px), 1px) 0 round(clamp(10px, 2vw, 28px), 1px);
+  /* On opening the site the guitar drops in from above the window and settles, body end first, with a small
+     bounce. The header stays mounted across routes, so this plays once per page load. Only `backwards` fill: at
+     rest the header has no transform, which would break the fixed wood behind it. Reduced motion skips it. */
+  animation: guitar-drop 950ms 80ms backwards;
+  transform-origin: 85% 50%;
+}
+@keyframes guitar-drop {
+  0% {
+    transform: translateY(-205px) rotate(1.4deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.55);
+  }
+  52% {
+    transform: translateY(0) rotate(0.6deg);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  66% {
+    transform: translateY(-9px) rotate(0.15deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.55);
+  }
+  80% {
+    transform: translateY(0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  89% {
+    transform: translateY(-2.5px);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.55);
+  }
+  100% {
+    transform: none;
+  }
 }
 /* The strip between the window's edge and the neck is the page's own wood, so text scrolling under the pinned
    guitar never shows above the neck. It sits behind the art (the headstock, the body's horn). */
