@@ -33,7 +33,7 @@ export default function Diagnostics() {
           </button>
         </div>
         <p data-testid="timing-result">{res}</p>
-        <p className="muted">Engine: {engine.sampled ? 'sampled guitar' : 'physical-model guitar (Karplus-Strong)'}.</p>
+        <p className="muted">Engine: physical-model guitar (Karplus-Strong).</p>
       </section>
     </>
   );

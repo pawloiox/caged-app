@@ -43,23 +43,23 @@ It went through three independent review rounds. Each was scored 1–10 by a cri
 
 The goals are a fast interactive SVG UI, sample-accurate audio, real-time microphone analysis, offline use on a phone, and strong testing. Use current stable versions, check them when you install, and commit the lockfile.
 
-| Concern         | Choice                                                                                                                                                                   | Why                                                                                           |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| App             | **Vite + React + TypeScript (strict)**                                                                                                                                   | An SPA is enough (no SEO or SSR needs). It has the largest ecosystem and fast HMR.            |
-| Routing         | TanStack Router (or React Router)                                                                                                                                        | Typed routes: `/learn/1…5`, `/explore`, `/practice`, `/train/:mode`.                          |
-| State           | **Zustand** for UI and session state; domain logic stays pure                                                                                                            | Small and testable, with no provider sprawl.                                                  |
-| Persistence     | **Dexie (IndexedDB)** behind a `ProgressRepository` interface                                                                                                            | Offline-first. An optional sync backend can replace it later without UI changes.              |
-| UI primitives   | **Radix UI** (radio group, toggle group, dialog, tooltip, tabs)                                                                                                          | Correct keyboard and ARIA behaviour for free. The reference hand-rolled this.                 |
-| Styling         | Tailwind CSS for layout plus **CSS-variable design tokens** (port the reference `:root` palette, with light and dark themes)                                             | Tokens keep the fretboard, shapes and themes consistent.                                      |
-| Fretboard       | Custom **React SVG components** (no canvas)                                                                                                                              | Accessible, crisp, easy to animate. Port `board()` from the reference.                        |
-| Audio engine    | **Tone.js** (Transport for scheduling, Sampler for playback)                                                                                                             | Replaces the hand-written lookahead clock. Gives tempo changes, count-ins and swing for free. |
-| Guitar sound    | Multisampled steel-string guitar (properly licensed or CC0), one sample per string per few frets, with round-robin. **Keep Karplus-Strong as an AudioWorklet fallback.** | The reference's synthesised string is good but not commercial quality.                        |
-| Microphone      | getUserMedia → **AudioWorklet** → pitch detection (**pitchy** / McLeod) for single notes; **chroma** (Meyda or your own FFT) for chord checks                            | This unlocks real "play it and the app checks you" drills (section 7).                        |
-| PWA             | vite-plugin-pwa                                                                                                                                                          | Installable on a phone, works offline, practise anywhere.                                     |
-| Tests           | **Vitest** (theory golden tests, store logic), **Playwright** (E2E flows), **@axe-core/playwright** (a11y)                                                               | The music data must never regress (section 6).                                                |
-| Quality         | ESLint + Prettier, `tsc --noEmit` in CI, GitHub Actions                                                                                                                  |                                                                                               |
-| Hosting         | Vercel (or Cloudflare Pages), static deploy                                                                                                                              | The user already has a Vercel connection available.                                           |
-| Later, optional | Supabase (auth + Postgres) behind the same repository interface                                                                                                          | Cross-device progress. **Not in v1.** Ask the user before adding accounts.                    |
+| Concern         | Choice                                                                                                                                        | Why                                                                                           |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| App             | **Vite + React + TypeScript (strict)**                                                                                                        | An SPA is enough (no SEO or SSR needs). It has the largest ecosystem and fast HMR.            |
+| Routing         | TanStack Router (or React Router)                                                                                                             | Typed routes: `/learn/1…5`, `/explore`, `/practice`, `/train/:mode`.                          |
+| State           | **Zustand** for UI and session state; domain logic stays pure                                                                                 | Small and testable, with no provider sprawl.                                                  |
+| Persistence     | **Dexie (IndexedDB)** behind a `ProgressRepository` interface                                                                                 | Offline-first. An optional sync backend can replace it later without UI changes.              |
+| UI primitives   | **Radix UI** (radio group, toggle group, dialog, tooltip, tabs)                                                                               | Correct keyboard and ARIA behaviour for free. The reference hand-rolled this.                 |
+| Styling         | Tailwind CSS for layout plus **CSS-variable design tokens** (port the reference `:root` palette, with light and dark themes)                  | Tokens keep the fretboard, shapes and themes consistent.                                      |
+| Fretboard       | Custom **React SVG components** (no canvas)                                                                                                   | Accessible, crisp, easy to animate. Port `board()` from the reference.                        |
+| Audio engine    | **Tone.js** (Transport for scheduling); notes play on native buffer sources                                                                   | Replaces the hand-written lookahead clock. Gives tempo changes, count-ins and swing for free. |
+| Guitar sound    | **Karplus-Strong physical model only.** No recorded samples, by the owner's decision (2026-11-22): the synth sound is final.                  | Nothing to license or download; the sound works offline from the first visit.                 |
+| Microphone      | getUserMedia → **AudioWorklet** → pitch detection (**pitchy** / McLeod) for single notes; **chroma** (Meyda or your own FFT) for chord checks | This unlocks real "play it and the app checks you" drills (section 7).                        |
+| PWA             | vite-plugin-pwa                                                                                                                               | Installable on a phone, works offline, practise anywhere.                                     |
+| Tests           | **Vitest** (theory golden tests, store logic), **Playwright** (E2E flows), **@axe-core/playwright** (a11y)                                    | The music data must never regress (section 6).                                                |
+| Quality         | ESLint + Prettier, `tsc --noEmit` in CI, GitHub Actions                                                                                       |                                                                                               |
+| Hosting         | Vercel (or Cloudflare Pages), static deploy                                                                                                   | The user already has a Vercel connection available.                                           |
+| Later, optional | Supabase (auth + Postgres) behind the same repository interface                                                                               | Cross-device progress. **Not in v1.** Ask the user before adding accounts.                    |
 
 If you have a strong, evidence-based reason to deviate (for example SvelteKit), write a short ADR in `docs/adr/` and continue. Don't stall on it.
 
@@ -71,7 +71,7 @@ src/
     tuning.ts      shapes.ts   fingers.ts   voicings.ts   spell.ts
     instances.ts   pentatonic.ts   planner.ts   progressions.ts
   audio/
-    engine.ts      # Tone.js setup, master chain, mute, sampler + KS fallback
+    engine.ts      # Tone.js setup, master chain, mute, Karplus-Strong voices
     transport.ts   # count-in, beat events → UI (replaces the reference clockStart/clockTick)
     mic/           # worklet, pitch.ts (McLeod), chroma.ts, calibration.ts
   fretboard/       # <Fretboard>, <Dot>, <ZoneBar>, <Ghost>, <Barre>, legend, keyboard nav hook
@@ -170,7 +170,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
   - Train ear and hand drills: name the chord, then play its root inside the zone.
 - Always keep a **no-mic fallback**: the reference's self-check flows. Never block progress on mic access. Recommend headphones and explain why.
 
-**7.2 Real guitar sound:** sampler with round-robin, strum direction, string damping when chords change, a separate metronome bus, and a count-in.
+**7.2 Real guitar sound:** Karplus-Strong voices with round-robin, strum direction, string damping when chords change, a separate metronome bus, and a count-in.
 
 **7.3 Proper mobile experience:**
 
@@ -229,7 +229,7 @@ HOME = { E:0, G:0, A:1, C:1, D:2 } // the string each shape's anchor root sits o
 
 - **Phase 0: scaffold (half a day).** Repo, CI, lint, strict TS, tokens, routing, an empty page for every route.
 - **Phase 1: parity.** `theory/` plus golden tests, then fretboard components, then Steps 1–5, Explore, Practice and Train at feature parity with the reference. Progress goes in IndexedDB, and progress from the reference's localStorage keys (`caged-lab:progress`, `caged-lab:prefs`) is imported if present.
-- **Phase 2: sound and listening.** Sampler, Tone Transport and the full mic pipeline with calibration. The drills from 7.1 come with no-mic fallbacks.
+- **Phase 2: sound and listening.** Guitar voices, Tone Transport and the full mic pipeline with calibration. The drills from 7.1 come with no-mic fallbacks.
 - **Phase 3: pedagogy and mobile.** The gaps in section 9, the PWA, the vertical neck, wake lock and exports.
 - **Phase 4: optional.** Accounts and sync, **only after asking the user**.
 
@@ -318,7 +318,7 @@ everything is in `README.md`. Local git repo, branch `main`; no remote, and noth
    `tests/dsp.test.ts`. Tune `PitchTracker` clarity and the `checkChord` thresholds if needed.
 2. **Real-device listening drills.** Test the linking-drill hold/resume and the Step 5 bar windows with a real guitar,
    with and without headphones, after calibrating latency on the Tuner page.
-3. **Guitar samples.** No licensed multisample set ships yet. Drop one into `public/samples/guitar/` (format in the ADR).
+3. **Guitar sound.** Settled: the Karplus-Strong synth is the guitar. Do not add recorded samples or a sample loader.
 4. **Lighthouse.** Round 6, mobile defaults, preview build: performance 93, accessibility 100, best practices 100,
    SEO 100 on `/learn/1`, `/learn/5` and `/explore` (CLS 0.001, TBT 30–50 ms). Scores vary with machine load: a
    critic measured 67–89 on a busy WSL host. Lighthouse 12+ has no PWA category, so the
@@ -462,7 +462,7 @@ rosewood neck as the navigation, and method-book margin notes instead of a card 
 checks pass (61 unit, 52 E2E tests, including axe in light and dark).
 
 **Not fixable without hardware or assets** (all critics): real-guitar mic accuracy, live drill timing with a real
-instrument, sampled guitar sound, and screen-reader output on a real device.
+instrument, and screen-reader output on a real device.
 
 ## 14. Learning-method upgrades (after the visual identity; not critic-reviewed, by request)
 

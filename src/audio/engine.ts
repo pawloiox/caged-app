@@ -1,8 +1,8 @@
 /**
  * Audio engine: one native AudioContext shared with Tone.js (Tone drives the Transport; voices are
  * native buffer sources for low overhead). Separate guitar and metronome buses, per-string voices with
- * damping, strum direction, round-robin variants, and a sample bank that replaces the synth when a
- * licensed multisample set is present in /samples/guitar/manifest.json.
+ * damping, strum direction and round-robin variants. The guitar is a Karplus-Strong physical model
+ * (src/audio/ks.ts) rendered to cached buffers; no recorded samples are used.
  */
 import { renderPluck, mulberry32 } from './ks';
 import { OPEN } from '../theory/tuning';
@@ -22,12 +22,6 @@ interface Voice {
   g: GainNode;
 }
 
-interface SampleManifest {
-  /** midi → list of round-robin files */
-  notes: Record<string, string[]>;
-  license: string;
-}
-
 const RR = 3;
 
 class Engine {
@@ -38,15 +32,12 @@ class Engine {
   private cache = new Map<string, AudioBuffer>();
   private voices: Array<Voice | null> = [null, null, null, null, null, null];
   private rr = 0;
-  private samples: Map<number, AudioBuffer[]> | null = null;
   private visualQ: Array<{ t: number; v: Visual }> = [];
   private raf = 0;
   private listeners = new Set<VisualListener>();
   muted = false;
   guitarVol = 0.9;
   clickVol = 0.7;
-  /** True when the sampler is in use instead of the synth. */
-  sampled = false;
 
   /** Create (or resume) the context. Call from a user gesture. */
   ensure(): AudioContext | null {
@@ -94,7 +85,6 @@ class Engine {
         this.master = master;
         this.guitar = guitar;
         this.metro = metro;
-        void this.loadSamples();
       } catch {
         return null;
       }
@@ -131,31 +121,6 @@ class Engine {
     return b;
   }
 
-  private async loadSamples(): Promise<void> {
-    const ctx = this.ctx;
-    if (!ctx) return;
-    try {
-      const res = await fetch('/samples/guitar/manifest.json');
-      if (!res.ok) return;
-      const man = (await res.json()) as SampleManifest;
-      const map = new Map<number, AudioBuffer[]>();
-      await Promise.all(
-        Object.entries(man.notes).map(async ([m, files]) => {
-          const bufs = await Promise.all(
-            files.map(async (f) => ctx.decodeAudioData(await (await fetch(`/samples/guitar/${f}`)).arrayBuffer())),
-          );
-          map.set(Number(m), bufs);
-        }),
-      );
-      if (map.size) {
-        this.samples = map;
-        this.sampled = true;
-      }
-    } catch {
-      /* no sample set: the synth stays in use */
-    }
-  }
-
   /** Synth buffer for a note, with RR round-robin variants. */
   private synthBuffer(midi: number, vel: number): AudioBuffer {
     const ctx = this.ctx!;
@@ -176,16 +141,6 @@ class Engine {
     return b;
   }
 
-  private sourceFor(midi: number, vel: number): { buf: AudioBuffer; rate: number } {
-    if (this.samples) {
-      let best = -1;
-      for (const m of this.samples.keys()) if (best < 0 || Math.abs(m - midi) < Math.abs(best - midi)) best = m;
-      const list = this.samples.get(best)!;
-      return { buf: list[this.rr++ % list.length]!, rate: Math.pow(2, (midi - best) / 12) };
-    }
-    return { buf: this.synthBuffer(midi, vel), rate: 1 };
-  }
-
   /** Damp whatever is ringing on string s at time t. */
   damp(s: number, t: number): void {
     const prev = this.voices[s];
@@ -203,10 +158,8 @@ class Engine {
     const ctx = this.ensure();
     if (!ctx || !this.guitar) return;
     const t = Math.max(ctx.currentTime, when || ctx.currentTime);
-    const { buf, rate } = this.sourceFor(midi, vel);
     const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.playbackRate.value = rate;
+    src.buffer = this.synthBuffer(midi, vel);
     src.detune.value = (Math.random() - 0.5) * 5;
     const g = ctx.createGain();
     g.gain.value = vel;
