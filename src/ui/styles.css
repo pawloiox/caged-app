@@ -1051,6 +1051,29 @@ main:focus {
   min-width: max(28px, var(--tap));
   font-size: 15px;
 }
+/* Scale patterns: the number, and for a pentatonic box the CAGED shape it surrounds. */
+.seg.patterns button {
+  min-width: max(28px, var(--tap));
+}
+.pattern-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pattern-opt .shape-pill {
+  min-width: 20px;
+  height: 20px;
+  font-size: 12px;
+}
+.scale-notes td {
+  min-width: 2.4em;
+}
+table.pattern-tab td {
+  width: auto;
+  padding: 4px 9px;
+  white-space: nowrap;
+  word-spacing: 0.2em;
+}
 .shape-btns {
   display: flex;
   gap: 8px;
@@ -2196,16 +2219,18 @@ table.shapes button.rowbtn {
 }
 
 /* Laptop widths: tighter fret labels so every item still fits between the headstock and the body. */
-@media (min-width: 861px) and (max-width: 1535px) {
+@media (min-width: 861px) and (max-width: 1599px) {
   .fret {
     font-size: 13px;
     padding-inline: 6px;
   }
 }
-@media (min-width: 861px) and (max-width: 1365px) {
+@media (min-width: 861px) and (max-width: 1439px) {
   .fret {
     font-size: 12.5px;
     padding-inline: 4px;
+    /* Archivo's narrower widths: the labels keep their size and the neck keeps every item. */
+    font-stretch: 90%;
   }
 }
 @media (max-width: 860px) {

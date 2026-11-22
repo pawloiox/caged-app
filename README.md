@@ -23,11 +23,11 @@ On WSL or a bare Linux box, Playwright's Chromium may miss system libraries. Eit
 ## Layout
 
 ```
-src/theory/      pure music logic (shapes, spelling, instances, voicings, pentatonic, planner, progressions)
+src/theory/      pure music logic (shapes, spelling, instances, voicings, pentatonic, scales, planner, progressions)
 src/audio/       engine (voices, buses), transport (Tone.js), ks (Karplus-Strong), mic/ (worklet, DSP, listener)
 src/fretboard/   <Fretboard> SVG (horizontal + upright neck), legend, tab, CAGED ring, shapes table
 src/lessons/     Steps 1–5 and the shared neck map + linking drill
-src/explore/ src/practice/ src/train/ src/listen/ src/print/
+src/explore/ src/scales/ src/practice/ src/train/ src/listen/ src/print/
 src/store/       Zustand stores, ProgressRepository (Dexie), step criteria
 tests/           Vitest: golden theory tests, DSP accuracy, store and Leitner
 e2e/             Playwright specs

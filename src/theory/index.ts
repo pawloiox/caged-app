@@ -9,3 +9,4 @@ export * from './planner';
 export * from './progressions';
 export * from './routine';
 export * from './song';
+export * from './scales';

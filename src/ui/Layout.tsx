@@ -32,6 +32,7 @@ const STEPS = [
 ] as const;
 const TOOLS = [
   { to: '/explore', t: 'Explorer' },
+  { to: '/scales', t: 'Scales' },
   { to: '/practice', t: 'Routine' },
   { to: '/train', t: 'Train' },
   { to: '/tuner', t: 'Tuner' },

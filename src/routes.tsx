@@ -12,6 +12,7 @@ const Step3 = lazy(() => import('./lessons/Step3'));
 const Step4 = lazy(() => import('./lessons/Step4'));
 const Step5 = lazy(() => import('./lessons/Step5'));
 const Explore = lazy(() => import('./explore/Explore'));
+const Scales = lazy(() => import('./scales/Scales'));
 const Practice = lazy(() => import('./practice/Practice'));
 const Train = lazy(() => import('./train/Train'));
 const Tuner = lazy(() => import('./listen/Tuner'));
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'learn/:n', element: <Learn /> },
       { path: 'explore', element: <Page C={Explore} /> },
+      { path: 'scales', element: <Page C={Scales} /> },
       { path: 'practice', element: <Page C={Practice} /> },
       { path: 'train', element: <Navigate to="/train/shape" replace /> },
       { path: 'train/:mode', element: <Page C={Train} /> },

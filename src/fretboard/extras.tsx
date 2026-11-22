@@ -40,6 +40,7 @@ const LEG: Record<string, [ReactNode, string]> = {
     'Note in two shapes',
   ],
   dim: [<circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35" />, 'Other shapes'],
+  other: [<circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35" />, 'The same scale in the other patterns'],
   pent: [
     <circle cx="11" cy="11" r="7" fill="#3a2216" stroke="var(--muted)" strokeWidth="2" />,
     'Scale note outside this shape',

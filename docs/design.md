@@ -43,7 +43,8 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - The guitar's row is 304 px tall with the 64 px neck centred, so the strings run unbroken from the tuners to
      the bridge. The body fills the row, so it keeps a guitar's proportions to the neck, and the neck runs on
      under it between the horns.
-   - Every item fits from 1280 px up (fret labels tighten below 1536 and again below 1366). Narrower, the neck scrolls sideways
+   - Every item fits from 1280 px up (fret labels tighten below 1600, and again below 1440 in a narrower width of
+     Archivo). Narrower, the neck scrolls sideways
      between headstock and body; at 860 px and below the brand and knobs share a top row and the neck runs full
      width below.
 5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step
@@ -60,7 +61,12 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Nickel-silver fret wire with a lit crown and a shadow, and a bone nut.
    - Phosphor-bronze wound strings (low E, A, D, G) with visible winding, and plain steel B and e, each casting
      a shadow on the wood.
-7. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case). Each
+7. **Scales keep the same colour rule.** The scale library (Scales, after Explorer on the neck) shows 2NPS
+   pentatonic boxes and 3NPS seven-note patterns. Each pentatonic box is a CAGED shape's box, so its dots take
+   that shape's colour and its pattern button carries the shape's pill. The 3NPS patterns are not CAGED shapes, so
+   their dots are neutral, with the root picked out the way the other neutral boards do it. The rest of the scale
+   shows as dim dots, so the pattern stays the one bright thing on the neck.
+8. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case). Each
    step opens with a numbered "What to do" list, and supporting notes ("Good to know") sit after the workbench in
    columns under nickel rules. There are no boxed cards and no drop shadows; the one shadow is on floating menus,
    which do float.

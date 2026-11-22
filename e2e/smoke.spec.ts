@@ -9,6 +9,8 @@ const ROUTES = [
   '/learn/4',
   '/learn/5',
   '/explore',
+  '/scales',
+  '/scales?scale=lydian&key=6&p=4',
   '/practice',
   '/train/shape',
   '/train/chord',
@@ -88,7 +90,7 @@ test('v5 localStorage progress is imported', async ({ page }) => {
 });
 
 test('headings never skip a level', async ({ page }) => {
-  for (const r of ['/learn/1', '/learn/3', '/learn/5', '/explore', '/practice', '/train/shape', '/tuner']) {
+  for (const r of ['/learn/1', '/learn/3', '/learn/5', '/explore', '/scales', '/practice', '/train/shape', '/tuner']) {
     await page.goto(r);
     await expect(page.locator('h1')).toBeVisible();
     const res = await new AxeBuilder({ page }).withRules(['heading-order']).analyze();
@@ -116,6 +118,7 @@ test('exactly one live region on every page', async ({ page }) => {
     '/learn/4',
     '/learn/5',
     '/explore',
+    '/scales',
     '/practice',
     '/train/shape',
     '/train/review',
@@ -263,4 +266,44 @@ test('the navigation is a pinned guitar cut by the window: headstock home, steps
   await page.keyboard.press('Escape');
   await banner.getByRole('link', { name: 'CAGED Lab home' }).click();
   await expect(page).toHaveURL(/\/(learn\/1)?$/);
+});
+
+test('scale library: 2NPS pentatonic boxes and 3NPS patterns, in any key, linkable and playable', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/learn/1');
+  await page.locator('nav.neck').getByRole('link', { name: 'Scales' }).click();
+  await expect(page).toHaveURL(/\/scales$/);
+  await expect(page.locator('h1')).toHaveText('Scale patterns');
+  const board = page.locator('#scale-board svg.fb');
+  // A minor pentatonic, pattern 1: the E-shape box at the 5th fret, two notes on each string.
+  await expect(board).toHaveAttribute('aria-label', 'A minor pentatonic, pattern 1, frets 5–8');
+  await expect(board.locator('.dot:not(.dim)')).toHaveCount(12);
+  await expect(page.getByRole('table', { name: /E frets 5 8; A frets 5 7/ })).toBeVisible();
+  // Pattern 3 is the C-shape box; the arrow key walks to the next box up the neck.
+  await page.getByRole('radio', { name: '3, C-shape' }).click();
+  await expect(board).toHaveAttribute('aria-label', 'A minor pentatonic, pattern 3, frets 9–13');
+  await page.locator('h1').click();
+  await page.keyboard.press('ArrowLeft');
+  await expect(board).toHaveAttribute('aria-label', 'A minor pentatonic, pattern 2, frets 7–10');
+  // Three per string: the seven-note scales, seven patterns of eighteen notes.
+  await page.getByRole('radio', { name: 'Three (seven-note)' }).click();
+  await page.getByRole('radio', { name: 'Dorian' }).click();
+  await expect(page.getByRole('radiogroup', { name: 'Pattern' }).getByRole('radio')).toHaveCount(7);
+  await expect(board).toHaveAttribute('aria-label', 'A dorian, pattern 1, frets 5–10');
+  await expect(board.locator('.dot:not(.dim)')).toHaveCount(18);
+  await page.getByRole('radio', { name: 'C♯' }).click();
+  await expect(board).toHaveAttribute('aria-label', /^C♯ dorian, pattern 1/);
+  await expect(page).toHaveURL(/scale=dorian/);
+  await expect(page).toHaveURL(/key=1/);
+  // The rest of the neck can be hidden.
+  await page.getByLabel('The rest of the neck').uncheck();
+  await expect(board.locator('.dot.dim')).toHaveCount(0);
+  // Play runs the pattern on the click, and Stop ends it.
+  await page.getByRole('button', { name: /Play it up and down/ }).click();
+  await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Play it up and down/ })).toBeVisible();
+  // A link opens the same pattern.
+  await page.goto('/scales?scale=harmonic-minor&key=9&p=7');
+  await expect(board).toHaveAttribute('aria-label', /^A harmonic minor, pattern 7, /);
 });
