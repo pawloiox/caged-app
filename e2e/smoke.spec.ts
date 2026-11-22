@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { noSeriousA11y } from './helpers';
+import { noSeriousA11y, settled } from './helpers';
 
 const ROUTES = [
   '/learn/1',
@@ -159,7 +159,7 @@ test('pearl inlays shimmer, and stay still with reduced motion', async ({ page }
   expect(await page.locator('svg.fb animate, svg.fb animateTransform').count()).toBe(0);
 });
 
-test('the guitar drops in once when the site opens, not on page changes, and not with reduced motion', async ({
+test('the guitar drops in and the page settles under it when the site opens, not on page changes or with reduced motion', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -177,14 +177,21 @@ test('the guitar drops in once when the site opens, not on page changes, and not
   expect((await page.locator('nav.neck').boundingBox())!.y).toBeCloseTo(6, 0);
   // At rest the header has no transform (the fixed wood behind it depends on that).
   expect(await banner.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
-  // Moving between pages keeps the guitar in place.
+  // The page settles in as the guitar lands: the title waits, hidden, then falls into place.
+  await expect(page.locator('main h1')).toHaveCSS('opacity', '1');
+  await settled(page);
+  // Moving between pages keeps the guitar and the page still.
+  await page.waitForFunction(() => !('intro' in document.documentElement.dataset));
   await page.locator('nav.neck').getByRole('link', { name: 'Explorer' }).click();
   await expect(page).toHaveURL(/\/explore$/);
   expect(await drops()).toBe(0);
+  expect(await page.locator('main').evaluate((m) => m.getAnimations({ subtree: true }).length)).toBe(0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
   await expect(page.locator('h1')).toBeVisible();
   expect(await drops()).toBe(0);
+  await expect(page.locator('main h1')).toHaveCSS('opacity', '1');
+  expect(await page.locator('main').evaluate((m) => m.getAnimations({ subtree: true }).length)).toBe(0);
 });
 
 test('the wood theme is the default, and the light page stays available and accessible', async ({ page }) => {

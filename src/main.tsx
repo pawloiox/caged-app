@@ -7,6 +7,11 @@ import { registerSW } from 'virtual:pwa-register';
 import { router } from './routes';
 import { hydrate, notify } from './store/app';
 
+// The opening moment (styles.css, "Opening the site"): the page waits, then settles in as the guitar lands (Layout
+// times it). Cleared once it has played, so later page changes render at rest; the fallback never leaves it hidden.
+document.documentElement.dataset.intro = '';
+setTimeout(() => delete document.documentElement.dataset.intro, 4000);
+
 void hydrate().then(({ imported }) => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

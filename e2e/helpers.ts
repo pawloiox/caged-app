@@ -6,8 +6,22 @@ export async function fresh(page: Page, path = '/') {
   await expect(page.locator('h1')).toBeVisible();
 }
 
-/** axe: zero serious or critical issues. */
+/** Wait for the opening moment to finish: the guitar has landed and the page has settled (not the endless pearls). */
+export async function settled(page: Page) {
+  await page.waitForFunction(() => document.documentElement.dataset.intro !== '');
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => {})),
+    ),
+  );
+}
+
+/** axe: zero serious or critical issues, measured on the settled page (half-faded text would fail contrast). */
 export async function noSeriousA11y(page: Page, label: string) {
+  await settled(page);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   const bad = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(

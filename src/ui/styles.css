@@ -824,6 +824,55 @@ main {
   max-width: 1160px;
   margin: 0 auto;
 }
+/* Opening the site: as the guitar lands, the page settles under it. Each block falls the last few pixels into place
+   with the guitar's small bounce, in reading order from the top, like the knock of the landing travelling down the
+   page: the title, its lede, then each section. html[data-intro] is "" while the guitar falls (the page waits,
+   hidden) and "landed" from its touchdown (Layout.tsx times it off the drop); then it is cleared, so moving between
+   pages never replays it. Reduced motion: the guitar has no drop, so the page lands at once and does not move. */
+:root[data-intro=''] main > :not(.lesson-head),
+:root[data-intro=''] main > .lesson-head > * {
+  opacity: 0;
+}
+:root[data-intro='landed'] main > :not(.lesson-head),
+:root[data-intro='landed'] main > .lesson-head > * {
+  animation: page-settle 620ms cubic-bezier(0.25, 0.7, 0.35, 1) backwards;
+  animation-delay: calc(var(--settle, 0) * 85ms);
+}
+:root[data-intro] main > .lesson-head > :nth-child(2) {
+  --settle: 1;
+}
+:root[data-intro] main > .lesson-head > :nth-child(n + 3) {
+  --settle: 2;
+}
+:root[data-intro] main > :nth-child(2) {
+  --settle: 3;
+}
+:root[data-intro] main > :nth-child(3) {
+  --settle: 4;
+}
+:root[data-intro] main > :nth-child(4) {
+  --settle: 5;
+}
+:root[data-intro] main > :nth-child(n + 5) {
+  --settle: 6;
+}
+@keyframes page-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(2.5px);
+  }
+  72% {
+    transform: translateY(-1px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
 /* Room for the floating mini-player, so it never covers the last link on the page. */
 main.with-mini {
   padding-bottom: 150px;

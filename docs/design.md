@@ -35,8 +35,11 @@ often a phone. The interface has one job: show the neck and what to play next, r
      between the edge and the neck is the page's wood, so scrolled text never shows above the neck. XP, the live-mic light, Sound and View sit in a small dark
      strip below the neck, left of the body, not on the art.
    - When the site opens, the guitar drops in from above the window: the body end lands first, it bounces once and
-     settles (under a second). This is the app's one entrance moment: it plays once per page load, not on page
-     changes, and not at all with reduced motion. At rest the header carries no transform.
+     settles (under a second). The page waits hidden while it falls, and as the body touches down the page settles
+     in under it: the title, then the lede, then each section, dropping a few pixels into place with the same
+     small bounce, 85 ms apart (the cascade is timed from the guitar's own animation, so they never drift apart).
+     This is the app's one entrance moment: it plays once per page load, not on page changes, and not at all with
+     reduced motion. At rest the header and the page carry no transform.
    - The guitar's row is 304 px tall with the 64 px neck centred, so the strings run unbroken from the tuners to
      the bridge. The body fills the row, so it keeps a guitar's proportions to the neck, and the neck runs on
      under it between the horns.

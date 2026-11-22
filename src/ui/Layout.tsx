@@ -14,6 +14,9 @@ import { loadGrain } from '../fretboard/materials';
 import { isDue } from '../train/leitner';
 import { FRETBOARD_END_CELLS, GuitarBody, Headstock, KnobFace } from './Guitar';
 
+/** When the page starts settling, in ms into the guitar's drop: its body touches down at 80 + 0.52 × 950 = 574 ms. */
+const GUITAR_LANDS = 480;
+
 /** Frets close up toward the body: each fret's share of spare width shrinks like real fret spacing. */
 const taper = (k: number) => +Math.pow(2, -k / 12).toFixed(3);
 /** The upper frets past the tools, each one a semitone's ratio narrower than the last. */
@@ -151,6 +154,26 @@ export function Layout() {
   const loc = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const neckRef = useRef<HTMLElement>(null);
+  const guitarRef = useRef<HTMLElement>(null);
+  // Opening the site: the page waits (html[data-intro=""], set in main.tsx) and settles in when the dropping guitar's
+  // body touches down, timed off the guitar's own animation so the two always meet.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (root.dataset.intro !== '') return;
+    const drop = guitarRef.current?.getAnimations().find((a) => (a as CSSAnimation).animationName === 'guitar-drop');
+    let clear = 0;
+    const land = () => {
+      root.dataset.intro = 'landed';
+      clear = window.setTimeout(() => delete root.dataset.intro, 2200);
+    };
+    // GUITAR_LANDS: delay + 52% of the drop (styles.css), less a beat so the page meets it.
+    const wait = drop ? GUITAR_LANDS - Number(drop.currentTime ?? 0) : 0;
+    const t = window.setTimeout(land, Math.max(0, wait));
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(clear);
+    };
+  }, []);
   // The rosewood grain is shared by the fretboards and, in the wood theme, the page behind everything.
   useEffect(() => {
     void loadGrain().then((u) => u && document.documentElement.style.setProperty('--page-grain', `url("${u}")`));
@@ -226,7 +249,7 @@ export function Layout() {
       <a className="skip btn" href="#main">
         Skip to content
       </a>
-      <header className="guitar">
+      <header className="guitar" ref={guitarRef}>
         <Link className="headstock" to="/" aria-label="CAGED Lab home">
           <Headstock />
           <span className="brand-plain" aria-hidden="true">
