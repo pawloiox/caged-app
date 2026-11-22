@@ -12,7 +12,7 @@ import { fmtTime, streakOf } from '../theory/routine';
 import { Check, Seg } from './controls';
 import { loadGrain } from '../fretboard/materials';
 import { isDue } from '../train/leitner';
-import { GuitarBody, Headstock, KnobFace } from './Guitar';
+import { FRETBOARD_END_CELLS, GuitarBody, Headstock, KnobFace } from './Guitar';
 
 /** Frets close up toward the body: each fret's share of spare width shrinks like real fret spacing. */
 const taper = (k: number) => +Math.pow(2, -k / 12).toFixed(3);
@@ -297,6 +297,11 @@ export function Layout() {
         </nav>
         <div className="gbody">
           <GuitarBody />
+          <span className="neck-end" aria-hidden="true">
+            {FRETBOARD_END_CELLS.map((w, k) => (
+              <span key={k} className={`fret-deco${k % 2 === 1 ? ' dot' : ''}`} style={{ width: w }} />
+            ))}
+          </span>
           <div className="controls">
             <span className="xp">
               <b>{progress.xp}</b> XP

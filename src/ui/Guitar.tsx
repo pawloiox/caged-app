@@ -473,7 +473,11 @@ const BRIDGE = {
   ],
   arm_hole: [289.6, 112.5],
 } as const;
-const FRETBOARD = { x0: 53, x1: 117, frets: [59.3, 71.6, 82.4, 92.9, 102.8, 112.2], dots: [77.0, 98.1] } as const;
+/** The fretboard's end over the body. It is HTML laid over this drawing (Layout.tsx .neck-end, styles.css), built
+ * from the nav neck's own wood, strings, fret wire and pearls so the two read as one board. */
+export const FRETBOARD_END = { x0: 53, x1: 117 } as const;
+/** Its last frets, as cell widths ending in a wire (like the neck's .fret-deco), closing up toward the body. */
+export const FRETBOARD_END_CELLS = [15, 13.5, 12, 11, 10] as const;
 
 /**
  * The body: gloss black with a white pickguard, three single-coil pickups, a two-point vibrato bridge, three hat knobs,
@@ -577,17 +581,6 @@ export function GuitarBody() {
           <stop offset="0.5" stopColor="#b9bdbe" />
           <stop offset="1" stopColor="#6f7578" />
         </linearGradient>
-        <linearGradient id={`${id}-rosewood`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2f1d13" />
-          <stop offset="0.55" stopColor="#24160e" />
-          <stop offset="1" stopColor="#1a0f09" />
-        </linearGradient>
-        <radialGradient id={`${id}-pearl`} cx="0.38" cy="0.32" r="0.7">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.35" stopColor="#f6f3ea" />
-          <stop offset="0.7" stopColor="#e1e6e3" />
-          <stop offset="1" stopColor="#a7b2b0" />
-        </radialGradient>
         <filter
           id={`${id}-roll-blur`}
           colorInterpolationFilters="sRGB"
@@ -616,9 +609,18 @@ export function GuitarBody() {
         <filter id={`${id}-lift`} colorInterpolationFilters="sRGB" x="-40%" y="-40%" width="180%" height="180%">
           <feDropShadow dx="0.4" dy="1" stdDeviation="0.6" floodColor="#000" floodOpacity="0.5" />
         </filter>
+        {/* The body's shadow falls on the page, never on the neck: the fretboard lies on top of the body. */}
+        <clipPath id={`${id}-off-neck`}>
+          <path
+            clipRule="evenodd"
+            d={`M-40 -40 H${BODY_W + 40} V${BODY_H + 40} H-40 Z M-40 ${NT} H${FRETBOARD_END.x0} V${NT + NECK_H} H-40 Z`}
+          />
+        </clipPath>
       </defs>
-      <g filter="drop-shadow(0 7px 9px rgba(0,0,0,0.55))">
-        <path d={BODY_PATH} fill={`url(#${id}-black)`} />
+      <g clipPath={`url(#${id}-off-neck)`}>
+        <g filter="drop-shadow(0 7px 9px rgba(0,0,0,0.55))">
+          <path d={BODY_PATH} fill={`url(#${id}-black)`} />
+        </g>
       </g>
       <g mask={`url(#${id}-mask)`}>
         <path
@@ -689,27 +691,6 @@ export function GuitarBody() {
         <Screw key={x} x={x} y={y} id={id} />
       ))}
       <HatKnob x={KNOB_AT.tone2[0]} y={KNOB_AT.tone2[1]} id={id} />
-      {/* The fretboard runs on over the body, under the guard's edge, with its last frets and two pearl dots. */}
-      <rect
-        x={FRETBOARD.x0}
-        y={NT}
-        width={FRETBOARD.x1 - FRETBOARD.x0}
-        height={NECK_H}
-        rx={3}
-        fill={`url(#${id}-rosewood)`}
-        filter="drop-shadow(0.8px 0 1px rgba(0,0,0,0.6))"
-      />
-      <rect x={FRETBOARD.x0} y={NT} width={6} height={NECK_H} fill={`url(#${id}-rosewood)`} />
-      {/* Frets two pixels wide on whole pixels: a bright row and a darker one, like the neck's wire. */}
-      {FRETBOARD.frets.map((x) => (
-        <g key={x}>
-          <rect x={Math.round(x)} y={NT} width={2} height={NECK_H} fill="#6c7275" />
-          <rect x={Math.round(x)} y={NT} width={1} height={NECK_H} fill="#b9bdbe" />
-        </g>
-      ))}
-      {FRETBOARD.dots.map((x) => (
-        <circle key={x} cx={px(x)} cy={NT + NECK_H / 2} r={3.6} fill={`url(#${id}-pearl)`} stroke="rgba(28,14,6,0.5)" />
-      ))}
       {PICKUPS.map(([[x1, y1], [x2, y2]]) => (
         <SingleCoil key={x1} x1={x1} y1={y1} x2={x2} y2={y2} id={id} />
       ))}
@@ -758,7 +739,7 @@ export function GuitarBody() {
         );
       })}
       <g transform={`translate(0 ${NT - NECK_TOP})`}>
-        <Strings from={FRETBOARD.x0} to={anchorX} />
+        <Strings from={FRETBOARD_END.x1} to={anchorX} />
       </g>
     </svg>
   );

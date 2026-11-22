@@ -709,3 +709,12 @@ somewhere different each time. Every step now follows the same order:
 `Criteria` and the per-step "Exercise", "Try it on your guitar" and "To finish" cards were removed; their text
 moved into the tasks. The completion rules in `src/store/criteria.ts` did not change. The "Chords passed" and
 "Zones confirmed" chip lists keep their names (the layout E2E test finds them by name), now inside the plan.
+
+**Fretboard end matches the neck.** The end of the fretboard over the body used to be SVG in `GuitarBody`, with
+its own darker gradient, 2 px hairline frets, small pearls and a rounded corner, so it read as a different part.
+It is now HTML (`.neck-end` in `Layout.tsx`, over the body art, x 53–117 of the body drawing,
+`FRETBOARD_END` in `Guitar.tsx`) that shares the nav neck's CSS: the same strings, wood, grain and edge light, and
+`.fret-deco` cells for its five closing frets (wire and pearls as on the neck). The grain is anchored at the neck's
+right edge and continues into the end without a seam. The body's drop shadow is clipped out of the neck's band,
+since the fretboard lies on top of the body (it had darkened the 16 px of neck before the end). The body's own
+strings now start at the end's right edge.

@@ -502,6 +502,11 @@ kbd {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+}
+/* The neck and its end over the body (.neck-end) share one board: the same strings, wood and edge light. The grain
+   is anchored at the neck's right edge, so it runs on into the end without a seam. */
+.neck,
+.neck-end {
   /* Six strings at the same heights as in the headstock and body drawings, then the wood. */
   background-image:
     linear-gradient(rgba(220, 223, 221, 0.68), rgba(220, 223, 221, 0.68)),
@@ -531,13 +536,38 @@ kbd {
     0 48px,
     0 58px,
     0 0,
-    0 0,
+    right 0 top 0,
     0 0;
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
   /* Unbound: just the rounded edge of the fretboard catching the light, and its shadow. */
   box-shadow:
     inset 0 1px 0 rgba(255, 236, 214, 0.22),
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.55),
+    0 4px 6px rgba(0, 0, 0, 0.35);
+}
+/* The fretboard's last frets over the body (Guitar.tsx FRETBOARD_END: x 53 to 117 in the body drawing). It starts
+   5 px before the neck's right edge, so its grain tile starts at 5 px to continue the neck's. */
+.neck-end {
+  position: absolute;
+  left: 53px;
+  top: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  background-position:
+    0 7px,
+    0 17px,
+    0 28px,
+    0 38px,
+    0 48px,
+    0 58px,
+    0 0,
+    5px 0,
+    0 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 214, 0.22),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.55),
+    1px 0 1.5px rgba(0, 0, 0, 0.6),
     0 4px 6px rgba(0, 0, 0, 0.35);
 }
 .neck::-webkit-scrollbar {
@@ -2131,7 +2161,8 @@ table.shapes button.rowbtn {
     padding-left: 12px;
   }
   .headstock-art,
-  .body-art {
+  .body-art,
+  .neck-end {
     display: none;
   }
   .brand-plain {
