@@ -21,7 +21,7 @@ import {
   type Shape,
   type Voicing,
 } from '../theory';
-import { Card, Criteria, Head, Kbd, NextLink, ShapeAnswer } from '../ui/controls';
+import { Card, Head, Kbd, NextLink, Notes, ShapeAnswer, StepPlan } from '../ui/controls';
 import { MapBench, createMapStore, useMapList } from './map';
 import { TARGET_MS } from '../train/questions';
 
@@ -285,10 +285,40 @@ export default function Step3() {
         title="Map C major up the whole neck"
         lede="Between the nut and fret 15, C major appears in five shapes, always in the order C, A, G, E, D, and then the C-shape again an octave up. Neighbouring shapes share a root note, which is how they lock together into one chain."
       />
+      <StepPlan
+        tasks={[
+          {
+            title: 'Walk the chain',
+            detail:
+              'Press Higher and Lower, or Walk the chain, to move from shape to shape. Keep a finger on the dashed root while you change: it is the link to the next shape.',
+          },
+          {
+            title: 'Play one clean linking drill on C',
+            detail:
+              'Four beats per shape, up the neck and back down. Start slow. The full G- and D-shapes are a stretch: under Strings to play, Easy keeps the links.',
+            done: !!drill,
+            progress: drill ? (
+              <p className="plan-count">
+                Best clean tempo <strong>{drill} BPM</strong>
+              </p>
+            ) : null,
+          },
+          {
+            title: 'Pass the shape check',
+            detail: `Ten quick questions at the end: a shape appears on the neck and you name it. Score ${CHECK_PASS} or more on level 1.`,
+            done: best >= CHECK_PASS,
+            progress: (
+              <p className="plan-count">
+                Best <strong>{best}</strong> of {CHECK_LEN}
+              </p>
+            ),
+          },
+        ]}
+      />
       <MapBench store={useS3} keyLock drill />
       <ShapeCheck />
-      <div className="cards">
-        <Card title={`${inst.shape}-shape of C`}>
+      <Notes>
+        <Card level={3} title={`${inst.shape}-shape of C`}>
           <Tab inst={inst} strings={stringsFor(st.voicing, inst)} />
           <p>
             <strong>Roots:</strong>{' '}
@@ -298,10 +328,10 @@ export default function Step3() {
           </p>
           <p className="tipbox muted">{shapeTip(inst)}</p>
         </Card>
-        <Card title="The chain and its links">
+        <Card level={3} title="The chain and its links">
           <LinkList list={list} />
         </Card>
-        <Card title="Octave shapes: where roots repeat">
+        <Card level={3} title="Octave shapes: where roots repeat">
           <p>Every root has twins. Learn these and you can find any shape from any root.</p>
           <ul>
             <li>Low E string → D string: two frets higher.</li>
@@ -312,19 +342,7 @@ export default function Step3() {
           </ul>
           <p className="muted">Tick “Roots only” and pick All shapes to see every C on the neck.</p>
         </Card>
-        <Card title="To finish this step">
-          <Criteria
-            items={[
-              [best >= CHECK_PASS, `Pass the shape check, level 1 (${CHECK_PASS}/${CHECK_LEN}; best ${best})`],
-              [!!drill, `Finish one clean linking drill on C${drill ? ` (best ${drill} BPM)` : ''}`],
-            ]}
-          />
-          <p className="muted">
-            The full G- and D-shapes are a stretch. Switch to Easy and the anchor roots stay marked, so the links still
-            work. With the mic on, the drill checks your pivots for you.
-          </p>
-        </Card>
-      </div>
+      </Notes>
       <NextLink to="/learn/4">any chord, any key</NextLink>
     </>
   );

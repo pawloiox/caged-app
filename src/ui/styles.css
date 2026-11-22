@@ -1115,23 +1115,82 @@ table.tab .fg {
   border-color: var(--good);
   color: var(--good);
 }
-.criteria {
-  list-style: none !important;
-  padding: 0 !important;
-}
-.criteria li {
+/* What to do in a step: the page's spine, between the title and the workbench. The tasks run in the order the
+   page is used, side by side on wide screens; each number becomes a tick once its task is done. */
+.plan {
   display: flex;
-  gap: 8px;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 12px;
 }
-.criteria li::before {
-  content: '○';
+.plan-title,
+.notes-title {
+  font: 700 1.05rem/1.2 var(--font-body);
+}
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px 36px;
+}
+.plan-list > li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.plan-n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  font: 750 14px var(--font-body);
+}
+.plan-list > li.done .plan-n {
+  border-color: var(--good);
+  background: var(--good);
+  color: #fff;
+}
+.plan-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+.plan-task {
+  font-weight: 650;
+}
+.plan-list > li.done .plan-task {
   color: var(--muted);
-  font-weight: 600;
 }
-.criteria li.ok::before {
-  content: '✓';
-  color: var(--good);
+.plan-detail {
+  color: var(--muted);
+  line-height: 1.45;
+  max-width: 48ch;
+}
+.plan-count {
+  font-size: 14px;
+  color: var(--muted);
+}
+.plan-count strong {
+  color: var(--ink);
+}
+.plan-body .pchips {
+  margin: 4px 0 0;
+}
+.plan-body .pchip {
+  white-space: nowrap;
+}
+/* Background after the workbench: quieter than the tasks above it. */
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 12px;
 }
 .links {
   list-style: none !important;

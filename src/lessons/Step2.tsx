@@ -18,7 +18,19 @@ import {
   type Quality,
   type Shape,
 } from '../theory';
-import { Card, Check, Head, Kbd, LabelSeg, NextLink, QUALITY_OPTS, Seg, ShapeRadio } from '../ui/controls';
+import {
+  Card,
+  Check,
+  Head,
+  Kbd,
+  LabelSeg,
+  NextLink,
+  Notes,
+  QUALITY_OPTS,
+  Seg,
+  ShapeRadio,
+  StepPlan,
+} from '../ui/controls';
 import { useHotkeys, useNeckDirection } from '../ui/hooks';
 
 function geo(shape: Shape, q: Quality) {
@@ -159,6 +171,26 @@ export default function Step2() {
         title="Make the shapes movable"
         lede="In an open chord the nut does the job of a finger. Fret the shape with fingers 2, 3 and 4 instead, lay your index finger across the strings as a barre, and the same shape can move anywhere on the neck."
       />
+      <StepPlan
+        tasks={[
+          {
+            title: 'Free your index finger',
+            detail:
+              "On your guitar, play an open E chord with fingers 2, 3 and 4. Slide everything up one fret and barre with your index: that's F. Two more frets up: G. Same shape, new chord.",
+          },
+          {
+            title: `Solve ${S2_NEED} challenges`,
+            detail:
+              'Each challenge under the fretboard names a chord. Move the shape (the fret slider, or One fret up and down) until it plays that chord: find the root’s fret first. “Show me” doesn’t count.',
+            done: solvedTotal >= S2_NEED,
+            progress: (
+              <p className="plan-count">
+                Solved <strong>{Math.min(solvedTotal, S2_NEED)}</strong> of {S2_NEED}
+              </p>
+            ),
+          },
+        ]}
+      />
       <section className="bench" aria-label="Movable shape workbench">
         <div className="toolbar">
           <ShapeRadio
@@ -262,12 +294,12 @@ export default function Step2() {
           )
         ) : null}
       </section>
-      <div className="cards">
-        <Card title={`Fingering the ${shape}-shape`}>
+      <Notes>
+        <Card level={3} title={`Fingering the ${shape}-shape`}>
           <Tab inst={inst} />
           <p className="tipbox">{SHAPE_TIPS[shape]}</p>
         </Card>
-        <Card title="Major or minor: one note moves">
+        <Card level={3} title="Major or minor: one note moves">
           <p>
             A minor chord is a major chord with its 3rd lowered by one fret. Turn on “Highlight the 3rd” and press Flip
             to see it.
@@ -279,17 +311,7 @@ export default function Step2() {
             <p className="muted">The full minor G-shape is almost never played. Use its middle strings: x-x-2-3-1-x.</p>
           ) : null}
         </Card>
-        <Card title="Try it on your guitar">
-          <ol>
-            <li>Play an open E chord with fingers 2, 3 and 4. Your index finger is now free.</li>
-            <li>Slide everything up one fret and barre with your index: that's F.</li>
-            <li>Up two more frets: G. Same shape, new chord.</li>
-          </ol>
-          <p className="muted">
-            Challenges solved: <strong>{solvedTotal}</strong>. Solve {S2_NEED} to finish this step.
-          </p>
-        </Card>
-      </div>
+      </Notes>
       <NextLink to="/learn/3">map C up the whole neck</NextLink>
     </>
   );

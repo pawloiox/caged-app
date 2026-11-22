@@ -19,7 +19,7 @@ import {
   spell,
   type Shape,
 } from '../theory';
-import { Card, Check, Head, Kbd, LabelSeg, NextLink, ShapeRadio } from '../ui/controls';
+import { Card, Check, Head, Kbd, LabelSeg, NextLink, Notes, ShapeRadio, StepPlan } from '../ui/controls';
 import { useHotkeys } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
 
@@ -250,6 +250,31 @@ export default function Step1() {
           </details>
         </section>
       )}
+      <StepPlan
+        tasks={[
+          {
+            title: "Learn where each chord's roots sit",
+            detail:
+              "Pick a chord, strum it, then play only its roots on your guitar and say the chord's name out loud. Go through all five chords, three times.",
+          },
+          {
+            title: 'Test yourself on all five',
+            detail:
+              'Press “Test yourself” and mark every root with the labels hidden. Each chord you pass gets a tick; all five finish this step.',
+            done: done.size >= 5,
+            progress: (
+              <ul className="pchips" aria-label="Chords passed">
+                {ORDER.map((c) => (
+                  <li key={c} className={`pchip${done.has(c) ? ' done' : ''}`} style={{ ['--sc' as string]: COL[c] }}>
+                    {c}
+                    <span className="sr-only">{done.has(c) ? ' passed' : ' not yet'}</span>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+        ]}
+      />
       <section className="bench" aria-label="Open chord workbench">
         <div className="toolbar">
           <ShapeRadio
@@ -360,8 +385,8 @@ export default function Step1() {
           </p>
         ) : null}
       </section>
-      <div className="cards">
-        <Card title={`${rn} major, open`}>
+      <Notes>
+        <Card level={3} title={`${rn} major, open`}>
           <Tab inst={inst} />
           {test && result !== true ? (
             <p className="muted">Roots hidden during the test.</p>
@@ -371,32 +396,13 @@ export default function Step1() {
             </p>
           )}
         </Card>
-        <Card title="Exercise">
-          <ol>
-            <li>Strum the chord once.</li>
-            <li>Play only its roots and say “{rn}” out loud each time.</li>
-            <li>Go through all five chords, three times.</li>
-          </ol>
-          <p className="muted">
-            Then press “Test yourself”: find the roots without labels. Each chord you pass gets a tick; tick all five to
-            finish this step.
-          </p>
-          <ul className="pchips" aria-label="Chords passed">
-            {ORDER.map((c) => (
-              <li key={c} className={`pchip${done.has(c) ? ' done' : ''}`} style={{ ['--sc' as string]: COL[c] }}>
-                {c}
-                <span className="sr-only">{done.has(c) ? ' passed' : ' not yet'}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-        <Card title="Why the roots matter">
+        <Card level={3} title="Why the roots matter">
           <p>
             Later, each of these chords becomes a movable shape. The shape keeps its roots in the same place relative to
             your fingers, so knowing where the roots are is how you'll name any chord anywhere on the neck.
           </p>
         </Card>
-      </div>
+      </Notes>
       <NextLink to="/learn/2">make the shapes movable</NextLink>
     </>
   );

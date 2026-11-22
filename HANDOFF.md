@@ -683,3 +683,23 @@ headstock 228 px long (was 172), and the grid column grew to match.
   put on scroll.
 - No strap buttons, and no guard screw under the bridge: the user found those dots on the body's edge ugly. The
   trace script still reads the strap points (`body.py`) to smooth the outline there.
+
+## 16. One learning flow on every step (not critic-reviewed)
+
+The user found the steps hard to follow: each page showed its controls first, kept the instructions at the
+bottom mixed with reference notes (in a different column on every page), and put the "to finish" criteria
+somewhere different each time. Every step now follows the same order:
+
+1. Title and lede.
+2. **What to do** (`StepPlan` in `src/ui/controls.tsx`): numbered tasks in the order the page is used. Tasks that
+   count toward finishing the step tick (the number becomes a filled ✓) and show their progress under them: the
+   chords passed (Step 1), challenges solved, best drill tempo and shape-check score, keys predicted, zones
+   confirmed. Untracked tasks are the warm-up ("Walk the chain", "Pick a progression, key and zone").
+3. The workbench (selectors, fretboard, actions), unchanged.
+4. **Good to know** (`Notes`): the reference cards (fingerings, why it matters, how to predict and so on), after
+   the workbench as h3s, so they read as background rather than as instructions.
+5. The Next link.
+
+`Criteria` and the per-step "Exercise", "Try it on your guitar" and "To finish" cards were removed; their text
+moved into the tasks. The completion rules in `src/store/criteria.ts` did not change. The "Chords passed" and
+"Zones confirmed" chip lists keep their names (the layout E2E test finds them by name), now inside the plan.

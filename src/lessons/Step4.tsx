@@ -3,7 +3,7 @@ import { engine, toPlayable } from '../audio/engine';
 import { usePrefs, useProgress } from '../store/app';
 import { PRED_NEED, drillKeysOtherThanC } from '../store/criteria';
 import { chordLabel, chordLong, notesOf, stringsFor } from '../theory';
-import { Card, Criteria, Head, NextLink } from '../ui/controls';
+import { Card, Head, NextLink, Notes, StepPlan } from '../ui/controls';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { MapBench, createMapStore, useMapList } from './map';
@@ -42,21 +42,8 @@ export default function Step4() {
     .map((i) => i.shape)
     .join(' → ');
 
-  const finish = (
-    <Card title="To finish this step">
-      <Criteria
-        items={[
-          [
-            preds >= PRED_NEED,
-            `Predict the starting shape and its fret correctly in ${PRED_NEED} keys (${Math.min(preds, PRED_NEED)}/${PRED_NEED})`,
-          ],
-          [otherKeys >= 1, 'Finish a clean linking drill in a key other than C major'],
-        ]}
-      />
-    </Card>
-  );
   const minorCard = (
-    <Card title="Major or minor">
+    <Card level={3} title="Major or minor">
       <p>Switch to Minor and watch: every shape keeps its roots, and only the 3rd drops one fret.</p>
       <ul>
         <li>E-shape: 3rd on the G string</li>
@@ -75,11 +62,31 @@ export default function Step4() {
         title="Any chord, any key"
         lede="The order C-A-G-E-D loops forever. To play a different chord you enter the loop at a different point. For each new key, work out where the loop starts before the app shows you."
       />
+      <StepPlan
+        tasks={[
+          {
+            title: 'Predict where the loop starts',
+            detail: `Pick a key. Before the app shows the shapes, tap the shape that sits closest to the nut, then the fret it starts at. Get it right in ${PRED_NEED} keys; “Skip, just show me” doesn’t count.`,
+            done: preds >= PRED_NEED,
+            progress: (
+              <p className="plan-count">
+                Right in <strong>{Math.min(preds, PRED_NEED)}</strong> of {PRED_NEED} keys
+              </p>
+            ),
+          },
+          {
+            title: 'Link the shapes in a new key',
+            detail:
+              'Once the shapes show, play one clean linking drill in any key other than C major, the same way as in Step 3.',
+            done: otherKeys >= 1,
+          },
+        ]}
+      />
       <MapBench store={useS4} drill predict />
-      <div className="cards">
+      <Notes>
         {pred ? (
           <>
-            <Card title="How to predict">
+            <Card level={3} title="How to predict">
               <p>Find the lowest root on the low E, A and D strings. Each string anchors certain shapes:</p>
               <ul>
                 <li>
@@ -93,12 +100,11 @@ export default function Step4() {
                 <li>D string: D-shape (root under your index).</li>
               </ul>
             </Card>
-            {finish}
             {minorCard}
           </>
         ) : (
           <>
-            <Card title="Where the loop starts">
+            <Card level={3} title="Where the loop starts">
               <CagedRing list={list} idx={idx} />
               <p>
                 For {chordLong(st.key, st.q, sp)} the loop starts with the {list[0]!.shape}-shape:{' '}
@@ -108,7 +114,7 @@ export default function Step4() {
                 <p className="muted">This chord has no playable G-shape below fret 15, so the loop skips it here.</p>
               )}
             </Card>
-            <Card title={`All shapes of ${chordLabel(st.key, st.q, sp)}`}>
+            <Card level={3} title={`All shapes of ${chordLabel(st.key, st.q, sp)}`}>
               <ShapesTable
                 list={list}
                 idx={idx}
@@ -118,11 +124,10 @@ export default function Step4() {
                 }}
               />
             </Card>
-            {finish}
             {minorCard}
           </>
         )}
-      </div>
+      </Notes>
       <NextLink to="/learn/5">make it musical</NextLink>
     </>
   );

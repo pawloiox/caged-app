@@ -1,5 +1,5 @@
 import * as RadioGroup from '@radix-ui/react-radio-group';
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { COL } from '../fretboard/build';
 import { LABEL_OPTS, MAJOR_NAMES, ORDER, chordLabel, type Quality, type Shape } from '../theory';
@@ -219,16 +219,57 @@ export function NextLink({ to, children }: { to: string; children: ReactNode }) 
   );
 }
 
-export function Criteria({ items }: { items: Array<[boolean, ReactNode]> }) {
+export type Task = {
+  title: ReactNode;
+  detail: ReactNode;
+  /** Set for a task that counts toward finishing the step; left out for practice the app does not track. */
+  done?: boolean;
+  /** Progress toward the task, under its detail: a count or a row of chips. */
+  progress?: ReactNode;
+};
+
+/**
+ * What to do in a step, in the order the page is used: one numbered list under the title, so the page reads top
+ * to bottom. A task that counts toward finishing the step turns into a tick when it is done.
+ */
+export function StepPlan({ tasks }: { tasks: Task[] }) {
+  const id = useId();
   return (
-    <ul className="criteria">
-      {items.map(([ok, t], i) => (
-        <li key={i} className={ok ? 'ok' : ''}>
-          <span className="sr-only">{ok ? 'Done: ' : 'To do: '}</span>
-          {t}
-        </li>
-      ))}
-    </ul>
+    <section className="plan" aria-labelledby={id}>
+      <h2 id={id} className="plan-title">
+        What to do
+      </h2>
+      <ol className="plan-list">
+        {tasks.map((t, i) => (
+          <li key={i} className={t.done ? 'done' : ''}>
+            <span className="plan-n" aria-hidden="true">
+              {t.done ? '✓' : i + 1}
+            </span>
+            <div className="plan-body">
+              <p className="plan-task">
+                {t.title}
+                {t.done == null ? null : <span className="sr-only">{t.done ? ' (done)' : ' (not done yet)'}</span>}
+              </p>
+              <p className="plan-detail">{t.detail}</p>
+              {t.progress}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Background for a step: the reference cards after the workbench, under one heading. */
+export function Notes({ children }: { children: ReactNode }) {
+  const id = useId();
+  return (
+    <section className="notes" aria-labelledby={id}>
+      <h2 id={id} className="notes-title">
+        Good to know
+      </h2>
+      <div className="cards">{children}</div>
+    </section>
   );
 }
 
@@ -236,14 +277,18 @@ export function Card({
   title,
   children,
   className = '',
+  level = 2,
 }: {
   title?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** 3 inside a section that has its own heading (Notes). */
+  level?: 2 | 3;
 }) {
+  const H = level === 3 ? 'h3' : 'h2';
   return (
     <article className={`card ${className}`}>
-      {title ? <h2 className="card-title">{title}</h2> : null}
+      {title ? <H className="card-title">{title}</H> : null}
       {children}
     </article>
   );

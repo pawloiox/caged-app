@@ -39,7 +39,7 @@ import {
   type ChordPlan,
   type Voicing,
 } from '../theory';
-import { Card, Check, FadeSeg, Head, KeyPicker, Kbd, LabelSeg, Seg } from '../ui/controls';
+import { Card, Check, FadeSeg, Head, KeyPicker, Kbd, LabelSeg, Notes, Seg, StepPlan } from '../ui/controls';
 import { useHotkeys, useVertical } from '../ui/hooks';
 import { useMicEvents } from './useMicNotes';
 import { Link, useSearchParams } from 'react-router';
@@ -602,6 +602,36 @@ export default function Step5() {
         title="Make it musical"
         lede="Shapes become music when you stay in one area of the neck and let each chord use whichever shape sits closest. Pick a progression and a zone, then play along on your guitar."
       />
+      <StepPlan
+        tasks={[
+          {
+            title: 'Pick a progression, key and zone',
+            detail:
+              'Start with I – IV – V in C and frets 3–7. The cards under the controls show which shape each chord takes in that zone.',
+          },
+          {
+            title: 'Play the loop on your guitar',
+            detail:
+              'Press Play the loop. After a four-click count-in each chord lasts one bar: play it inside the boxed frets, and keep fingers down on the dashed rings.',
+          },
+          {
+            title: 'Do it in two zones',
+            detail:
+              'With the mic on, the app checks each bar. Without it, answer “Yes, I did” when the loop ends. Then pick another zone.',
+            done: zonesDone.size >= 2,
+            progress: (
+              <ul className="pchips" aria-label="Zones confirmed">
+                {ZONES.map((z) => (
+                  <li key={z.id} className={`pchip${zonesDone.has(z.id) ? ' done' : ''}`}>
+                    {z.name}
+                    <span className="sr-only">{zonesDone.has(z.id) ? ', confirmed' : ''}</span>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+        ]}
+      />
       <section className={`bench${playing ? ' playing' : ''}`} aria-label="Progression player">
         <div className="toolbar">
           <label className="field" htmlFor="prog">
@@ -881,49 +911,34 @@ export default function Step5() {
         </div>
       </section>
       {ear && !own ? <EarCheck chords={chords} progId={s.prog} zoneId={s.zone} onClose={() => setEar(false)} /> : null}
-      <div className="cards">
-        <Card title="To finish this step">
-          <p>
-            Play along with a full loop in two different zones. With the mic on, the app checks each bar and confirms
-            the loop for you; without it, confirm you stayed inside the box. You get a four-click count-in, and each
-            chord lasts one bar.
-          </p>
-          <ul className="pchips" aria-label="Zones confirmed">
-            {ZONES.map((z) => (
-              <li key={z.id} className={`pchip${zonesDone.has(z.id) ? ' done' : ''}`}>
-                {z.name}
-                <span className="sr-only">{zonesDone.has(z.id) ? ', confirmed' : ''}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-        <Card title="Stay in one zone">
+      <Notes>
+        <Card level={3} title="Stay in one zone">
           <p>
             Play every chord without leaving the boxed frets. You'll end up mixing shapes, and that's the point: the
             shape that's closest wins. Notes with a dashed ring are shared with the next chord and use the same finger:
             leave those fingers down.
           </p>
         </Card>
-        <Card title="Partial shapes are normal">
+        <Card level={3} title="Partial shapes are normal">
           <p>
             Strum only 4 strings or play the triads. These small chords sound great, leave room for other instruments
             and are how most players actually use CAGED.
           </p>
         </Card>
-        <Card title="Arpeggiate and aim">
+        <Card level={3} title="Arpeggiate and aim">
           <p>
             Pick each chord's notes one at a time. Turn on “Land on the 3rd” and the first note of every bar becomes the
             chord's 3rd: the note that tells the ear the chord changed. Then try it yourself.
           </p>
         </Card>
-        <Card title="The 12-bar blues with 7ths">
+        <Card level={3} title="The 12-bar blues with 7ths">
           <p>
             Choose “12-bar blues with 7th chords”: every chord becomes a dominant 7th (E7, A7, C7, D7 and G7 forms).
             Four of the forms move one root down two frets to make the ♭7 (E7, A7, D7, G7). The C7 form instead raises
             the 5th on the G string by three frets, and leaves out the high e.
           </p>
         </Card>
-      </div>
+      </Notes>
       <div className="next">
         <Link className="btn" to="/practice">
           Next: start your daily routine

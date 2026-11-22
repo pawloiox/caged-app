@@ -53,9 +53,10 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Nickel-silver fret wire with a lit crown and a shadow, and a bone nut.
    - Phosphor-bronze wound strings (low E, A, D, G) with visible winding, and plain steel B and e, each casting
      a shadow on the wood.
-7. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case), and
-   supporting notes sit in margin columns under nickel rules. There are no boxed cards and no drop shadows; the
-   one shadow is on floating menus, which do float.
+7. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case). Each
+   step opens with a numbered "What to do" list, and supporting notes ("Good to know") sit after the workbench in
+   columns under nickel rules. There are no boxed cards and no drop shadows; the one shadow is on floating menus,
+   which do float.
 
 ## Tokens (`src/ui/styles.css`)
 
