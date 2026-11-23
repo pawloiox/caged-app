@@ -38,8 +38,8 @@ const TOOLS = [
   { to: '/tuner', t: 'Tuner' },
 ] as const;
 
-/** Phones (860 px and below): the neck is an upright neck in a drawer that slides in from the left. */
-const PHONE = '(max-width: 860px)';
+/** Phones only (styles.css uses the same query): the neck is an upright neck in a drawer from the left. */
+const PHONE = '(max-width: 600px), (max-width: 860px) and (pointer: coarse) and (max-height: 500px)';
 function usePhone(): boolean {
   const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
   useEffect(() => {

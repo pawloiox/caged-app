@@ -46,7 +46,10 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Every item fits from 1280 px up (fret labels tighten below 1600, and again below 1440 in a narrower width of
      Archivo). Narrower, the neck scrolls sideways
      between headstock and body.
-   - At 860 px and below the guitar stands up in a drawer. A top row holds Menu (a little fretboard icon), the brand
+   - At 860 px and below (tablets, narrow windows) the brand and the knobs share a top row and the neck runs full
+     width under it, scrolling sideways.
+   - On phones only (600 px wide and below, or a touch screen under 500 px tall, a phone held sideways) the guitar
+     stands up in a drawer instead. A top row holds Menu (a little fretboard icon), the brand
      and the knobs. Menu slides the drawer in from the left over a dimmed page: the same headstock, turned a quarter
      turn and cut by the drawer's top edge, then the neck running down it, with each step's pearl on its fret and the
      label beside it (the current page underlined like a chosen word), the 12th-fret double inlay, the tools, and the

@@ -2261,7 +2261,7 @@ table.shapes button.rowbtn {
     position: static;
   }
   /* No room for a whole guitar: the brand and the knobs share a top row, and the neck runs full width below,
-     scrolling sideways. */
+     scrolling sideways. Phones put the neck in a drawer instead (below). */
   :root {
     --nav-clear: 72px;
   }
@@ -2269,18 +2269,94 @@ table.shapes button.rowbtn {
     --neck-cut: 0px;
     position: relative;
     top: auto;
-    /* No stacking context of its own, so the drawer and its scrim layer over the page and the mini-player. */
-    z-index: auto;
-    grid-template-columns: auto auto 1fr;
-    grid-template-areas: 'menu head controls';
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'head controls'
+      'neck neck';
     align-items: center;
     height: auto;
     margin: 0;
     padding: 4px 0 0;
+    row-gap: 4px;
   }
   .headstock {
     grid-area: head;
     height: auto;
+    padding-left: 12px;
+  }
+  .headstock-art,
+  .body-art,
+  .neck-end {
+    display: none;
+  }
+  .brand-plain {
+    display: inline-flex;
+  }
+  .neck {
+    grid-area: neck;
+  }
+  .fret-tail {
+    display: none;
+  }
+  .neck-board {
+    padding-right: 0;
+  }
+  .gbody {
+    grid-area: controls;
+    width: auto;
+    height: auto;
+    margin: 0;
+    justify-self: end;
+    padding-right: 12px;
+  }
+  .controls {
+    position: static;
+    gap: 4px 10px;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    color: var(--ink);
+  }
+  .controls .xp,
+  .controls .xp b {
+    color: var(--ink);
+  }
+  .knob-btn {
+    min-height: var(--tap);
+    padding: 0 6px;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .knob-btn:focus-visible {
+    outline-color: var(--ink);
+  }
+  .knob-face {
+    width: 26px;
+    height: 26px;
+  }
+  .knob-face::before {
+    inset: 4px;
+  }
+  .knob-pointer::after {
+    top: 5px;
+    height: 6px;
+  }
+  .mic-led {
+    min-height: var(--tap);
+  }
+}
+/* Phones only (portrait by width; held sideways, a short touch screen): the neck goes into a drawer opened with
+   Menu. Tablets and narrow desktop windows keep the top row and the sideways neck above. Layout.tsx PHONE matches. */
+@media (max-width: 600px), (max-width: 860px) and (pointer: coarse) and (max-height: 500px) {
+  .guitar {
+    /* No stacking context of its own, so the drawer and its scrim layer over the page and the mini-player. */
+    z-index: auto;
+    grid-template-columns: auto auto 1fr;
+    grid-template-areas: 'menu head controls';
+    row-gap: 0;
+  }
+  .headstock {
     padding-left: 6px;
   }
   .menu-btn {
@@ -2301,14 +2377,6 @@ table.shapes button.rowbtn {
   .menu-btn:focus-visible {
     outline: 2.5px solid var(--ink);
     outline-offset: 0;
-  }
-  .headstock-art,
-  .body-art,
-  .neck-end {
-    display: none;
-  }
-  .brand-plain {
-    display: inline-flex;
   }
   /* ===== The drawer =====
      The neck stands upright in a drawer that slides in from the left: the headstock at the top, cut by the
@@ -2507,6 +2575,7 @@ table.shapes button.rowbtn {
   }
   /* Past the tools, the frets close up toward the body and fill what is left of the drawer. */
   .neck .fret-tail {
+    display: block;
     flex: 1 0 40px;
   }
   .neck .fret-tail-inner {
@@ -2525,50 +2594,6 @@ table.shapes button.rowbtn {
   .neck .fret-deco.dot::before {
     top: calc(50% - 1.5px);
     left: 50%;
-  }
-  .gbody {
-    grid-area: controls;
-    width: auto;
-    height: auto;
-    margin: 0;
-    justify-self: end;
-    padding-right: 12px;
-  }
-  .controls {
-    position: static;
-    gap: 4px 10px;
-    padding: 0;
-    background: none;
-    backdrop-filter: none;
-    box-shadow: none;
-    color: var(--ink);
-  }
-  .controls .xp,
-  .controls .xp b {
-    color: var(--ink);
-  }
-  .knob-btn {
-    min-height: var(--tap);
-    padding: 0 6px;
-    color: var(--ink);
-    font-size: 13px;
-  }
-  .knob-btn:focus-visible {
-    outline-color: var(--ink);
-  }
-  .knob-face {
-    width: 26px;
-    height: 26px;
-  }
-  .knob-face::before {
-    inset: 4px;
-  }
-  .knob-pointer::after {
-    top: 5px;
-    height: 6px;
-  }
-  .mic-led {
-    min-height: var(--tap);
   }
 }
 @media (max-width: 480px) {
