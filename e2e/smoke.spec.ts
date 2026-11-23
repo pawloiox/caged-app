@@ -340,15 +340,26 @@ test('scale library: 2NPS pentatonic boxes and 3NPS patterns, in any key, linkab
   await expect(board).toHaveAttribute('aria-label', /^A harmonic minor, pattern 7, /);
 });
 
-test('tablets and narrow windows keep the neck on top: no drawer, no Menu', async ({ page }) => {
-  await page.setViewportSize({ width: 768, height: 1024 });
+test('wide, short windows keep the neck on top; any screen taller than wide gets the Menu drawer', async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 700 });
   await page.goto('/explore');
   await settled(page);
   await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
-  const nav = page.getByRole('navigation', { name: /./ }).filter({ has: page.getByRole('link', { name: 'Scales' }) });
+  const nav = page.locator('#site-nav');
   await expect(nav.getByRole('link', { name: 'Scales' })).toBeVisible();
   const box = await nav.boundingBox();
   // The neck runs across the page under the top row, not down the left edge.
   expect(box!.width).toBeGreaterThan(700);
   expect(box!.y).toBeLessThan(120);
+
+  // A tablet or a window held upright, however wide: the neck stands up in the drawer.
+  await page.setViewportSize({ width: 1024, height: 1366 });
+  const menu = page.getByRole('button', { name: 'Menu' });
+  await expect(menu).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Scales' })).toBeHidden();
+  await menu.click();
+  await expect(nav.getByRole('link', { name: 'Scales' })).toBeVisible();
+  await expect.poll(async () => (await nav.boundingBox())!.x).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeFocused();
 });

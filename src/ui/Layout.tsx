@@ -38,12 +38,13 @@ const TOOLS = [
   { to: '/tuner', t: 'Tuner' },
 ] as const;
 
-/** Phones only (styles.css uses the same query): the neck is an upright neck in a drawer from the left. */
-const PHONE = '(max-width: 600px), (max-width: 860px) and (pointer: coarse) and (max-height: 500px)';
-function usePhone(): boolean {
-  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
+/** Screens taller than wide, phone widths and phones held sideways (styles.css uses the same query): the neck is an
+ * upright neck in a drawer from the left, opened with Menu. */
+const DRAWER = '(orientation: portrait), (max-width: 600px), (pointer: coarse) and (max-height: 500px)';
+function useDrawerNav(): boolean {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(DRAWER).matches);
   useEffect(() => {
-    const mq = window.matchMedia(PHONE);
+    const mq = window.matchMedia(DRAWER);
     const on = () => setPhone(mq.matches);
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
@@ -186,7 +187,7 @@ export function Layout() {
   const neckRef = useRef<HTMLElement>(null);
   const guitarRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
-  const phone = usePhone();
+  const phone = useDrawerNav();
   const [open, setOpen] = useState(false);
   const drawer = phone && open;
   /** Close the drawer; focus goes back to the menu button unless a link is taking it to the new page. */

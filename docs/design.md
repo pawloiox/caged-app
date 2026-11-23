@@ -46,16 +46,19 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Every item fits from 1280 px up (fret labels tighten below 1600, and again below 1440 in a narrower width of
      Archivo). Narrower, the neck scrolls sideways
      between headstock and body.
-   - At 860 px and below (tablets, narrow windows) the brand and the knobs share a top row and the neck runs full
-     width under it, scrolling sideways.
-   - On phones only (600 px wide and below, or a touch screen under 500 px tall, a phone held sideways) the guitar
-     stands up in a drawer instead. A top row holds Menu (a little fretboard icon), the brand
+   - At 860 px and below in landscape (tablets on their side, narrow windows) the brand and the knobs share a top
+     row and the neck runs full width under it, scrolling sideways.
+   - Any screen taller than wide (phones, tablets held upright, tall windows), and phones of any shape (600 px wide
+     and below, or a touch screen under 500 px tall) stand the guitar up in a drawer instead. A top row holds Menu (a little fretboard icon), the brand
      and the knobs. Menu slides the drawer in from the left over a dimmed page: the same headstock, turned a quarter
      turn and cut by the drawer's top edge, then the neck running down it, with each step's pearl on its fret and the
      label beside it (the current page underlined like a chosen word), the 12th-fret double inlay, the tools, and the
      upper frets closing up to the bottom. The headstock is the home link here too; at 480 px and below it is the only
      one, as the brand leaves the top row. Escape, Close, tapping the page or choosing a fret closes the drawer, and
      Tab stays inside it while it is open.
+   - On touch screens every choice is at least 44 px each way, taps never double-tap zoom, menus are 16 px so iOS
+     does not zoom to them, and with the phone on its side the page, the top row and the drawer stay clear of the
+     notch.
 5. **Pearl inlays.** The position markers on every fretboard (frets 3, 5, 7, 9, 12, 15) and the neck's step
    inlays are mother-of-pearl: a cool nacre base, soft pastel iridescent bands that slowly slide across (as when
    the guitar tilts in the light; neighbouring inlays move on opposite diagonals), a glint that travels up the
