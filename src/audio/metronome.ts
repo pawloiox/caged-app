@@ -4,7 +4,7 @@
  * Unlike a page's loop it keeps going from page to page (Layout.tsx), until it is stopped.
  */
 import { create } from 'zustand';
-import { setPrefs, usePrefs } from '../store/app';
+import { setPrefs, toast, usePrefs } from '../store/app';
 import { METRO_MAX, METRO_MIN } from '../store/types';
 import { engine } from './engine';
 import { isLooping, setLoopBpm, startLoop, stopLoop, usePlayer } from './transport';
@@ -51,7 +51,12 @@ export function stopPageLoop(): void {
 
 export function toggleMetronome(): void {
   if (isLooping(METRO_ID)) stopLoop();
-  else void startMetronome();
+  else
+    // Say so if it can't start, rather than leave Start looking pressed with nothing playing.
+    void startMetronome().then(
+      (ok) => ok || toast("This browser can't play sound, so the metronome can't run."),
+      () => toast("The metronome couldn't start. Reload the page and try again."),
+    );
 }
 
 /** A new tempo: kept for next time, and heard from the next beat if it is playing. */

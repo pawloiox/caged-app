@@ -403,3 +403,29 @@ test('metronome: opened from the knob strip on any page, it plays on across page
   await expect(pop.locator('.metro-bpm')).toHaveText('81 BPM');
   await expect(pop.getByRole('radio', { name: '3' })).toHaveAttribute('aria-checked', 'true');
 });
+
+test('metronome: clicks in a browser whose audio listener lacks positionX…upZ (Firefox)', async ({ page }) => {
+  await page.addInitScript(() => {
+    // Firefox's AudioListener has only setPosition and setOrientation; Tone asserted the params and never started.
+    for (const k of ['positionX', 'positionY', 'positionZ', 'forwardX', 'forwardY', 'forwardZ', 'upX', 'upY', 'upZ'])
+      delete (AudioListener.prototype as unknown as Record<string, unknown>)[k];
+    const w = window as unknown as { clicks: number };
+    w.clicks = 0;
+    const start = OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start = function (...a: Parameters<OscillatorNode['start']>) {
+      w.clicks++;
+      return start.apply(this, a);
+    };
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/practice');
+  await page.getByRole('button', { name: /^Metronome/ }).click();
+  await page.getByRole('dialog', { name: 'Metronome' }).getByRole('button', { name: 'Start' }).click();
+  // 80 BPM: a click every 0.75 s.
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { clicks: number }).clicks))
+    .toBeGreaterThanOrEqual(3);
+  await expect(page.locator('.metro-lights span.on')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

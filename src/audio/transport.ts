@@ -11,10 +11,36 @@ let tonePromise: Promise<ToneNS> | null = null;
 /** Set once Tone has loaded, so stopping is synchronous (an async stop could cancel the next start). */
 let toneNS: ToneNS | null = null;
 
+const LISTENER_PARAMS = [
+  'positionX',
+  'positionY',
+  'positionZ',
+  'forwardX',
+  'forwardY',
+  'forwardZ',
+  'upX',
+  'upY',
+  'upZ',
+];
+
+/**
+ * Firefox's AudioListener has no positionX…upZ params (only the old setPosition and setOrientation). Tone builds a
+ * Listener on every context and asserts those params are AudioParams, so without them its Transport is never made
+ * and nothing timed plays. Nothing here is placed in space, so spare params from an unconnected gain stand in.
+ */
+export function patchListener(ctx: BaseAudioContext): void {
+  const l = ctx.listener as unknown as Record<string, unknown>;
+  for (const k of LISTENER_PARAMS) {
+    if (l[k] instanceof AudioParam) continue;
+    Object.defineProperty(l, k, { value: ctx.createGain().gain, configurable: true });
+  }
+}
+
 export function loadTone(): Promise<ToneNS> {
   if (!tonePromise) {
     tonePromise = import('tone').then((Tone) => {
       const ctx = engine.ensure();
+      if (ctx) patchListener(ctx);
       // Tone opens a context of its own on import; replace it with ours and close it, so there is one.
       if (ctx) Tone.setContext(ctx, true);
       Tone.getContext().lookAhead = 0.05;
