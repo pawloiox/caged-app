@@ -282,3 +282,44 @@ function stretchFingers(fs: number[]): string[] {
   if (a === 1 && b === 1) return ['1', '2', '3'];
   return ['1', '2', '4'];
 }
+
+export interface ScaleMatch {
+  sc: ScaleDef;
+  /** The root's pitch class. */
+  key: number;
+  /** How many of the scale's notes weren't among those given. */
+  extra: number;
+}
+
+/** Fewer than this many different notes fit too many scales to be worth listing. */
+export const FIND_MIN_NOTES = 3;
+
+/**
+ * The scales, in every key, that hold all of the pitch classes given: for the scale finder. Closest fit first (the
+ * fewest notes beyond those given), then those rooted on the lowest note played (the likeliest home note), then
+ * those rooted on any note played, then the library's order, which runs from the most played scales.
+ * With `root`, only scales on that root.
+ */
+export function findScales(
+  pcs: readonly number[],
+  { root = null, lowest = null }: { root?: number | null; lowest?: number | null } = {},
+): ScaleMatch[] {
+  const given = new Set(pcs.map(mod12));
+  if (given.size === 0) return [];
+  const out: (ScaleMatch & { rank: number[] })[] = [];
+  SCALES.forEach((sc, order) => {
+    for (let key = 0; key < 12; key++) {
+      if (root != null && key !== mod12(root)) continue;
+      const notes = new Set(sc.steps.map((s) => mod12(key + s)));
+      if (![...given].every((pc) => notes.has(pc))) continue;
+      const extra = notes.size - given.size;
+      const onLowest = lowest != null && key === mod12(lowest) ? 0 : 1;
+      out.push({ sc, key, extra, rank: [extra, onLowest, given.has(key) ? 0 : 1, order, key] });
+    }
+  });
+  const cmp = (a: number[], b: number[]) => {
+    for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k]! - b[k]!;
+    return 0;
+  };
+  return out.sort((a, b) => cmp(a.rank, b.rank)).map(({ sc, key, extra }) => ({ sc, key, extra }));
+}

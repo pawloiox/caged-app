@@ -24,9 +24,11 @@ import {
   scalesFor,
   type Nps,
   type PatternNote,
+  type ScaleMatch,
 } from '../theory';
 import { Card, Check, Kbd, PageHead, Seg } from '../ui/controls';
 import { useHotkeys, useNeckDirection } from '../ui/hooks';
+import { EMPTY_FINDER, Finder, type FinderState } from './Finder';
 
 type Labels = 'iv' | 'note' | 'finger' | 'none';
 const LABELS: ReadonlyArray<readonly [Labels, string]> = [
@@ -47,16 +49,21 @@ function useScaleParams() {
   const key = params.get('key') != null && Number.isInteger(k) ? mod12(k) : 9;
   const p = Number(params.get('p'));
   const n = Number.isInteger(p) && p >= 1 && p <= sc.steps.length ? p : 1;
-  const set = (next: { scale?: string; key?: number; p?: number }) => {
+  const finding = params.get('find') === '1';
+  const set = (next: { scale?: string; key?: number; p?: number; find?: boolean }) => {
     const q = new URLSearchParams(params);
-    for (const [name, v] of Object.entries(next)) q.set(name, String(v));
+    for (const [name, v] of Object.entries(next))
+      if (v === false) q.delete(name);
+      else q.set(name, v === true ? '1' : String(v));
     setParams(q, { replace: true });
   };
-  return { sc, nps, key, n, set };
+  return { sc, nps, key, n, finding, set };
 }
 
 export default function Scales() {
-  const { sc, nps, key, n, set } = useScaleParams();
+  const { sc, nps, key, n, finding, set } = useScaleParams();
+  const [finder, setFinder] = useState<FinderState>(EMPTY_FINDER);
+  const boardRef = useRef<HTMLElement>(null);
   const [labels, setLabels] = useState<Labels>('iv');
   const [whole, setWhole] = useState(true);
   const [bpm, setBpm] = useState<number>(80);
@@ -146,10 +153,41 @@ export default function Scales() {
   };
   // Leaving the page stops the pattern; so does choosing another scale (its notes would no longer be on the board).
   useEffect(() => () => void (usePlayer.getState().id === PLAYER && stopLoop()), []);
-  useEffect(() => void (usePlayer.getState().id === PLAYER && stopLoop()), [sc.id, key]);
+  useEffect(() => void (usePlayer.getState().id === PLAYER && stopLoop()), [sc.id, key, finding]);
   useEffect(() => void (usePlayer.getState().id === PLAYER && setLoopBpm(bpm)), [bpm]);
 
-  useHotkeys({ space: play, lower: () => go(place - 1), higher: () => go(place + 1) });
+  useHotkeys(finding ? {} : { space: play, lower: () => go(place - 1), higher: () => go(place + 1) });
+  const learn = (m: ScaleMatch) => {
+    set({ scale: m.sc.id, key: m.key, p: 1, find: false });
+    // Back up to the top of the bench, where the patterns now are.
+    requestAnimationFrame(() => boardRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  };
+  const modeSeg = (
+    <div className="toolbar">
+      <Seg
+        value={finding ? 'find' : 'patterns'}
+        options={[
+          ['patterns', 'Scale patterns'],
+          ['find', 'Find a scale'],
+        ]}
+        onChange={(v) => set({ find: v === 'find' })}
+        label="Show"
+      />
+    </div>
+  );
+  if (finding)
+    return (
+      <>
+        <PageHead
+          title="Find a scale"
+          lede="Pick out the notes of a riff, a solo or a chord on the neck, and see every scale that holds them all, in any key. The closest fits come first, and those starting on your lowest note before the rest."
+        />
+        <section className="bench" aria-label="Scale finder" ref={boardRef}>
+          {modeSeg}
+          <Finder state={finder} onState={setFinder} onLearn={learn} />
+        </section>
+      </>
+    );
 
   // 2NPS: the hand moved up a fret when a top string's lower note takes the index finger above the box's start.
   const shift = nps === 2 && pat.notes.some((x, k) => x.s >= 4 && fingers[k] === '1' && x.f > Math.max(1, pat.lo));
@@ -161,7 +199,8 @@ export default function Scales() {
         title="Scale patterns"
         lede="Every scale in every key, as the patterns guitarists learn it by: two notes per string for the pentatonic scales, three per string for the seven-note scales. Each pattern starts from a different note on the low E string, and together they cover the neck."
       />
-      <section className="bench" aria-label="Scale patterns">
+      <section className="bench" aria-label="Scale patterns" ref={boardRef}>
+        {modeSeg}
         <div className="toolbar">
           <Seg<Nps>
             value={nps}

@@ -41,6 +41,8 @@ const LEG: Record<string, [ReactNode, string]> = {
   ],
   dim: [<circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35" />, 'Other shapes'],
   other: [<circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35" />, 'The same scale in the other patterns'],
+  picked: [<circle cx="11" cy="11" r="8" fill="var(--muted)" />, 'A note you picked'],
+  rest: [<circle cx="11" cy="11" r="8" fill="var(--muted)" opacity=".35" />, 'The rest of the scale'],
   pent: [
     <circle cx="11" cy="11" r="7" fill="#3a2216" stroke="var(--muted)" strokeWidth="2" />,
     'Scale note outside this shape',

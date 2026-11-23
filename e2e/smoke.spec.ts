@@ -11,6 +11,7 @@ const ROUTES = [
   '/explore',
   '/scales',
   '/scales?scale=lydian&key=6&p=4',
+  '/scales?find=1',
   '/practice',
   '/train/shape',
   '/train/chord',
@@ -151,6 +152,7 @@ test('exactly one live region on every page', async ({ page }) => {
     '/learn/5',
     '/explore',
     '/scales',
+    '/scales?find=1',
     '/practice',
     '/train/shape',
     '/train/review',
@@ -338,6 +340,66 @@ test('scale library: 2NPS pentatonic boxes and 3NPS patterns, in any key, linkab
   // A link opens the same pattern.
   await page.goto('/scales?scale=harmonic-minor&key=9&p=7');
   await expect(board).toHaveAttribute('aria-label', /^A harmonic minor, pattern 7, /);
+});
+
+test('scale finder: tap notes on the neck and the scales holding them all are listed, closest first', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/scales');
+  await page.getByRole('radio', { name: 'Find a scale' }).click();
+  await expect(page).toHaveURL(/find=1/);
+  await expect(page.locator('h1')).toHaveText('Find a scale');
+  const cell = (s: number, f: number) => page.locator(`#find-board .hit[data-s="${s}"][data-f="${f}"]`);
+  const now = page.locator('.finder-now');
+  await expect(now).toContainText('Tap the notes you know');
+  // A, then C: not enough to go on yet.
+  await cell(0, 5).click();
+  await cell(0, 8).click();
+  await expect(now).toHaveText('You picked A and C. Pick one more note to narrow it down.');
+  await expect(page.locator('.match')).toHaveCount(0);
+  // A C D E G from the 5th fret: A minor pentatonic first (rooted on the lowest note), then C major pentatonic.
+  for (const [s, f] of [
+    [1, 5],
+    [1, 7],
+    [2, 5],
+  ] as const)
+    await cell(s, f).click();
+  await expect(page.locator('.finder-head')).toHaveText('24 scales with A, C, D, E and G');
+  const list = page.getByRole('radiogroup', { name: 'Matching scales' });
+  await expect(list.getByRole('radio').first()).toHaveAccessibleName(/^A minor pentatonic.*Exactly these notes$/);
+  await expect(list.getByRole('radio').first()).toHaveAttribute('aria-checked', 'true');
+  await expect(list.getByRole('radio').nth(1)).toHaveAccessibleName(/^C major pentatonic/);
+  await expect(now).toHaveText('A minor pentatonic fits best, of the 24 scales listed below the neck.');
+  // The picked notes are drawn solid, and the rest of the chosen scale faintly around them.
+  await expect(page.locator('#find-board .dot:not(.dim)')).toHaveCount(5);
+  expect(await page.locator('#find-board .dot.dim').count()).toBeGreaterThan(20);
+  await expect(page.locator('.sr-only[role="status"]')).toHaveText(/A minor pentatonic fits best/);
+  // Eight at first, and all on asking.
+  await expect(list.getByRole('radio')).toHaveCount(8);
+  await page.getByRole('button', { name: 'Show all 24' }).click();
+  await expect(list.getByRole('radio')).toHaveCount(24);
+  // Choosing another shows it on the neck, spelled its own way.
+  await list.getByRole('radio', { name: /^D natural minor/ }).click();
+  await expect(now).toHaveText('Showing D natural minor, one of the 24 scales listed below the neck.');
+  await expect(list.getByRole('radio', { name: /^D natural minor/ })).toHaveAccessibleName(/Adds F and B♭/);
+  // A root keeps only the scales on it.
+  await page.getByRole('radiogroup', { name: 'Root' }).getByRole('radio', { name: 'C', exact: true }).click();
+  await expect(page.locator('.finder-head')).toHaveText(/scales with C, D, E, G and A$/);
+  await expect(list.getByRole('radio').first()).toHaveAccessibleName(/^C major pentatonic/);
+  // Tapping a picked note takes it off.
+  await cell(2, 5).click();
+  await expect(page.locator('#find-board .dot:not(.dim)')).toHaveCount(4);
+  // Learning the chosen scale opens its patterns.
+  await page.getByRole('button', { name: 'Learn the C major pentatonic patterns' }).click();
+  await expect(page).not.toHaveURL(/find=1/);
+  await expect(page.locator('#scale-board svg.fb')).toHaveAttribute('aria-label', /^C major pentatonic, pattern 1/);
+  // Back in the finder, the notes are still there, and Clear takes them all off.
+  await page.getByRole('radio', { name: 'Find a scale' }).click();
+  await expect(page.locator('#find-board .dot:not(.dim)')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Clear the notes' }).click();
+  await expect(page.locator('#find-board .dot')).toHaveCount(0);
+  await noSeriousA11y(page, 'scale finder');
 });
 
 test('wide, short windows keep the neck on top; any screen taller than wide gets the Menu drawer', async ({ page }) => {

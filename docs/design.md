@@ -81,7 +81,10 @@ often a phone. The interface has one job: show the neck and what to play next, r
    pentatonic boxes and 3NPS seven-note patterns. Each pentatonic box is a CAGED shape's box, so its dots take
    that shape's colour and its pattern button carries the shape's pill. The 3NPS patterns are not CAGED shapes, so
    their dots are neutral, with the root picked out the way the other neutral boards do it. The rest of the scale
-   shows as dim dots, so the pattern stays the one bright thing on the neck.
+   shows as dim dots, so the pattern stays the one bright thing on the neck. The scale finder (Find a scale, on
+   the same page) works the other way round: tap notes on a neutral neck and every scale holding them all is
+   listed, the closest fit first. The notes you picked are solid, the chosen match's other notes dim around them,
+   and the best fit is named in a line above the neck, so a phone shows the answer without scrolling.
 8. **A method-book page, not a dashboard.** Sections are divided by a heavy ink rule (the edge of a case). Each
    step opens with a numbered "What to do" list, and supporting notes ("Good to know") sit after the workbench in
    columns under nickel rules. There are no boxed cards and no drop shadows; the one shadow is on floating menus,

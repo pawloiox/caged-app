@@ -156,3 +156,29 @@ test('390px phone: the metronome is an icon in the top row, and plays on through
   await page.getByRole('region', { name: 'Now playing' }).getByRole('button', { name: 'Stop' }).tap();
   await expect(knob).toHaveAccessibleName('Metronome');
 });
+
+test('390px phone: the scale finder fits, with 44px targets and the best fit in view above the neck', async ({
+  page,
+}) => {
+  await page.goto('/scales?find=1');
+  for (const [s, f] of [
+    [0, 5],
+    [0, 8],
+    [1, 5],
+  ] as const)
+    await page.locator(`#find-board .hit[data-s="${s}"][data-f="${f}"]`).click();
+  await expect(page.locator('.board-wrap.vertical')).toHaveCount(1);
+  const now = page.locator('.finder-now');
+  await expect(now).toContainText('fits best');
+  await expect(now).toBeInViewport();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  const small = await page.$$eval('main .btn, main [role=radio], main .check, main .tap-link', (els) =>
+    els
+      .filter((e) => (e as HTMLElement).offsetParent !== null)
+      .map((e) => ({ t: (e.textContent ?? '').trim().slice(0, 30), h: e.getBoundingClientRect().height }))
+      .filter((x) => x.h < 43.5),
+  );
+  expect(small).toEqual([]);
+  await noSeriousA11y(page, 'mobile scale finder');
+});

@@ -2855,3 +2855,78 @@ table.shapes button.rowbtn {
     max-width: none;
   }
 }
+
+/* ---------- scale finder ---------- */
+.finder-results {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+.finder-head {
+  font-size: 1.35rem;
+  font-stretch: var(--condensed);
+  font-weight: 760;
+}
+/* The matches: rows read across, each its scale, its notes (yours in ink) and what it adds. The chosen one is
+   marked like a chosen option, with a bar of ink, and shown on the neck. */
+.matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 0 28px;
+  width: 100%;
+}
+.match {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  padding: 10px 0 10px 14px;
+  min-height: var(--tap);
+  border-radius: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--muted);
+}
+.match:hover .match-name {
+  color: var(--ink);
+}
+.match[data-state='checked'] {
+  box-shadow: inset 3px 0 0 var(--ink);
+  color: var(--ink);
+}
+.match-name {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.match[data-state='checked'] .match-name {
+  font-weight: 780;
+}
+.match-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.6em;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.match-notes .have {
+  color: var(--ink);
+  font-weight: 720;
+}
+.match-fit {
+  font-size: 14px;
+  color: var(--muted);
+}
+.finder-now {
+  max-width: 62ch;
+  min-height: 1.5em;
+  margin: -6px 0;
+  color: var(--muted);
+}
+.finder-now strong {
+  color: var(--ink);
+}
