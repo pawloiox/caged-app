@@ -69,7 +69,7 @@ test('390px phone: Train Ear + hand draws only the zone on the upright neck', as
   expect(await board.getByRole('button', { name: /fret 15,/ }).count()).toBe(0);
 });
 
-test('390px phone: the neck is a drawer from the left, opened with Menu', async ({ page }) => {
+test('390px phone: the guitar is a drawer from the right, opened with Menu', async ({ page }) => {
   await page.goto('/scales');
   await expect(page.locator('h1')).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'Lessons and tools' });
@@ -77,22 +77,37 @@ test('390px phone: the neck is a drawer from the left, opened with Menu', async 
   // Closed: the frets are out of sight and out of reach.
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   await expect(nav.getByRole('link', { name: 'Explorer' })).toBeHidden();
-  expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  // Open: it slides in from the left edge, on the current page's fret.
+  const mb = (await menu.boundingBox())!;
+  expect(mb.height).toBeGreaterThanOrEqual(44);
+  // Menu sits at the right end of the top row, on the side the drawer comes from.
+  expect(mb.x + mb.width).toBeGreaterThan(390 - 24);
+  // Open: it slides in from the right edge, on the frets, with the current page's focused.
   await menu.tap();
   await expect(menu).toHaveAttribute('aria-expanded', 'true');
   const scales = nav.getByRole('link', { name: 'Scales' });
   await expect(scales).toBeFocused();
   await expect(nav).toHaveClass(/open/);
-  await page.waitForTimeout(400);
-  const box = (await nav.boundingBox())!;
-  expect(box.x).toBe(0);
-  expect(box.height).toBeGreaterThanOrEqual(800);
+  await expect.poll(async () => Math.round((await nav.boundingBox())!.x + (await nav.boundingBox())!.width)).toBe(390);
+  expect((await nav.boundingBox())!.height).toBeGreaterThanOrEqual(800);
+  // It opens on the frets: the first step is in view and the headstock is mostly above, there for scrolling up to.
+  await expect(nav.getByRole('link', { name: /Step 1/ })).toBeInViewport();
+  const head = (await nav.locator('.drawer-headstock').boundingBox())!;
+  expect(head.y + head.height).toBeLessThanOrEqual(80);
+  // The whole guitar is there: scrolled to the top, the headstock is all in view; to the end, the body.
+  await nav.evaluate((e) => (e.scrollTop = 0));
+  await expect(nav.locator('.drawer-headstock .headstock-art')).toBeInViewport({ ratio: 0.99 });
+  await nav.evaluate((e) => (e.scrollTop = e.scrollHeight));
+  await expect(nav.locator('.drawer-body .body-art')).toBeInViewport({ ratio: 0.99 });
+  // Close stays at the top however far it is scrolled.
+  const close = nav.getByRole('button', { name: 'Close' });
+  await expect(close).toBeInViewport();
   // Every fret is a full tap target.
   for (const l of await nav.getByRole('link').all()) expect((await l.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await noSeriousA11y(page, 'mobile drawer');
-  // Tab stays in the drawer: from the last fret it goes round to the home headstock.
+  // Tab stays in the drawer: from the last fret it goes round to Close, then the home headstock.
   await nav.getByRole('link', { name: 'Tuner' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(nav.getByRole('link', { name: 'CAGED Lab home' })).toBeFocused();
   // Escape closes it, back on Menu.
@@ -102,7 +117,7 @@ test('390px phone: the neck is a drawer from the left, opened with Menu', async 
   // Tapping the page beside it closes it too.
   await menu.tap();
   await expect(menu).toHaveAttribute('aria-expanded', 'true');
-  await page.mouse.click(370, 600);
+  await page.mouse.click(20, 600);
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   // A fret goes to its page and the drawer closes, with focus on the new heading.
   await menu.tap();

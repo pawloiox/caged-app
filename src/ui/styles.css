@@ -829,8 +829,10 @@ kbd {
 
 /* The phone drawer's parts (the menu button, the headstock and upright neck, the scrim) exist only on phones. */
 .menu-btn,
+.drawer-bar,
 .drawer-head,
 .drawer-neck,
+.drawer-body,
 .scrim {
   display: none;
 }
@@ -2378,20 +2380,21 @@ table.shapes button.rowbtn {
   .guitar {
     /* No stacking context of its own, so the drawer and its scrim layer over the page and the mini-player. */
     z-index: auto;
-    grid-template-columns: auto auto 1fr;
-    grid-template-areas: 'menu head controls';
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 'head controls menu';
     row-gap: 0;
   }
-  .headstock {
-    padding-left: 6px;
+  .gbody {
+    padding-right: 0;
   }
+  /* Menu at the right end of the row, on the side the drawer comes from. */
   .menu-btn {
     grid-area: menu;
     display: inline-flex;
     align-items: center;
     gap: 7px;
     min-height: var(--tap);
-    margin-left: 8px;
+    margin-right: 8px;
     padding: 0 8px;
     border: 0;
     border-radius: 8px;
@@ -2405,31 +2408,37 @@ table.shapes button.rowbtn {
     outline-offset: 0;
   }
   /* ===== The drawer =====
-     The neck stands upright in a drawer that slides in from the left: the headstock at the top, cut by the
-     drawer's edge as the window cuts it on wide screens, then the frets running down with each item's label
-     beside its fret. The drawings are the wide screen's own, turned a quarter turn (low E on the left). */
+     The whole guitar stands upright in a drawer that slides in from the right: the headstock at the top, the frets
+     running down with each item's label beside its fret, and the body at the bottom. It opens on the frets; the
+     headstock and body are there for whoever scrolls. The drawings are the wide screen's own, turned a quarter turn
+     (low E on the left) and drawn at --gs, so the body fits the drawer's width; --nx and --nw place the neck. */
   html.drawer-open {
     overflow: hidden;
   }
   .neck {
+    --gs: 0.78;
+    --nx: 96px;
+    --nw: calc(64px * var(--gs));
     position: fixed;
     z-index: 75;
     top: 0;
     bottom: 0;
-    left: 0;
-    /* Wider by the notch, when a phone held sideways has it on the left, so the neck itself stays clear of it. */
-    width: calc(min(320px, 86vw) + env(safe-area-inset-left));
+    right: 0;
+    /* Wider by the notch, when a phone held sideways has it on the right, so the guitar itself stays clear of it. */
+    width: calc(min(320px, 86vw) + env(safe-area-inset-right));
     box-sizing: border-box;
     height: auto;
     display: flex;
     flex-direction: column;
     overflow: hidden auto;
     overscroll-behavior: contain;
-    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    /* Focus and scrolling keep the item clear of Close. */
+    scroll-padding-top: 64px;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
     background: var(--bg);
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
     visibility: hidden;
-    transform: translateX(-104%);
+    transform: translateX(104%);
     transition:
       transform 240ms cubic-bezier(0.4, 0, 0.9, 0.6),
       visibility 0s linear 240ms;
@@ -2443,7 +2452,7 @@ table.shapes button.rowbtn {
   }
   :root[data-theme='dark'] .neck {
     background:
-      linear-gradient(90deg, rgba(255, 214, 170, 0.04), rgba(0, 0, 0, 0.22)),
+      linear-gradient(270deg, rgba(255, 214, 170, 0.04), rgba(0, 0, 0, 0.22)),
       var(--page-grain, none) 0 0 / 1200px 240px,
       var(--bg);
   }
@@ -2461,18 +2470,29 @@ table.shapes button.rowbtn {
     opacity: 1;
     pointer-events: auto;
   }
+  /* Close stays at the top right however far the guitar is scrolled. */
+  .drawer-bar {
+    display: block;
+    position: sticky;
+    z-index: 3;
+    top: 0;
+    flex: none;
+    height: 0;
+  }
+  /* The whole headstock (228 px long, drawn at --gs), with a little wood above it. */
   .drawer-head {
     display: block;
     position: relative;
     flex: none;
-    height: 150px;
+    height: calc(16px + 228px * var(--gs));
     overflow: hidden;
   }
-  /* The headstock drawing turned clockwise: its neck (y 80–144) lands at x 80–144, its nut at the bottom edge. */
+  /* The headstock drawing turned clockwise: its neck (y 80–144) lands on the drawer's neck, its nut at the bottom
+     edge. */
   .drawer-headstock {
     position: absolute;
     inset: 0 auto 0 0;
-    width: 224px;
+    width: calc(var(--nx) + 144px * var(--gs));
     border-radius: 0 0 14px 0;
   }
   .drawer-headstock:focus-visible {
@@ -2484,7 +2504,7 @@ table.shapes button.rowbtn {
     top: 0;
     left: 0;
     transform-origin: 0 0;
-    transform: translate(224px, -78px) rotate(90deg);
+    transform: translate(calc(var(--nx) + 144px * var(--gs)), 16px) rotate(90deg) scale(var(--gs));
   }
   .drawer-close {
     position: absolute;
@@ -2506,8 +2526,8 @@ table.shapes button.rowbtn {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 80px;
-    width: 64px;
+    left: var(--nx);
+    width: var(--nw);
     overflow: hidden;
     pointer-events: none;
   }
@@ -2518,14 +2538,14 @@ table.shapes button.rowbtn {
     width: 3000px;
     height: 64px;
     transform-origin: 0 0;
-    transform: translateX(64px) rotate(90deg);
+    transform: translateX(var(--nw)) rotate(90deg) scale(var(--gs));
   }
   /* A fret is a row: the step's pearl on the board, the label and its note beside it. Frets close up going
      down, as on the wide screen, but never below a 48 px tap. */
   .neck .fret {
     flex: none !important;
     min-height: max(48px, calc(62px * var(--t, 1)));
-    grid-template-columns: 80px 64px minmax(0, 1fr);
+    grid-template-columns: var(--nx) var(--nw) minmax(0, 1fr);
     grid-template-rows: auto auto;
     grid-template-areas: none;
     align-content: center;
@@ -2560,8 +2580,8 @@ table.shapes button.rowbtn {
   .neck .fret::before {
     content: '';
     position: absolute;
-    left: 80px;
-    width: 64px;
+    left: var(--nx);
+    width: var(--nw);
     bottom: -1.5px;
     height: 3px;
     z-index: 1;
@@ -2593,27 +2613,27 @@ table.shapes button.rowbtn {
   .neck .twelfth {
     position: relative;
     flex-direction: row;
-    width: 64px;
+    width: var(--nw);
     height: 34px;
-    margin-left: 80px;
+    margin-left: var(--nx);
     padding: 0;
     background-image: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
     background-size: 100% 3px;
     background-position: center bottom;
   }
-  /* Past the tools, the frets close up toward the body and fill what is left of the drawer. */
+  /* Past the tools, the frets close up toward the body. */
   .neck .fret-tail {
     display: block;
-    flex: 1 0 40px;
+    flex: none;
   }
   .neck .fret-tail-inner {
+    position: static;
     flex-direction: column;
-    right: auto;
-    left: 80px;
-    width: 64px;
+    width: var(--nw);
+    margin-left: var(--nx);
   }
   .neck .fret-deco {
-    width: 64px !important;
+    width: var(--nw) !important;
     height: var(--w);
     background-image: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
     background-size: 100% 3px;
@@ -2623,9 +2643,29 @@ table.shapes button.rowbtn {
     top: calc(50% - 1.5px);
     left: 50%;
   }
+  /* The body (414 px long, its neck at y 120–184), turned the same way and drawn at --gs: the end of the neck runs
+     into it between the horns. */
+  .drawer-body {
+    display: block;
+    position: relative;
+    z-index: 1;
+    flex: none;
+    height: calc(414px * var(--gs));
+    /* Reaching back over the end of the neck (BODY_OVERLAP in Guitar.tsx), as on the wide screen. */
+    margin-top: calc(-58px * var(--gs));
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .drawer-body .body-art {
+    display: block;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transform: translate(calc(var(--nx) + 184px * var(--gs)), 0) rotate(90deg) scale(var(--gs));
+  }
 }
 @media (max-width: 480px) {
-  /* No room for the brand beside Menu and the knobs: home is the headstock in the drawer, as on wide screens. */
+  /* No room for the brand beside the knobs and Menu: home is the headstock in the drawer, as on wide screens. */
   .headstock {
     display: none;
   }

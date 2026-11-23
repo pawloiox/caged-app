@@ -264,7 +264,7 @@ test('the navigation is a pinned guitar cut by the window: headstock home, steps
   // headstock at the spike of its tip, 6 px above the neck, and the headstock and body art hang from the neck's line.
   const head = await banner.locator('a.headstock .headstock-art').boundingBox();
   const neck = await page.locator('nav.neck').boundingBox();
-  const body = await banner.locator('.body-art').boundingBox();
+  const body = await banner.locator('.gbody .body-art').boundingBox();
   expect(head!.x + head!.width).toBeLessThanOrEqual(neck!.x + 1);
   expect(body!.x).toBeLessThan(neck!.x + neck!.width);
   expect(neck!.y).toBeCloseTo(6, 0);
@@ -359,7 +359,7 @@ test('wide, short windows keep the neck on top; any screen taller than wide gets
   await expect(nav.getByRole('link', { name: 'Scales' })).toBeHidden();
   await menu.click();
   await expect(nav.getByRole('link', { name: 'Scales' })).toBeVisible();
-  await expect.poll(async () => (await nav.boundingBox())!.x).toBe(0);
+  await expect.poll(async () => Math.round((await nav.boundingBox())!.x + (await nav.boundingBox())!.width)).toBe(1024);
   await page.keyboard.press('Escape');
   await expect(menu).toBeFocused();
 });

@@ -40,6 +40,8 @@ const TOOLS = [
 
 /** Screens taller than wide, phone widths and phones held sideways (styles.css uses the same query): the neck is an
  * upright neck in a drawer from the left, opened with Menu. */
+/** How much of the headstock shows above the frets when the drawer opens: its foot, beside Close. */
+const DRAWER_PEEK = 64;
 const DRAWER = '(orientation: portrait), (max-width: 600px), (pointer: coarse) and (max-height: 500px)';
 function useDrawerNav(): boolean {
   const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(DRAWER).matches);
@@ -279,12 +281,15 @@ export function Layout() {
 
   useWakeLock(player.active || routineSt.running || mic === 'on');
 
-  // The drawer: on opening, focus the current page's fret (in view); the page behind stays still.
+  // The drawer: it opens on the frets, with the foot of the headstock just showing above them (scroll up for the
+  // rest), and focus on the current page's fret, in view. The page behind stays still.
   useEffect(() => {
     document.documentElement.classList.toggle('drawer-open', drawer);
     if (!drawer) return;
     const id = requestAnimationFrame(() => {
       const nav = neckRef.current;
+      const board = nav?.querySelector<HTMLElement>('.neck-board');
+      if (nav && board) nav.scrollTop = Math.max(0, board.offsetTop - DRAWER_PEEK);
       const cur =
         nav?.querySelector<HTMLElement>('.fret[aria-current="page"]') ?? nav?.querySelector<HTMLElement>('.fret');
       cur?.focus({ preventScroll: true });
@@ -330,17 +335,6 @@ export function Layout() {
         Skip to content
       </a>
       <header className="guitar" ref={guitarRef}>
-        <button
-          type="button"
-          className="menu-btn"
-          ref={menuRef}
-          aria-expanded={drawer}
-          aria-controls="site-nav"
-          onClick={() => setOpen(true)}
-        >
-          <NeckIcon />
-          <span>Menu</span>
-        </button>
         <Link className="headstock" to="/" aria-label="CAGED Lab home">
           <Headstock />
           <span className="brand-plain" aria-hidden="true">
@@ -367,15 +361,17 @@ export function Layout() {
             if (drawer && a) closeDrawer(a.pathname === loc.pathname);
           }}
         >
-          {/* Phones: the drawer opens on the headstock (the home link, as on wide screens), cut by its top edge, with the
-              neck running down from it. */}
+          {/* The drawer: the whole guitar stands up in it, headstock (the home link, as on wide screens) above the
+              frets and the body below. It opens on the frets; the rest is there for whoever scrolls. Close stays put. */}
+          <div className="drawer-bar">
+            <button type="button" className="btn drawer-close" onClick={() => closeDrawer()}>
+              Close
+            </button>
+          </div>
           <div className="drawer-head">
             <Link className="drawer-headstock" to="/" aria-label="CAGED Lab home">
               <Headstock />
             </Link>
-            <button type="button" className="btn drawer-close" onClick={() => closeDrawer()}>
-              Close
-            </button>
           </div>
           <div className="neck-board">
             <span className="drawer-neck" aria-hidden="true">
@@ -443,6 +439,9 @@ export function Layout() {
               </span>
             </span>
           </div>
+          <div className="drawer-body" aria-hidden="true">
+            <GuitarBody />
+          </div>
         </nav>
         <div className={`scrim${drawer ? ' open' : ''}`} aria-hidden="true" onClick={() => closeDrawer()} />
         <div className="gbody">
@@ -481,6 +480,18 @@ export function Layout() {
             <ViewMenu />
           </div>
         </div>
+        {/* Last in the row, at its right end, on the side the drawer comes from. */}
+        <button
+          type="button"
+          className="menu-btn"
+          ref={menuRef}
+          aria-expanded={drawer}
+          aria-controls="site-nav"
+          onClick={() => setOpen(true)}
+        >
+          <NeckIcon />
+          <span>Menu</span>
+        </button>
       </header>
       <div className="app" inert={drawer}>
         <main
