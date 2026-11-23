@@ -536,7 +536,8 @@ kbd {
 /* The neck and its end over the body (.neck-end) share one board: the same strings, wood and edge light. The grain
    is anchored at the neck's right edge, so it runs on into the end without a seam. */
 .neck,
-.neck-end {
+.neck-end,
+.neck-wood {
   /* Six strings at the same heights as in the headstock and body drawings, then the wood. */
   background-image:
     linear-gradient(rgba(220, 223, 221, 0.68), rgba(220, 223, 221, 0.68)),
@@ -806,6 +807,14 @@ kbd {
 .twelfth::after {
   animation-direction: reverse;
   animation-duration: 17s;
+}
+
+/* The phone drawer's parts (the menu button, the headstock and upright neck, the scrim) exist only on phones. */
+.menu-btn,
+.drawer-head,
+.drawer-neck,
+.scrim {
+  display: none;
 }
 
 .app {
@@ -2260,20 +2269,38 @@ table.shapes button.rowbtn {
     --neck-cut: 0px;
     position: relative;
     top: auto;
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      'head controls'
-      'neck neck';
+    /* No stacking context of its own, so the drawer and its scrim layer over the page and the mini-player. */
+    z-index: auto;
+    grid-template-columns: auto auto 1fr;
+    grid-template-areas: 'menu head controls';
     align-items: center;
     height: auto;
     margin: 0;
     padding: 4px 0 0;
-    row-gap: 4px;
   }
   .headstock {
     grid-area: head;
     height: auto;
-    padding-left: 12px;
+    padding-left: 6px;
+  }
+  .menu-btn {
+    grid-area: menu;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: var(--tap);
+    margin-left: 8px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink);
+    font: 650 15px var(--font-body);
+    cursor: pointer;
+  }
+  .menu-btn:focus-visible {
+    outline: 2.5px solid var(--ink);
+    outline-offset: 0;
   }
   .headstock-art,
   .body-art,
@@ -2283,14 +2310,221 @@ table.shapes button.rowbtn {
   .brand-plain {
     display: inline-flex;
   }
-  .neck {
-    grid-area: neck;
+  /* ===== The drawer =====
+     The neck stands upright in a drawer that slides in from the left: the headstock at the top, cut by the
+     drawer's edge as the window cuts it on wide screens, then the frets running down with each item's label
+     beside its fret. The drawings are the wide screen's own, turned a quarter turn (low E on the left). */
+  html.drawer-open {
+    overflow: hidden;
   }
-  .fret-tail {
-    display: none;
+  .neck {
+    position: fixed;
+    z-index: 75;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(320px, 86vw);
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+    visibility: hidden;
+    transform: translateX(-104%);
+    transition:
+      transform 240ms cubic-bezier(0.4, 0, 0.9, 0.6),
+      visibility 0s linear 240ms;
+  }
+  .neck.open {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0.85, 0.25, 1),
+      visibility 0s;
+  }
+  :root[data-theme='dark'] .neck {
+    background:
+      linear-gradient(90deg, rgba(255, 214, 170, 0.04), rgba(0, 0, 0, 0.22)),
+      var(--page-grain, none) 0 0 / 1200px 240px,
+      var(--bg);
+  }
+  .scrim {
+    display: block;
+    position: fixed;
+    z-index: 74;
+    inset: 0;
+    background: rgba(5, 10, 14, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms;
+  }
+  .scrim.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .drawer-head {
+    display: block;
+    position: relative;
+    flex: none;
+    height: 150px;
+    overflow: hidden;
+  }
+  /* The headstock drawing turned clockwise: its neck (y 80–144) lands at x 80–144, its nut at the bottom edge. */
+  .drawer-headstock {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 224px;
+    border-radius: 0 0 14px 0;
+  }
+  .drawer-headstock:focus-visible {
+    outline: 2.5px solid var(--ink);
+    outline-offset: -3px;
+  }
+  .drawer-headstock .headstock-art {
+    display: block;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transform: translate(224px, -78px) rotate(90deg);
+  }
+  .drawer-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    min-height: var(--tap);
   }
   .neck-board {
-    padding-right: 0;
+    position: relative;
+    flex: 1 0 auto;
+    flex-direction: column;
+    height: auto;
+    min-width: 0;
+    padding: 0;
+  }
+  /* The upright board: the wide screen's neck turned the same quarter turn, behind the frets. */
+  .drawer-neck {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 80px;
+    width: 64px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .neck-wood {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3000px;
+    height: 64px;
+    transform-origin: 0 0;
+    transform: translateX(64px) rotate(90deg);
+  }
+  /* A fret is a row: the step's pearl on the board, the label and its note beside it. Frets close up going
+     down, as on the wide screen, but never below a 48 px tap. */
+  .neck .fret {
+    flex: none !important;
+    min-height: max(48px, calc(62px * var(--t, 1)));
+    grid-template-columns: 80px 64px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas: none;
+    align-content: center;
+    justify-items: start;
+    gap: 1px 0;
+    padding: 4px 12px 4px 0;
+    color: var(--ink);
+    font: 650 16px/1.2 var(--font-body);
+    text-shadow: none;
+    white-space: normal;
+    background-image: none;
+  }
+  .neck .fret .inlay {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    justify-self: center;
+    align-self: center;
+  }
+  .neck .fret .fret-label {
+    grid-column: 3;
+    grid-row: 1;
+    padding-left: 14px;
+  }
+  .neck .fret .fret-sub {
+    grid-column: 3;
+    grid-row: 2;
+    padding-left: 14px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  /* The fret wire, across the board only. */
+  .neck .fret::before {
+    content: '';
+    position: absolute;
+    left: 80px;
+    width: 64px;
+    bottom: -1.5px;
+    height: 3px;
+    z-index: 1;
+    background: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+  }
+  .neck .fret.tool {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .neck .fret:hover {
+    background-color: transparent;
+  }
+  .neck .fret[aria-current='page'] {
+    background-color: color-mix(in srgb, var(--ink) 9%, transparent);
+    font-weight: 750;
+  }
+  /* The current page is marked like a chosen word: ink with a 3 px underline. */
+  .neck .fret[aria-current='page'] .fret-label {
+    text-decoration: underline 3px;
+    text-underline-offset: 6px;
+  }
+  .neck .fret[aria-current='page']::after {
+    display: none;
+  }
+  .neck .fret:focus-visible {
+    outline: 2.5px solid var(--ink);
+    outline-offset: -3px;
+  }
+  .neck .twelfth {
+    position: relative;
+    flex-direction: row;
+    width: 64px;
+    height: 34px;
+    margin-left: 80px;
+    padding: 0;
+    background-image: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+    background-size: 100% 3px;
+    background-position: center bottom;
+  }
+  /* Past the tools, the frets close up toward the body and fill what is left of the drawer. */
+  .neck .fret-tail {
+    flex: 1 0 40px;
+  }
+  .neck .fret-tail-inner {
+    flex-direction: column;
+    right: auto;
+    left: 80px;
+    width: 64px;
+  }
+  .neck .fret-deco {
+    width: 64px !important;
+    height: var(--w);
+    background-image: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
+    background-size: 100% 3px;
+    background-position: center bottom;
+  }
+  .neck .fret-deco.dot::before {
+    top: calc(50% - 1.5px);
+    left: 50%;
   }
   .gbody {
     grid-area: controls;
@@ -2338,7 +2572,8 @@ table.shapes button.rowbtn {
   }
 }
 @media (max-width: 480px) {
-  .brand-plain > span {
+  /* No room for the brand beside Menu and the knobs: home is the headstock in the drawer, as on wide screens. */
+  .headstock {
     display: none;
   }
   main {

@@ -38,6 +38,35 @@ const TOOLS = [
   { to: '/tuner', t: 'Tuner' },
 ] as const;
 
+/** Phones (860 px and below): the neck is an upright neck in a drawer that slides in from the left. */
+const PHONE = '(max-width: 860px)';
+function usePhone(): boolean {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE);
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
+/** A little upright fretboard: the menu button's icon (its frets read as the usual three bars). */
+function NeckIcon() {
+  return (
+    <svg className="neck-icon" width="22" height="26" viewBox="0 0 22 26" aria-hidden="true">
+      <rect x="4.5" y="0.5" width="13" height="25" rx="2" fill="#3a2317" stroke="currentColor" strokeOpacity="0.55" />
+      <rect x="4.5" y="0.5" width="13" height="3" rx="1" fill="#ded6c6" />
+      {[8.5, 14.5, 20].map((y) => (
+        <rect key={y} x="5" y={y} width="12" height="1.6" fill="#d9dddf" />
+      ))}
+      {[7.5, 11, 14.5].map((x) => (
+        <rect key={x} x={x} y="3.5" width="0.8" height="22" fill="#cfc9bf" opacity="0.7" />
+      ))}
+    </svg>
+  );
+}
+
 function useWakeLock(active: boolean) {
   useEffect(() => {
     if (!active || !('wakeLock' in navigator)) return;
@@ -156,6 +185,15 @@ export function Layout() {
   const mainRef = useRef<HTMLElement>(null);
   const neckRef = useRef<HTMLElement>(null);
   const guitarRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
+  const phone = usePhone();
+  const [open, setOpen] = useState(false);
+  const drawer = phone && open;
+  /** Close the drawer; focus goes back to the menu button unless a link is taking it to the new page. */
+  const closeDrawer = (restore = true) => {
+    setOpen(false);
+    if (restore) requestAnimationFrame(() => menuRef.current?.focus({ preventScroll: true }));
+  };
   // Opening the site: the page waits (html[data-intro=""], set in main.tsx) and settles in when the dropping guitar's
   // body touches down, timed off the guitar's own animation so the two always meet.
   useEffect(() => {
@@ -207,9 +245,10 @@ export function Layout() {
     }
   }, [theme]);
 
-  // Route change: stop playback, scroll up, move focus to the new heading.
+  // Route change: stop playback, close the drawer, scroll up, move focus to the new heading.
   useEffect(() => {
     stopLoop();
+    setOpen(false);
     window.scrollTo(0, 0);
     if (first.current) {
       first.current = false;
@@ -239,6 +278,45 @@ export function Layout() {
 
   useWakeLock(player.active || routineSt.running || mic === 'on');
 
+  // The drawer: on opening, focus the current page's fret (in view); the page behind stays still.
+  useEffect(() => {
+    document.documentElement.classList.toggle('drawer-open', drawer);
+    if (!drawer) return;
+    const id = requestAnimationFrame(() => {
+      const nav = neckRef.current;
+      const cur =
+        nav?.querySelector<HTMLElement>('.fret[aria-current="page"]') ?? nav?.querySelector<HTMLElement>('.fret');
+      cur?.focus({ preventScroll: true });
+      cur?.scrollIntoView({ block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [drawer]);
+  // Back on a wide screen, the neck is the guitar's again.
+  useEffect(() => {
+    if (!phone) setOpen(false);
+  }, [phone]);
+
+  /** Inside the open drawer: Escape closes it, and Tab goes round its links and Close, not out to the page. */
+  const drawerKeys = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (!drawer) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeDrawer();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const items = [...e.currentTarget.querySelectorAll<HTMLElement>('a[href], button')];
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last?.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first?.focus();
+    }
+  };
+
   const ns = nextStep(progress);
   const st = streakOf(progress.days);
   const due = dueKeys(progress.stats).length;
@@ -251,6 +329,17 @@ export function Layout() {
         Skip to content
       </a>
       <header className="guitar" ref={guitarRef}>
+        <button
+          type="button"
+          className="menu-btn"
+          ref={menuRef}
+          aria-expanded={drawer}
+          aria-controls="site-nav"
+          onClick={() => setOpen(true)}
+        >
+          <NeckIcon />
+          <span>Menu</span>
+        </button>
         <Link className="headstock" to="/" aria-label="CAGED Lab home">
           <Headstock />
           <span className="brand-plain" aria-hidden="true">
@@ -264,15 +353,45 @@ export function Layout() {
             <span>CAGED Lab</span>
           </span>
         </Link>
-        <nav className="neck" aria-label="Lessons and tools" ref={neckRef}>
+        <nav
+          id="site-nav"
+          className={`neck${drawer ? ' open' : ''}`}
+          aria-label="Lessons and tools"
+          ref={neckRef}
+          inert={phone && !open}
+          onKeyDown={drawerKeys}
+          onClick={(e) => {
+            // A fret closes the drawer. A new page takes focus to its heading; the same page, back to Menu.
+            const a = (e.target as HTMLElement).closest('a');
+            if (drawer && a) closeDrawer(a.pathname === loc.pathname);
+          }}
+        >
+          {/* Phones: the drawer opens on the headstock (the home link, as on wide screens), cut by its top edge, with the
+              neck running down from it. */}
+          <div className="drawer-head">
+            <Link className="drawer-headstock" to="/" aria-label="CAGED Lab home">
+              <Headstock />
+            </Link>
+            <button type="button" className="btn drawer-close" onClick={() => closeDrawer()}>
+              Close
+            </button>
+          </div>
           <div className="neck-board">
+            <span className="drawer-neck" aria-hidden="true">
+              <span className="neck-wood" />
+            </span>
             {STEPS.map((it, k) => {
               const done = !!progress.steps['step-' + it.n];
               // A finished step whose re-test is due: the pearl dulls until the skill is checked again.
               const checkDue = done && isDue(progress.stats['step:' + it.n]);
               const next = ns === it.n;
               return (
-                <NavLink key={it.to} to={it.to} className="fret" style={{ flexGrow: taper(k) }}>
+                <NavLink
+                  key={it.to}
+                  to={it.to}
+                  className="fret"
+                  style={{ flexGrow: taper(k), ['--t' as string]: taper(k) }}
+                >
                   <span className={`inlay${done ? ' done' : ''}${checkDue ? ' due' : ''}`} aria-hidden="true">
                     {it.n}
                   </span>
@@ -300,7 +419,12 @@ export function Layout() {
                         : ''
                     : '';
               return (
-                <NavLink key={it.to} to={it.to} className="fret tool" style={{ flexGrow: taper(k + 6) }}>
+                <NavLink
+                  key={it.to}
+                  to={it.to}
+                  className="fret tool"
+                  style={{ flexGrow: taper(k + 6), ['--t' as string]: taper(k + 6) }}
+                >
                   <span className="fret-label">{it.t}</span>
                   {sub ? <span className="fret-sub">{sub}</span> : null}
                 </NavLink>
@@ -312,13 +436,14 @@ export function Layout() {
                   <span
                     key={k}
                     className={`fret-deco${k % 2 === 0 && k > 0 && k < 9 ? ' dot' : ''}`}
-                    style={{ width: w }}
+                    style={{ width: w, ['--w' as string]: `${w}px` }}
                   />
                 ))}
               </span>
             </span>
           </div>
         </nav>
+        <div className={`scrim${drawer ? ' open' : ''}`} aria-hidden="true" onClick={() => closeDrawer()} />
         <div className="gbody">
           <GuitarBody />
           <span className="neck-end" aria-hidden="true">
@@ -356,7 +481,7 @@ export function Layout() {
           </div>
         </div>
       </header>
-      <div className="app">
+      <div className="app" inert={drawer}>
         <main
           id="main"
           ref={mainRef}
@@ -368,7 +493,7 @@ export function Layout() {
       </div>
       {/* Hidden only while a page's own transport bar (Step 5) is on screen, so Stop is always in view. */}
       {player.active && !player.inlineBarVisible ? (
-        <div className="mini no-print" role="region" aria-label="Now playing">
+        <div className="mini no-print" role="region" aria-label="Now playing" inert={drawer}>
           <span className="lbl">
             ▶ {player.label}
             {player.detail ? ` (${player.detail})` : ''}
@@ -378,7 +503,7 @@ export function Layout() {
           </button>
         </div>
       ) : rActive && !onPractice && !player.active ? (
-        <div className="mini no-print" role="region" aria-label="Routine timer">
+        <div className="mini no-print" role="region" aria-label="Routine timer" inert={drawer}>
           <span className="lbl">
             Routine {routineSt.block + 1} of 4, {fmtTime(routineSt.remaining)} left
           </span>

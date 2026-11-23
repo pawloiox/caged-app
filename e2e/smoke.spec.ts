@@ -262,7 +262,7 @@ test('the navigation is a pinned guitar cut by the window: headstock home, steps
   await banner.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
   // Headstock, neck and body sit on one line, the neck between the other two. The window's top edge cuts the
   // headstock at the spike of its tip, 6 px above the neck, and the headstock and body art hang from the neck's line.
-  const head = await banner.locator('.headstock-art').boundingBox();
+  const head = await banner.locator('a.headstock .headstock-art').boundingBox();
   const neck = await page.locator('nav.neck').boundingBox();
   const body = await banner.locator('.body-art').boundingBox();
   expect(head!.x + head!.width).toBeLessThanOrEqual(neck!.x + 1);

@@ -68,3 +68,46 @@ test('390px phone: Train Ear + hand draws only the zone on the upright neck', as
   await expect(board).toBeVisible();
   expect(await board.getByRole('button', { name: /fret 15,/ }).count()).toBe(0);
 });
+
+test('390px phone: the neck is a drawer from the left, opened with Menu', async ({ page }) => {
+  await page.goto('/scales');
+  await expect(page.locator('h1')).toBeVisible();
+  const nav = page.getByRole('navigation', { name: 'Lessons and tools' });
+  const menu = page.getByRole('button', { name: 'Menu' });
+  // Closed: the frets are out of sight and out of reach.
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await expect(nav.getByRole('link', { name: 'Explorer' })).toBeHidden();
+  expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  // Open: it slides in from the left edge, on the current page's fret.
+  await menu.tap();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  const scales = nav.getByRole('link', { name: 'Scales' });
+  await expect(scales).toBeFocused();
+  await expect(nav).toHaveClass(/open/);
+  await page.waitForTimeout(400);
+  const box = (await nav.boundingBox())!;
+  expect(box.x).toBe(0);
+  expect(box.height).toBeGreaterThanOrEqual(800);
+  // Every fret is a full tap target.
+  for (const l of await nav.getByRole('link').all()) expect((await l.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await noSeriousA11y(page, 'mobile drawer');
+  // Tab stays in the drawer: from the last fret it goes round to the home headstock.
+  await nav.getByRole('link', { name: 'Tuner' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(nav.getByRole('link', { name: 'CAGED Lab home' })).toBeFocused();
+  // Escape closes it, back on Menu.
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await expect(menu).toBeFocused();
+  // Tapping the page beside it closes it too.
+  await menu.tap();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await page.mouse.click(370, 600);
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  // A fret goes to its page and the drawer closes, with focus on the new heading.
+  await menu.tap();
+  await nav.getByRole('link', { name: 'Explorer' }).tap();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('h1')).toBeFocused();
+});
