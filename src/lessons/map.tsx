@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { engine, toPlayable } from '../audio/engine';
 import { PICK_CLARITY } from '../audio/mic/dsp';
+import { stopPageLoop } from '../audio/metronome';
 import { setLoopBpm, startLoop, stopLoop, usePlayer } from '../audio/transport';
 import { COL, NEUTRAL_ROOT, barreSpec, isOptional, mapVisuals, noteRole, type MapState } from '../fretboard/build';
 import { Legend, Pill } from '../fretboard/extras';
@@ -242,7 +243,7 @@ export function MapBench({
   };
 
   const changeKey = (key: number, q: Quality = st.q) => {
-    stopLoop();
+    stopPageLoop();
     set({ key, q, idx: 0, predMsg: '', predStage: null });
     if (!(predict && !st.revealed[q + key])) {
       const l = instances(key, q);

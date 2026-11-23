@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { engine } from '../audio/engine';
 import { listener, useMic } from '../audio/mic/listener';
+import { METRO_ID, stopPageLoop } from '../audio/metronome';
 import { stopLoop, usePlayer } from '../audio/transport';
 import { pauseRoutine, routineActive, startRoutine, useRoutine } from '../practice/routineStore';
 import { nextStep } from '../store/criteria';
@@ -13,6 +14,7 @@ import { Check, Seg } from './controls';
 import { loadGrain } from '../fretboard/materials';
 import { isDue } from '../train/leitner';
 import { FRETBOARD_END_CELLS, GuitarBody, Headstock, KnobFace } from './Guitar';
+import { MetronomeMenu } from './Metronome';
 
 /** When the page starts settling, in ms into the guitar's drop: its body touches down at 80 + 0.52 × 950 = 574 ms. */
 const GUITAR_LANDS = 480;
@@ -269,9 +271,10 @@ export function Layout() {
     }
   }, [theme]);
 
-  // Route change: stop playback, close the drawer, scroll up, move focus to the new heading.
+  // Route change: stop the page's playback (the metronome plays on), close the drawer, scroll up, move focus to the
+  // new heading.
   useEffect(() => {
-    stopLoop();
+    stopPageLoop();
     setOpen(false);
     setPageInert(false);
     window.scrollTo(0, 0);
@@ -514,6 +517,7 @@ export function Layout() {
               <KnobFace angle={muted ? -135 : 135} />
               <span className="knob-label">{muted ? 'Sound off' : 'Sound on'}</span>
             </button>
+            <MetronomeMenu />
             <ViewMenu />
           </div>
         </div>
@@ -545,10 +549,11 @@ export function Layout() {
         <div className="mini no-print" role="region" aria-label="Now playing" inert={pageInert}>
           <span className="lbl">
             ▶ {player.label}
-            {player.detail ? ` (${player.detail})` : ''}
+            {player.id === METRO_ID ? `, ${player.bpm} BPM` : player.detail ? ` (${player.detail})` : ''}
           </span>
+          {/* Space is the page's own play key, so it stops the page's playback, not the metronome. */}
           <button type="button" className="btn small" onClick={() => stopLoop()}>
-            Stop<kbd>Space</kbd>
+            Stop{player.id === METRO_ID ? null : <kbd>Space</kbd>}
           </button>
         </div>
       ) : rActive && !onPractice && !player.active ? (

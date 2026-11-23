@@ -514,6 +514,86 @@ kbd {
     0.4px 1.2px 1.8px rgba(0, 0, 0, 0.5),
     0 0 0 2px rgba(26, 25, 22, 0.55);
 }
+/* The metronome: a little pyramid metronome among the knobs. While it plays, its pendulum swings on the clicks
+   (Metronome.tsx sets each swing's angle and length from the beats) and the label shows the tempo. */
+.metro-icon {
+  display: block;
+  flex: none;
+  width: 18px;
+  height: 22px;
+}
+.metro-arm {
+  transform-box: view-box;
+  transform-origin: 11px 20px;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+}
+/* Room for "Metronome", so the strip keeps its width when it shows the tempo instead. */
+.knob-btn.metro .knob-label {
+  min-width: 5.2em;
+  font-variant-numeric: tabular-nums;
+}
+.metro-menu {
+  width: 300px;
+  max-width: calc(100vw - 24px);
+}
+/* The tempo, big and condensed like a chord name, between slower and faster. */
+.metro-tempo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.metro-bpm {
+  color: var(--muted);
+  font: 650 14px var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+.metro-bpm b {
+  margin-right: 4px;
+  color: var(--ink);
+  font: 830 44px/1 var(--font-display);
+  font-stretch: var(--condensed);
+}
+.metro-step {
+  width: var(--tap, 44px);
+  height: var(--tap, 44px);
+  padding: 0;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+}
+.metro-menu input[type='range'] {
+  width: 100%;
+}
+/* One light per beat, the bar's first bigger; the beat just clicked is lit. */
+.metro-lights {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 16px;
+}
+.metro-lights span {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--rule);
+  border-radius: 50%;
+}
+.metro-lights span.one {
+  width: 15px;
+  height: 15px;
+}
+.metro-lights span.on {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .metro-arm {
+    transform: none !important;
+    transition: none !important;
+  }
+}
 .menu {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1099,6 +1179,13 @@ main:focus {
 .seg.keys button {
   min-width: max(28px, var(--tap));
   font-size: 15px;
+}
+/* Beats per bar: five numbers, a finger's width each, in one row across the metronome. */
+.seg.beats {
+  gap: 0 8px;
+}
+.seg.beats button {
+  min-width: max(28px, var(--tap));
 }
 /* Scale patterns: the number, and for a pentatonic box the CAGED shape it surrounds. */
 .seg.patterns button {
@@ -2385,6 +2472,10 @@ table.shapes button.rowbtn {
     top: 5px;
     height: 6px;
   }
+  .metro-icon {
+    width: 22px;
+    height: 26px;
+  }
   .mic-led {
     min-height: var(--tap);
   }
@@ -2422,6 +2513,10 @@ table.shapes button.rowbtn {
   .menu-btn:focus-visible {
     outline: 2.5px solid var(--ink);
     outline-offset: 0;
+  }
+  /* The top row has room for the metronome's icon, not its name (the button is still named "Metronome"). */
+  .knob-btn.metro .knob-label {
+    display: none;
   }
   /* ===== The drawer =====
      The whole guitar stands upright in a drawer that slides in from the right: the headstock at the top, the frets

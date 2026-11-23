@@ -128,3 +128,31 @@ test('390px phone: the guitar is a drawer from the right, opened with Menu', asy
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('h1')).toBeFocused();
 });
+
+test('390px phone: the metronome is an icon in the top row, and plays on through the drawer to another page', async ({
+  page,
+}) => {
+  await page.goto('/learn/1');
+  const knob = page.getByRole('button', { name: /^Metronome/ });
+  const box = (await knob.boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(44);
+  expect(box.y).toBeLessThan(60);
+  await knob.tap();
+  const pop = page.getByRole('dialog', { name: 'Metronome' });
+  // Everything in it fits the screen, and the beats per bar sit in one row.
+  const pb = (await pop.boundingBox())!;
+  expect(pb.x).toBeGreaterThanOrEqual(0);
+  expect(pb.x + pb.width).toBeLessThanOrEqual(390);
+  const ys = await pop.getByRole('radio').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().y)));
+  expect(new Set(ys).size).toBe(1);
+  for (const b of await pop.getByRole('button').all())
+    expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await pop.getByRole('button', { name: 'Start' }).tap();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Menu' }).tap();
+  await page.getByRole('navigation', { name: 'Lessons and tools' }).getByRole('link', { name: 'Tuner' }).tap();
+  await expect(page).toHaveURL(/\/tuner$/);
+  await expect(knob).toHaveAccessibleName(/^Metronome, playing at \d+ BPM$/);
+  await page.getByRole('region', { name: 'Now playing' }).getByRole('button', { name: 'Stop' }).tap();
+  await expect(knob).toHaveAccessibleName('Metronome');
+});

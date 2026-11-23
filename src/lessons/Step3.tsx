@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { engine, toPlayable } from '../audio/engine';
-import { stopLoop } from '../audio/transport';
+import { stopPageLoop } from '../audio/metronome';
 import { COL, NEUTRAL, NEUTRAL_ROOT, barreSpec, textFor } from '../fretboard/build';
 import { LinkList, Tab } from '../fretboard/extras';
 import { Fretboard } from '../fretboard/Fretboard';
@@ -85,7 +85,7 @@ function ShapeCheck() {
     });
 
   const startCheck = (lv = level) => {
-    stopLoop();
+    stopPageLoop();
     setLevel(lv);
     setActive(true);
     setFinished(false);

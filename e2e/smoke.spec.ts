@@ -363,3 +363,43 @@ test('wide, short windows keep the neck on top; any screen taller than wide gets
   await page.keyboard.press('Escape');
   await expect(menu).toBeFocused();
 });
+
+test('metronome: opened from the knob strip on any page, it plays on across pages and remembers its tempo', async ({
+  page,
+}) => {
+  await page.goto('/scales');
+  const knob = page.getByRole('button', { name: /^Metronome/ });
+  await knob.click();
+  const pop = page.getByRole('dialog', { name: 'Metronome' });
+  await expect(pop).toBeVisible();
+  await pop.getByRole('button', { name: 'Faster' }).click();
+  await expect(pop.locator('.metro-bpm')).toHaveText('81 BPM');
+  await pop.getByRole('radio', { name: '3' }).click();
+  await expect(pop.locator('.metro-lights span')).toHaveCount(3);
+  await pop.getByRole('button', { name: 'Start' }).click();
+  // The beats light up in turn.
+  await expect(pop.locator('.metro-lights span.on')).toHaveCount(1);
+  await noSeriousA11y(page, 'metronome');
+  await page.keyboard.press('Escape');
+  await expect(pop).toBeHidden();
+  await expect(knob).toHaveAccessibleName('Metronome, playing at 81 BPM');
+  const mini = page.getByRole('region', { name: 'Now playing' });
+  await expect(mini).toContainText('Metronome, 81 BPM');
+  // Another page: it keeps playing.
+  await page.getByRole('navigation', { name: 'Lessons and tools' }).getByRole('link', { name: 'Explorer' }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(mini).toContainText('Metronome, 81 BPM');
+  // A page's own playback takes over from it.
+  await page.goto('/scales');
+  await knob.click();
+  await pop.getByRole('button', { name: 'Start' }).click();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /Play it up and down/ }).click();
+  await expect(knob).toHaveAccessibleName('Metronome');
+  await page.getByRole('button', { name: /^Stop/ }).first().click();
+  // Its tempo and beats per bar are kept for next time.
+  await page.reload();
+  await page.getByRole('button', { name: /^Metronome/ }).click();
+  await expect(pop.locator('.metro-bpm')).toHaveText('81 BPM');
+  await expect(pop.getByRole('radio', { name: '3' })).toHaveAttribute('aria-checked', 'true');
+});

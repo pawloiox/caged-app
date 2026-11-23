@@ -32,7 +32,7 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Only the guitar's lower part shows, and it stays pinned while the page scrolls under it: the window's top
      edge touches the spike at the headstock's tip (its upper corner), 6 px above the neck, so the whole neck
      shows. The tuners above the spike are cut by the edge, and the knobs and switch are above the window. The strip
-     between the edge and the neck is the page's wood, so scrolled text never shows above the neck. XP, the live-mic light, Sound and View sit in a small dark
+     between the edge and the neck is the page's wood, so scrolled text never shows above the neck. XP, the live-mic light, Sound, the metronome and View sit in a small dark
      strip below the neck, left of the body, not on the art.
    - When the site opens, the guitar drops in from above the window: the body end lands first, it bounces once and
      settles (under a second). The page waits hidden while it falls, and as the body touches down the page settles
@@ -122,6 +122,12 @@ Archivo (variable width 62–125%, weight 100–900), self-hosted, Latin subset.
   boxes name themselves the same way.
 - Buttons: an ink fill for the main action, an outlined surface for the others, 8 px radius.
 - Shape buttons keep their shape colour and letter, so shapes are never told apart by colour alone.
+- The metronome is a little wooden pyramid metronome among the knobs (only its icon in a phone's top row). Its
+  pop-up holds the tempo, set big and condensed between slower and faster, a slider, tap tempo, beats per bar (the
+  first beat accented, one light per beat) and the click volume. While it plays, the pendulum swings on the clicks
+  (it stands still with reduced motion) and the knob shows the tempo. It plays on from page to page until it is stopped, and
+  it is one player among the others: a page's own playback stops it, and it stops theirs. Its tempo and beats per
+  bar are remembered.
 
 ## Copy
 

@@ -1,4 +1,4 @@
-import { defaultPrefs, defaultProgress, type Prefs, type Progress } from './types';
+import { METRO_MAX, METRO_MIN, defaultPrefs, defaultProgress, type Prefs, type Progress } from './types';
 import { migrateStat, type Stat } from '../train/leitner';
 
 /** Storage boundary. The UI never touches IndexedDB directly, so a sync backend can replace this later. */
@@ -117,6 +117,9 @@ export function normalizePrefs(raw: unknown): Prefs {
   const merged = { ...base, ...(raw as Partial<Prefs>) };
   if (!['iv', 'note', 'finger', 'shape', 'none'].includes(merged.labels)) merged.labels = 'iv';
   if (!['shapes', 'roots', 'none'].includes(merged.fade)) merged.fade = 'shapes';
+  if (!Number.isFinite(merged.metroBpm)) merged.metroBpm = base.metroBpm;
+  merged.metroBpm = Math.round(Math.min(METRO_MAX, Math.max(METRO_MIN, merged.metroBpm)));
+  if (![1, 2, 3, 4, 6].includes(merged.metroBeats)) merged.metroBeats = base.metroBeats;
   // The wood theme is the default: anyone who never picked a theme (including older saves) gets it.
   if (!merged.themeChosen || !['system', 'light', 'dark'].includes(merged.theme)) merged.theme = 'dark';
   return merged;

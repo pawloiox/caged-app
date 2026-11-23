@@ -72,7 +72,15 @@ export interface Prefs {
   /** The player chose to use listening mode (we still ask the browser each session). */
   micWanted: boolean;
   fade: Fade;
+  /** The metronome's tempo (BPM) and its beats per bar (1: every click the same, no accent), kept between visits. */
+  metroBpm: number;
+  metroBeats: MetroBeats;
 }
+
+export type MetroBeats = 1 | 2 | 3 | 4 | 6;
+/** The metronome's tempo range, in BPM. */
+export const METRO_MIN = 30;
+export const METRO_MAX = 250;
 
 export const defaultProgress = (): Progress => ({
   version: 2,
@@ -105,4 +113,6 @@ export const defaultPrefs = (): Prefs => ({
   micLatency: null,
   micWanted: false,
   fade: 'shapes',
+  metroBpm: 80,
+  metroBeats: 4,
 });
