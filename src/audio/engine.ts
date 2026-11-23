@@ -36,6 +36,8 @@ class Engine {
   private raf = 0;
   private listeners = new Set<VisualListener>();
   muted = false;
+  /** Why the browser last refused to start audio, for the diagnostics page ('' if it never has). */
+  refused = '';
   guitarVol = 0.9;
   clickVol = 0.7;
 
@@ -89,7 +91,11 @@ class Engine {
         return null;
       }
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => {});
+    if (this.ctx.state === 'suspended')
+      void this.ctx.resume().then(
+        () => (this.refused = ''),
+        (e: unknown) => (this.refused = e instanceof Error ? e.message : String(e)),
+      );
     return this.ctx;
   }
 

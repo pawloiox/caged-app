@@ -15,7 +15,8 @@ export function loadTone(): Promise<ToneNS> {
   if (!tonePromise) {
     tonePromise = import('tone').then((Tone) => {
       const ctx = engine.ensure();
-      if (ctx) Tone.setContext(ctx);
+      // Tone opens a context of its own on import; replace it with ours and close it, so there is one.
+      if (ctx) Tone.setContext(ctx, true);
       Tone.getContext().lookAhead = 0.05;
       toneNS = Tone;
       return Tone;

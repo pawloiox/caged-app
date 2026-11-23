@@ -67,6 +67,38 @@ test('audio timing is drift-free over 5 minutes at 140 BPM', async ({ page }) =>
   await expect(res).toContainText('700 beats');
 });
 
+test('the audio check reports what stops sound, and the app keeps one audio context', async ({ page }) => {
+  await page.addInitScript(() => {
+    const N = window.AudioContext;
+    const w = window as unknown as { __ctx: AudioContext[] };
+    w.__ctx = [];
+    window.AudioContext = class extends N {
+      constructor(o?: AudioContextOptions) {
+        super(o);
+        w.__ctx.push(this);
+      }
+    };
+  });
+  await page.goto('/diagnostics');
+  const status = page.getByRole('table', { name: 'What this browser reports about sound' });
+  await expect(status).toContainText('Not started yet');
+  await page.getByRole('button', { name: 'Play a test note' }).click();
+  await expect(status).toContainText('Running');
+  await expect(page.getByTestId('sound-check')).toContainText('Sound is running.');
+  // With the knob off, the check says so.
+  await page.getByRole('button', { name: 'Sound on' }).click();
+  await page.getByRole('button', { name: 'Play a test note' }).click();
+  await expect(page.getByTestId('sound-check')).toContainText('The Sound knob is off in this browser.');
+  await page.getByRole('button', { name: 'Sound off' }).click();
+  // The timing run loads Tone, which opens a context of its own; only ours is left open.
+  await page.getByRole('button', { name: 'Run the 5-minute test' }).click();
+  await expect(page.getByTestId('timing-result')).toContainText('beats', { timeout: 45_000 });
+  const open = await page.evaluate(
+    () => (window as unknown as { __ctx: AudioContext[] }).__ctx.filter((c) => c.state !== 'closed').length,
+  );
+  expect(open).toBe(1);
+});
+
 test('v5 localStorage progress is imported', async ({ page }) => {
   await page.addInitScript(() => {
     if (!sessionStorage.getItem('seeded')) {

@@ -1254,6 +1254,17 @@ table.tab th[scope='row'] {
   background: var(--surface-2);
   width: auto;
 }
+table.audio-status td {
+  font: 500 15px var(--font-body);
+  text-align: left;
+  width: auto;
+  padding: 6px 12px;
+}
+table.audio-status th[scope='row'] {
+  font-size: 13px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
 table.tab .fg {
   color: var(--accent);
 }
