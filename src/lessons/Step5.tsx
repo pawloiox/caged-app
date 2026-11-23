@@ -635,7 +635,7 @@ export default function Step5() {
       <section className={`bench${playing ? ' playing' : ''}`} aria-label="Progression player">
         <div className="toolbar">
           <label className="field" htmlFor="prog">
-            Progression
+            <span className="field-label">Progression</span>
             <select
               id="prog"
               value={s.prog}
@@ -659,7 +659,7 @@ export default function Step5() {
         {own ? (
           <div className="song">
             <label className="field song-field" htmlFor="song">
-              Your song's chords
+              <span className="field-label">Your song's chords</span>
               <input
                 id="song"
                 type="text"
@@ -730,7 +730,7 @@ export default function Step5() {
         </div>
         <div className="toolbar">
           <label className="field" htmlFor="bpm">
-            Tempo
+            <span className="field-label">Tempo</span>
             <input
               type="range"
               id="bpm"

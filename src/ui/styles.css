@@ -935,7 +935,7 @@ main:focus {
   padding: 22px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   min-width: 0;
 }
 .bench > h2 {
@@ -944,8 +944,9 @@ main:focus {
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 32px;
-  align-items: center;
+  gap: 20px 32px;
+  /* Along the bottom, so the choices line up whether or not a group has its name over it. */
+  align-items: flex-end;
 }
 .actions {
   display: flex;
@@ -1045,16 +1046,33 @@ main:focus {
   opacity: 0.5;
   cursor: default;
 }
+/* A group's name is a small heading over its choices, set condensed and heavy like the other headings, so it never
+   reads as one more choice beside them. The same goes for the name of a menu, slider or text box (.field-label). */
 .seg-group {
   display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0 12px;
+  flex-direction: column;
+  align-items: flex-start;
 }
-.seg-label {
-  font-size: 13px;
-  font-weight: 500;
+.seg-label,
+.field-label {
+  font-size: 13.5px;
+  font-weight: 760;
+  font-stretch: 80%;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
   color: var(--muted);
+}
+/* Close over its own choices (whose tap targets have room above the words), well clear of the group before. */
+.seg-group .seg {
+  margin-top: -6px;
+}
+.field .field-label {
+  /* Its own line, over the control (and a slider's reading). */
+  flex-basis: 100%;
+}
+/* A slider's tap target is taller than its track; keep the name close to the track. */
+.field:has(input[type='range']) .field-label {
+  margin-bottom: -8px;
 }
 .seg {
   display: inline-flex;
@@ -1162,7 +1180,7 @@ table.pattern-tab td {
 .field {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   font-size: 14px;
   flex-wrap: wrap;
 }
@@ -1771,8 +1789,6 @@ table.shapes button.rowbtn {
 .song-field {
   display: grid;
   gap: 6px;
-  font-size: 14px;
-  font-weight: 650;
 }
 .song-field input {
   font: 600 1.1rem var(--font-body);

@@ -227,7 +227,7 @@ export default function Step2() {
           </span>
         </div>
         <div className="slider-row">
-          <label htmlFor="slide" className="muted">
+          <label htmlFor="slide" className="field-label">
             Where your index finger sits (fret)
           </label>
           <input

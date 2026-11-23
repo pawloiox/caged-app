@@ -116,7 +116,10 @@ Archivo (variable width 62–125%, weight 100–900), self-hosted, Latin subset.
 ## Controls
 
 - Choice groups (radio groups) are a row of words, and the chosen one is ink with a 3 px underline. Each group
-  shows its name (for example "Strings to play"), because underlines alone don't show where a group ends.
+  shows its name (for example "Strings to play"), because underlines alone don't show where a group ends. The name
+  is a small heading over its choices, set condensed and heavy in graphite (80% width, weight 760, 13.5 px), close
+  to its own row and well clear of the group before, so it never reads as one more choice. Menus, sliders and text
+  boxes name themselves the same way.
 - Buttons: an ink fill for the main action, an outlined surface for the others, 8 px radius.
 - Shape buttons keep their shape colour and letter, so shapes are never told apart by colour alone.
 

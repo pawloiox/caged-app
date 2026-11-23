@@ -160,7 +160,7 @@ function ViewMenu() {
           />
           <h2 className="card-title">Sound</h2>
           <label className="field">
-            Guitar
+            <span className="field-label">Guitar</span>
             <input
               type="range"
               min={0}
@@ -172,7 +172,7 @@ function ViewMenu() {
             />
           </label>
           <label className="field">
-            Click
+            <span className="field-label">Click</span>
             <input
               type="range"
               min={0}
