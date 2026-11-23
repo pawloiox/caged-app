@@ -51,7 +51,7 @@ often a phone. The interface has one job: show the neck and what to play next, r
    - Any screen taller than wide (phones, tablets held upright, tall windows), and phones of any shape (600 px wide
      and below, or a touch screen under 500 px tall) stand the guitar up in a drawer instead. A top row holds the
      brand, the knobs and, at its right end, Menu (a little fretboard icon). Menu slides the drawer in from the right
-     over a dimmed page, and the whole guitar stands in it, the wide screen's drawings turned a quarter turn and drawn
+     over a dimmed page (it glides in, slowing to rest, and leaves gathering speed, on the very next frame after a tap), and the whole guitar stands in it, the wide screen's drawings turned a quarter turn and drawn
      a little smaller so the body fits the drawer's width: the headstock, the neck running down with each step's pearl
      on its fret and the label beside it (the current page underlined like a chosen word), the 12th-fret double inlay,
      the tools, and straight after them the body, the fretboard's last frets closing up over it as on the wide

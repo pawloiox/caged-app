@@ -13,7 +13,7 @@
  * the neck is 64 px tall (y 80–144 in the headstock, 120–184 in the body), so the six strings run unbroken from the
  * tuners, over the frets, to the bridge.
  */
-import { useId } from 'react';
+import { memo, useId } from 'react';
 
 export const ROW_H = 224;
 export const NECK_TOP = 80;
@@ -134,7 +134,7 @@ function EdgeMask({ id, d }: { id: string; d: string }) {
   );
 }
 
-export function Headstock() {
+function HeadstockArt() {
   const id = useId().replace(/:/g, '');
   const W = HEADSTOCK_W;
   const posts = [...POSTS_TOP, ...POSTS_BOTTOM];
@@ -483,7 +483,7 @@ export const FRETBOARD_END_CELLS = [15, 13.5, 12, 11, 10] as const;
  * The body: gloss black with a white pickguard, three single-coil pickups, a two-point vibrato bridge, three hat knobs,
  * a five-way switch and an oval jack plate on the face. No strap buttons: as dots on the outline they read as noise.
  */
-export function GuitarBody() {
+function GuitarBodyArt() {
   const id = useId().replace(/:/g, '');
   const B = BRIDGE;
   const r = 2.6;
@@ -744,6 +744,10 @@ export function GuitarBody() {
     </svg>
   );
 }
+
+/** The drawings take no props, so they never redraw when the page around them does (opening the drawer, say). */
+export const Headstock = memo(HeadstockArt);
+export const GuitarBody = memo(GuitarBodyArt);
 
 export function KnobFace({ angle }: { angle: number }) {
   return (

@@ -356,7 +356,7 @@ test('wide, short windows keep the neck on top; any screen taller than wide gets
   await page.setViewportSize({ width: 1024, height: 1366 });
   const menu = page.getByRole('button', { name: 'Menu' });
   await expect(menu).toBeVisible();
-  await expect(nav.getByRole('link', { name: 'Scales' })).toBeHidden();
+  await expect(nav.getByRole('link', { name: 'Scales' })).not.toBeInViewport();
   await menu.click();
   await expect(nav.getByRole('link', { name: 'Scales' })).toBeVisible();
   await expect.poll(async () => Math.round((await nav.boundingBox())!.x + (await nav.boundingBox())!.width)).toBe(1024);

@@ -2412,6 +2412,10 @@ table.shapes button.rowbtn {
      running down with each item's label beside its fret, and the body at the bottom. It opens on the frets; the
      headstock and body are there for whoever scrolls. The drawings are the wide screen's own, turned a quarter turn
      (low E on the left) and drawn at --gs, so the body fits the drawer's width; --nx and --nw place the neck. */
+  :root {
+    --drawer-in: 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    --drawer-out: 260ms cubic-bezier(0.5, 0, 0.75, 0.25);
+  }
   html.drawer-open {
     overflow: hidden;
   }
@@ -2437,18 +2441,22 @@ table.shapes button.rowbtn {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
     background: var(--bg);
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
-    visibility: hidden;
-    transform: translateX(104%);
-    transition:
-      transform 240ms cubic-bezier(0.4, 0, 0.9, 0.6),
-      visibility 0s linear 240ms;
+    /* Closed, it waits just off the right edge (its shadow too), already drawn on a layer of its own: a tap only
+       moves it, with nothing to paint first, so it starts on the next frame. Out of reach while closed: inert
+       (Layout.tsx). It glides in, slowing to rest, and leaves the same way, gathering speed. */
+    transform: translateX(calc(100% + 48px));
+    will-change: transform;
+    transition: transform var(--drawer-out);
   }
   .neck.open {
-    visibility: visible;
     transform: none;
-    transition:
-      transform 320ms cubic-bezier(0.2, 0.85, 0.25, 1),
-      visibility 0s;
+    transition: transform var(--drawer-in);
+  }
+  /* Closed, the pearls hold still: nothing repaints off screen. */
+  .neck:not(.open) .inlay,
+  .neck:not(.open) .twelfth::before,
+  .neck:not(.open) .twelfth::after {
+    animation-play-state: paused;
   }
   :root[data-theme='dark'] .neck {
     background:
@@ -2464,11 +2472,14 @@ table.shapes button.rowbtn {
     background: rgba(5, 10, 14, 0.5);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 240ms;
+    will-change: opacity;
+    /* The page dims and clears in step with the drawer. */
+    transition: opacity var(--drawer-out);
   }
   .scrim.open {
     opacity: 1;
     pointer-events: auto;
+    transition: opacity var(--drawer-in);
   }
   /* Close stays at the top right however far the guitar is scrolled. */
   .drawer-bar {

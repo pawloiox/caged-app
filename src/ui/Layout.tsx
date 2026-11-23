@@ -42,6 +42,9 @@ const TOOLS = [
  * upright neck in a drawer from the left, opened with Menu. */
 /** How much of the headstock shows above the frets when the drawer opens: its foot, beside Close. */
 const DRAWER_PEEK = 64;
+/** The drawer's slide in and out (styles.css --drawer-in, --drawer-out). */
+const DRAWER_IN_MS = 360;
+const DRAWER_OUT_MS = 260;
 const DRAWER = '(orientation: portrait), (max-width: 600px), (pointer: coarse) and (max-height: 500px)';
 function useDrawerNav(): boolean {
   const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(DRAWER).matches);
@@ -203,10 +206,17 @@ export function Layout() {
   const phone = useDrawerNav();
   const [open, setOpen] = useState(false);
   const drawer = phone && open;
+  /**
+   * The page behind the open drawer is inert, but only once the drawer has slid in, and until it has slid out:
+   * restyling the whole page in a tap's own frame would hold the slide back (the drawer effect below).
+   */
+  const [pageInert, setPageInert] = useState(false);
   /** Close the drawer; focus goes back to the menu button unless a link is taking it to the new page. */
   const closeDrawer = (restore = true) => {
     setOpen(false);
     if (restore) requestAnimationFrame(() => menuRef.current?.focus({ preventScroll: true }));
+    // A new page takes focus at once, so it can't wait out the slide to stop being inert.
+    else setPageInert(false);
   };
   // Opening the site: the page waits (html[data-intro=""], set in main.tsx) and settles in when the dropping guitar's
   // body touches down, timed off the guitar's own animation so the two always meet.
@@ -263,6 +273,7 @@ export function Layout() {
   useEffect(() => {
     stopLoop();
     setOpen(false);
+    setPageInert(false);
     window.scrollTo(0, 0);
     if (first.current) {
       first.current = false;
@@ -295,19 +306,36 @@ export function Layout() {
   // The drawer: it opens on the frets, with the foot of the headstock just showing above them (scroll up for the
   // rest), and focus on the current page's fret, in view. The page behind stays still.
   useEffect(() => {
-    document.documentElement.classList.toggle('drawer-open', drawer);
-    if (!drawer) return;
-    const id = requestAnimationFrame(() => {
-      const nav = neckRef.current;
+    const root = document.documentElement;
+    const nav = neckRef.current;
+    const peek = () => {
       const board = nav?.querySelector<HTMLElement>('.neck-board');
       if (nav && board) nav.scrollTop = Math.max(0, board.offsetTop - DRAWER_PEEK);
+    };
+    if (!drawer) {
+      // Once it is out of sight: the page back, and the drawer at its opening view, so the next open has nothing
+      // to scroll or draw.
+      const t = window.setTimeout(() => {
+        root.classList.remove('drawer-open');
+        setPageInert(false);
+        if (phone) peek();
+      }, DRAWER_OUT_MS);
+      return () => window.clearTimeout(t);
+    }
+    root.classList.add('drawer-open');
+    const id = requestAnimationFrame(() => {
+      peek();
       const cur =
         nav?.querySelector<HTMLElement>('.fret[aria-current="page"]') ?? nav?.querySelector<HTMLElement>('.fret');
       cur?.focus({ preventScroll: true });
       cur?.scrollIntoView({ block: 'nearest' });
     });
-    return () => cancelAnimationFrame(id);
-  }, [drawer]);
+    const t = window.setTimeout(() => setPageInert(true), DRAWER_IN_MS);
+    return () => {
+      cancelAnimationFrame(id);
+      window.clearTimeout(t);
+    };
+  }, [drawer, phone]);
   // Back on a wide screen, the neck is the guitar's again.
   useEffect(() => {
     if (!phone) setOpen(false);
@@ -364,7 +392,8 @@ export function Layout() {
           className={`neck${drawer ? ' open' : ''}`}
           aria-label="Lessons and tools"
           ref={neckRef}
-          inert={phone && !open}
+          // Out of reach while closed, from the moment its slide out is over.
+          inert={phone && !open && !pageInert}
           onKeyDown={drawerKeys}
           onClick={(e) => {
             // A fret closes the drawer. A new page takes focus to its heading; the same page, back to Menu.
@@ -501,7 +530,7 @@ export function Layout() {
           <span>Menu</span>
         </button>
       </header>
-      <div className="app" inert={drawer}>
+      <div className="app" inert={pageInert}>
         <main
           id="main"
           ref={mainRef}
@@ -513,7 +542,7 @@ export function Layout() {
       </div>
       {/* Hidden only while a page's own transport bar (Step 5) is on screen, so Stop is always in view. */}
       {player.active && !player.inlineBarVisible ? (
-        <div className="mini no-print" role="region" aria-label="Now playing" inert={drawer}>
+        <div className="mini no-print" role="region" aria-label="Now playing" inert={pageInert}>
           <span className="lbl">
             ▶ {player.label}
             {player.detail ? ` (${player.detail})` : ''}
@@ -523,7 +552,7 @@ export function Layout() {
           </button>
         </div>
       ) : rActive && !onPractice && !player.active ? (
-        <div className="mini no-print" role="region" aria-label="Routine timer" inert={drawer}>
+        <div className="mini no-print" role="region" aria-label="Routine timer" inert={pageInert}>
           <span className="lbl">
             Routine {routineSt.block + 1} of 4, {fmtTime(routineSt.remaining)} left
           </span>

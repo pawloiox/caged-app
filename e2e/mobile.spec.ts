@@ -76,7 +76,9 @@ test('390px phone: the guitar is a drawer from the right, opened with Menu', asy
   const menu = page.getByRole('button', { name: 'Menu' });
   // Closed: the frets are out of sight and out of reach.
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
-  await expect(nav.getByRole('link', { name: 'Explorer' })).toBeHidden();
+  // It waits drawn just off the right edge, so it slides in at once, and inert, so nothing in it can be reached.
+  await expect(nav.getByRole('link', { name: 'Explorer' })).not.toBeInViewport();
+  await expect(nav).toHaveJSProperty('inert', true);
   const mb = (await menu.boundingBox())!;
   expect(mb.height).toBeGreaterThanOrEqual(44);
   // Menu sits at the right end of the top row, on the side the drawer comes from.
