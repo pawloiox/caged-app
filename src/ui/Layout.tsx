@@ -43,7 +43,7 @@ const TOOLS = [
 /** How much of the headstock shows above the frets when the drawer opens: its foot, beside Close. */
 const DRAWER_PEEK = 64;
 /** The drawer's slide in and out (styles.css --drawer-in, --drawer-out). */
-const DRAWER_IN_MS = 360;
+const DRAWER_IN_MS = 440;
 const DRAWER_OUT_MS = 260;
 const DRAWER = '(orientation: portrait), (max-width: 600px), (pointer: coarse) and (max-height: 500px)';
 function useDrawerNav(): boolean {
