@@ -55,6 +55,17 @@ function useDrawerNav(): boolean {
 }
 
 /** A little upright fretboard: the menu button's icon (its frets read as the usual three bars). */
+/** The fretboard's last frets, laid over the body drawing (Guitar.tsx FRETBOARD_END). */
+function FretboardEnd() {
+  return (
+    <span className="neck-end" aria-hidden="true">
+      {FRETBOARD_END_CELLS.map((w, k) => (
+        <span key={k} className={`fret-deco${k % 2 === 1 ? ' dot' : ''}`} style={{ width: w }} />
+      ))}
+    </span>
+  );
+}
+
 function NeckIcon() {
   return (
     <svg className="neck-icon" width="22" height="26" viewBox="0 0 22 26" aria-hidden="true">
@@ -433,7 +444,7 @@ export function Layout() {
                   <span
                     key={k}
                     className={`fret-deco${k % 2 === 0 && k > 0 && k < 9 ? ' dot' : ''}`}
-                    style={{ width: w, ['--w' as string]: `${w}px` }}
+                    style={{ width: w }}
                   />
                 ))}
               </span>
@@ -441,16 +452,13 @@ export function Layout() {
           </div>
           <div className="drawer-body" aria-hidden="true">
             <GuitarBody />
+            <FretboardEnd />
           </div>
         </nav>
         <div className={`scrim${drawer ? ' open' : ''}`} aria-hidden="true" onClick={() => closeDrawer()} />
         <div className="gbody">
           <GuitarBody />
-          <span className="neck-end" aria-hidden="true">
-            {FRETBOARD_END_CELLS.map((w, k) => (
-              <span key={k} className={`fret-deco${k % 2 === 1 ? ' dot' : ''}`} style={{ width: w }} />
-            ))}
-          </span>
+          <FretboardEnd />
           <div className="controls">
             <span className="xp">
               <b>{progress.xp}</b> XP

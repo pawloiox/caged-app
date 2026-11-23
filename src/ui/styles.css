@@ -2518,7 +2518,8 @@ table.shapes button.rowbtn {
     flex-direction: column;
     height: auto;
     min-width: 0;
-    padding: 0;
+    /* The last tool ends where the body begins, so the horns never cover its label. */
+    padding: 0 0 calc(58px * var(--gs));
   }
   /* The upright board: the wide screen's neck turned the same quarter turn, behind the frets. */
   .drawer-neck {
@@ -2621,27 +2622,9 @@ table.shapes button.rowbtn {
     background-size: 100% 3px;
     background-position: center bottom;
   }
-  /* Past the tools, the frets close up toward the body. */
+  /* No empty frets past the tools: the body comes straight after them, its fretboard end (.neck-end) closing up. */
   .neck .fret-tail {
-    display: block;
-    flex: none;
-  }
-  .neck .fret-tail-inner {
-    position: static;
-    flex-direction: column;
-    width: var(--nw);
-    margin-left: var(--nx);
-  }
-  .neck .fret-deco {
-    width: var(--nw) !important;
-    height: var(--w);
-    background-image: linear-gradient(180deg, #7d8487, #f4f5f3 45%, #9aa0a3);
-    background-size: 100% 3px;
-    background-position: center bottom;
-  }
-  .neck .fret-deco.dot::before {
-    top: calc(50% - 1.5px);
-    left: 50%;
+    display: none;
   }
   /* The body (414 px long, its neck at y 120–184), turned the same way and drawn at --gs: the end of the neck runs
      into it between the horns. */
@@ -2662,6 +2645,13 @@ table.shapes button.rowbtn {
     left: 0;
     transform-origin: 0 0;
     transform: translate(calc(var(--nx) + 184px * var(--gs)), 0) rotate(90deg) scale(var(--gs));
+  }
+  /* The fretboard's end over the body, as on the wide screen: its corner is the body's (53, 120), turned with it. */
+  .drawer-body .neck-end {
+    display: flex;
+    left: 0;
+    transform-origin: 0 0;
+    transform: translate(calc(var(--nx) + 64px * var(--gs)), calc(53px * var(--gs))) rotate(90deg) scale(var(--gs));
   }
 }
 @media (max-width: 480px) {

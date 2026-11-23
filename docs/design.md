@@ -54,7 +54,8 @@ often a phone. The interface has one job: show the neck and what to play next, r
      over a dimmed page, and the whole guitar stands in it, the wide screen's drawings turned a quarter turn and drawn
      a little smaller so the body fits the drawer's width: the headstock, the neck running down with each step's pearl
      on its fret and the label beside it (the current page underlined like a chosen word), the 12th-fret double inlay,
-     the tools, the upper frets closing up, and the body. It opens on the frets, readable at once, with only the foot
+     the tools, and straight after them the body, the fretboard's last frets closing up over it as on the wide
+     screen (no empty frets in between). It opens on the frets, readable at once, with only the foot
      of the headstock showing above them; the full headstock and the body are there for whoever scrolls. Close stays
      at the top right throughout. The headstock is the home link here too; at 480 px and below it is the only one, as
      the brand leaves the top row. Escape, Close, tapping the page or choosing a fret closes the drawer, and Tab stays
